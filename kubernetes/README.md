@@ -132,7 +132,18 @@ firewall:
 $ ansible-playbook -i /path/to/inventory -K firewalld-config.yml
 ```
 
-If you're using a different firewall then it will be necessary to configure it manually.
+If you're using a different firewall then it will be necessary to configure it manually. The following ports should be
+open:
+
+| Service         | Ports       | Protocol | Accessibility                                                        |
+| -------         | -----       | -------- | -------------                                                        |
+| Flannel         | 6783        | TCP      | From all k8s nodes to all other k8s nodes.                           |
+| WeaveNet        | 6783:6784   | UDP      | From all k8s nodes to all other k8s nodes.                           |
+| Etcd            | 2379:2380   | TCP      | From all k8s controller nodes to all other controller nodes.         |
+| Kube API Server | 5443        | TCP      | Between all k8s nodes and the k8s load balancer.                     |
+| Kube API Server | 5443        | TCP      | From any node used for k8s administration and the k8s load balancer. |
+| Kubelet API     | 10255,10250 | TCP      | Between all k8s nodes.                                               |
+| Node Ports      | 30000:32767 | TCP      | Between all k8s nodes, and from all haproxy nodes to all k8s nodes.  |
 
 ### Provision the Nodes
 
@@ -173,3 +184,16 @@ It's also a good idea to run `kubectl get nodes` on any node that has access to 
 determine whether or not the node becomes available.
 
 ### Tainting and Labeling VICE Worker Nodes
+
+The CyVerse Discovery Environment uses taints and labels to ensure that some nodes are used exclusively for VICE
+analyses. To mark a node as a VICE worker node, run this command on any node that has access to the Kubernetes API:
+
+```
+$ kubectl label nodes vice-worker-1.example.org vice=true
+```
+
+To prevent non-VICE pods from running on a node, run this command:
+
+```
+$ kubectl taint nodes vice-worker-1.example.org vice=only:NoSchedule
+```
