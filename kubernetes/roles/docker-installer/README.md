@@ -10,7 +10,3 @@ system, and it does not stop or start Docker.
 
 The `geerlingguy.docker` role must be installed. It should be listed in the
 top-level requirements.yml file.
-
-## Variables
-
-* `docker_version` - A string in the format '1.13.1'.
