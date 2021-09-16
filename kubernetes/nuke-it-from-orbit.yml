@@ -1,0 +1,292 @@
+---
+- name: Nuke Everything
+  hosts: k8s
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: stop docker
+      systemd:
+        daemon_reload: yes
+        service: docker
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: stop kubelet
+      systemd:
+        daemon_reload: yes
+        service: kubelet
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: stop etcd
+      systemd:
+        daemon_reload: yes
+        service: etcd
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: stop metricbeat
+      systemd:
+        daemon_reload: yes
+        service: metricbeat
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: stop filebeat
+      systemd:
+        daemon_reload: yes
+        service: filebeat
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: remove versionlock
+      shell: yum versionlock clear
+      ignore_errors: yes
+
+    - name: remove metricbeat
+      package:
+        name: metricbeat
+        state: absent
+
+    - name: remove filebeat
+      package:
+        name: filebeat
+        state: absent
+
+    - name: remove socat
+      package: 
+        name: socat
+        state: absent
+
+    - name: remove old flannel firewall config
+      blockinfile:
+        dest: /etc/sysconfig/iptables
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR flannel"
+        state: absent
+      tags:
+        - firewall
+
+    - name: remove old kubelet firewall config
+      blockinfile:
+        dest: /etc/sysconfig/iptables
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR kubelet"
+        state: absent
+      tags:
+        - firewall
+
+    - name: remove Kubernetes firewall config
+      blockinfile:
+        dest: /etc/sysconfig/iptables
+        marker: "## {mark} Kubernetes"
+        state: absent
+      tags:
+        - firewall
+
+    - name: Remove old docker version
+      package:
+        name: "docker-{{docker_version}}"
+        state: absent
+
+    - name: Remove docker-client
+      package:
+        name: "docker-client-{{docker_version}}"
+        state: absent
+
+    - name: Remove docker-common
+      package:
+        name: "docker-common-{{docker_version}}"
+        state: absent
+
+    - name: Remove /etc/systemd/system/docker.service.d/
+      file:
+        path: /etc/systemd/system/docker.service.d/
+        state: absent
+    
+    - name: Remove current docker version
+      package:
+        name: docker-ce
+        state: absent
+      
+    - name: remove current docker-ce-cli
+      package:
+        name: docker-ce-cli
+        state: absent
+    
+    - name: remove containerd.io
+      package:
+        name: containerd.io
+        state: absent
+  
+    - name: remove lvm2
+      package:
+        name: lvm2
+        state: absent
+
+    - name: remove /var/lib/docker
+      file:
+        path: /var/lib/docker
+        state: absent
+
+    - name: find possible mounts in /var/lib/kubelet
+      find:
+        paths: /var/lib/kubelet/pods
+        patterns: "*"
+        file_type: any
+        recurse: yes
+      register: possible_mounts
+
+    - name: umount possible mounts in /var/lib/kubelet
+      mount:
+        path: "{{ item.path }}"
+        state: unmounted
+      ignore_errors: yes
+      with_items: "{{ possible_mounts.files }}"
+
+    - name: remove /var/lib/kubelet
+      file:
+        path: /var/lib/kubelet
+        state: absent
+    
+    - name: remove /etc/cni/net.d
+      file:
+        path: /etc/cni/net.d
+        state: absent
+    
+    - name: remove /var/lib/dockershim
+      file:
+        path: /var/lib/dockershim
+        state: absent
+    
+    - name: remove /var/run/kubernetes
+      file:
+        path: /var/run/kubernetes
+        state: absent
+
+    - name: remove /var/lib/cni
+      file:
+        path: /var/lib/cni
+        state: absent
+
+    - name: find /usr/share/etcd dirs
+      find:
+        paths: /usr/share
+        patterns: etcd-v*
+        file_type: directory
+      register: etcd_dirs
+
+    - name: remove etcd dirs
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ etcd_dirs.files }}"
+    
+    - name: remove kubelet
+      package:
+        name: kubelet
+        state: absent
+    
+    - name: remove kubeadm
+      package:
+        name: kubeadm
+        state: absent
+
+    - name: remove kubectl
+      package:
+        name: kubectl
+        state: absent
+
+    - name: remove etcd configs
+      file:
+        path: /etc/etcd
+        state: absent
+    
+    - name: remove etcd data
+      file:
+        path: /var/lib/etcd
+        state: absent
+    
+    - name: remove etcd binaries
+      file:
+        path: /usr/share/etcd
+        state: absent
+
+    - name: remove etcd link
+      file:
+        path: /bin/etcd
+        state: absent
+
+    - name: remove etcdctl link
+      file:
+        path: /bin/etcdctl
+        state: absent
+
+    - name: find kubernetes directories
+      find:
+        paths: /usr/share
+        patterns: kubernetes-v*
+        file_type: directory
+      register: kubernetes_dirs
+
+    - name: remove kubernetes-directories
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ kubernetes_dirs.files }}"
+
+    - name: delete kubernetes link
+      file:
+        state: absent
+        path: /usr/share/kubernetes
+
+    - name: delete kubectl link
+      file:
+        state: absent
+        path: /usr/bin/kubectl
+
+    - name: delete kube-controller-manager link
+      file:
+        state: absent
+        path: /usr/bin/kube-controller-manager
+
+    - name: delete kube-controller-manager service
+      file:
+        state: absent
+        path: /etc/systemd/system/kube-controller-manager.service
+
+    - name: delete kube-apiserver link
+      file:
+        state: absent
+        path: /usr/bin/kube-apiserver
+
+    - name: delete kube-apiserver service
+      file:
+        state: absent
+        path: /etc/systemd/system/kube-apiserver.service
+
+    - name: delete /etc/kubernetes
+      file:
+        state: absent
+        path: /etc/kubernetes
+
+    - name: delete k8s.conf
+      file:
+        path: k8s.conf
+        state: absent
+
+    - name: sysctl --system
+      shell: sysctl --system
+
+    - name: remove haproxy
+      package:
+        name: haproxy
+        state: absent
+    
+    - name: remove haproxy.cfg
+      file:
+        path: /etc/haproxy/haproxy.cfg
+        state: absent
