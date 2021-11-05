@@ -1,0 +1,60 @@
+include  /etc/openldap/schema/core.schema
+include  /etc/openldap/schema/cosine.schema
+include  /etc/openldap/schema/inetorgperson.schema
+include  /etc/openldap/schema/nis.schema
+
+modulepath  /usr/lib64/openldap
+
+pidfile /var/run/openldap/slapd.pid
+lastmod  on
+idletimeout 120
+Allow bind_v2
+logfile /var/log/ldap/ldap.log
+loglevel packets stats args
+
+# Settings for PEM files
+
+#TLSCertificateFile /etc/openldap/cacerts/newcert.pem
+#TLSCertificateKeyFile /etc/openldap/cacerts/newkey.pem
+#TLSCACertificateFile /etc/openldap/cacerts/cacert.pem
+#TLSCipherSuite :SSLv3
+#TLSVerifyClient allow
+
+###################################################################
+#                                                                 #
+#  LDAP Master Configuration                                      #
+#                                                                 #
+###################################################################
+
+database   bdb
+suffix     "{{dn_suffix}}"
+rootdn     "cn=Manager,{{dn_suffix}}"
+rootpw     {{ slappasswd.stdout }}
+directory  /var/lib/ldap
+index      objectClass,entryCSN,entryUUID eq,pres
+index      ou,cn,mail,surname,givenname eq,pres,sub
+index      uidNumber,gidNumber,loginShell eq,pres
+index      uid,memberUid eq,pres,sub
+
+sizelimit unlimited
+
+# Syncprov for multi-master config.
+#overlay syncprov
+#syncprov-checkpoint 100 10
+#syncprov-sessionlog 100
+
+# users can authenticate and change their password
+access to attrs=userPassword
+      by self write
+      by anonymous auth
+      by * none
+
+
+access to
+    dn.subtree="ou=groups,{{dn_suffix}}"
+      by * read
+
+
+access to *
+    by self write
+    by * read

@@ -1,0 +1,42 @@
+---
+- name: "Install OpenLDAP Clients"
+  become: true
+  package:
+    name: openldap-clients
+    state: present
+
+- name: "Install OpenLDAP Server"
+  become: true
+  package:
+    name: openldap-servers
+    state: present
+
+- name: "Install OpenLDAP Development Libraries"
+  become: true
+  package:
+    name: openldap-devel
+    state: present
+
+- name: "Install pip"
+  become: true
+  package:
+    name: "python{{ ansible_python_version.split('.')[0] }}-pip"
+    state: present
+
+- name: "Install virtualenv"
+  become: true
+  package:
+    name: python-virtualenv
+    state: present
+
+- name: "Install gcc-c++"
+  become: true
+  package:
+    name: gcc-c++
+    state: present
+
+- name: "Install python-ldap"
+  become: true
+  pip:
+    name: python-ldap
+    state: present

@@ -1,0 +1,124 @@
+---
+- name: "Create the Base Domain"
+  community.general.ldap_entry:
+    dn: "{{ dn_suffix }}"
+    objectClass: "domain"
+    attributes:
+      dc: "{{ dn_suffix.split(',')[0].split('=')[1] }}"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "Organizational Unit: People"
+  community.general.ldap_entry:
+    dn: "ou=People,{{ dn_suffix }}"
+    objectClass: "organizationalUnit"
+    attributes:
+      ou: "People"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "Organizational Unit: Groups"
+  community.general.ldap_entry:
+    dn: "ou=Groups,{{ dn_suffix }}"
+    objectClass: "organizationalUnit"
+    attributes:
+      ou: "Groups"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "Group: everyone"
+  community.general.ldap_entry:
+    dn: "cn=everyone,ou=Groups,{{ dn_suffix }}"
+    objectClass: "posixGroup"
+    attributes:
+      description: "All users"
+      gidNumber: "10000"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "Group: de_admins"
+  community.general.ldap_entry:
+    dn: "cn=de_admins,ou=Groups,{{ dn_suffix }}"
+    objectClass: "posixGroup"
+    attributes:
+      description: "DE administrators"
+      gidNumber: "10001"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "User: de_grouper"
+  community.general.ldap_entry:
+    dn: "uid=de_grouper,ou=People,{{ dn_suffix }}"
+    objectClass: "inetOrgPerson,posixAccount,shadowAccount"
+    attributes:
+      uid: "de_grouper"
+      mail: "de_grouper@example.org"
+      sn: "Grouper"
+      givenName: "DE"
+      cn: "DE Grouper"
+      title: "Other"
+      o: "N/A"
+      departmentNumber: "N/A"
+      uidNumber: "40000"
+      gidNumber: "10000"
+      homeDirectory: "/home/de_grouper"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "Set the de_grouper password"
+  community.general.ldap_passwd:
+    dn: "uid=de_grouper,ou=People,{{ dn_suffix }}"
+    passwd: "{{ de_grouper_password }}"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+
+- name: "Add de_grouper to the 'everyone' Group"
+  community.general.ldap_attrs:
+    dn: "cn=everyone,ou=Groups,{{ dn_suffix }}"
+    attributes:
+      memberUid: "de_grouper"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "User: ldap_reader"
+  community.general.ldap_entry:
+    dn: "uid=ldap_reader,ou=People,{{ dn_suffix }}"
+    objectClass: "inetOrgPerson,posixAccount,shadowAccount"
+    attributes:
+      uid: "ldap_reader"
+      mail: "ldap_reader@example.org"
+      sn: "Reader"
+      givenName: "LDAP"
+      cn: "LDAP Reader"
+      title: "Other"
+      o: "N/A"
+      departmentNumber: "N/A"
+      uidNumber: "40001"
+      gidNumber: "10002"
+      homeDirectory: "/home/ldap_reader"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"
+
+- name: "Set the ldap_reader password"
+  community.general.ldap_passwd:
+    dn: "uid=ldap_reader,ou=People,{{ dn_suffix }}"
+    passwd: "{{ ldap_reader_password }}"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+
+- name: "Add ldap_reader to the 'everyone' Group"
+  community.general.ldap_attrs:
+    dn: "cn=everyone,ou=Groups,{{ dn_suffix }}"
+    attributes:
+      memberUid: "ldap_reader"
+    bind_dn: "cn=Manager,{{ dn_suffix }}"
+    bind_pw: "{{ root_password }}"
+    state: "present"

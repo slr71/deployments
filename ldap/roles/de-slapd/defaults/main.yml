@@ -1,0 +1,5 @@
+---
+dn_suffix: "dc=cyverse,dc=org"
+root_password: "notprod"
+de_grouper_password: "notprod"
+ldap_reader_password: "notprod"
