@@ -1,0 +1,10 @@
+---
+- name: Install and Configure LDAP
+  hosts: ldap
+  roles:
+    - role: de-slapd
+      vars:
+        dn_suffix: "{{ ldap.dn_suffix }}"
+        root_password: "{{ ldap.root_password }}"
+        de_grouper_password: "{{ ldap.de_grouper_password }}"
+        ldap_reader_password: "{{ ldap.ldap_reader_password }}"
