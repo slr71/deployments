@@ -55,3 +55,11 @@ ldap:
 
 The name of the administrative account is determined by the domain name (`ldap.dn_suffix`). For example, if the domain
 name is `dc=example,dc=org`, then the manager account is `cn=Manager,dc=example,dc=org`.
+
+## Installing LDAP
+
+This installation invoves merely running the playbook:
+
+```
+$ ansible-playbook -i /path/to/inventory -K slapd.yml
+```
