@@ -1,0 +1,34 @@
+secretGenerator:
+- name: dbuser
+  literals:
+  - username=dbuser
+  - password=notreal
+- name: kcadmin
+  literals:
+  - username=kcadmin
+  - password=notreal
+configMapGenerator:
+- name: keycloak-config
+  literals:
+  - KEYCLOAK_HOSTNAME=keycloak.example.org
+  - KEYCLOAK_LOGLEVEL=INFO
+  - DB_VENDOR=postgres
+  - DB_ADDR=postgres.example.org
+  - DB_PORT=5432
+  - PROXY_ADDRESS_FORWARDING=true
+  - JDBC_PARAMS=connectTimeout=21600
+  - JAVA_OPTS=-server
+    -Xms4096m
+    -Xmx8192m
+    -XX:MetaspaceSize=96m
+    -XX:MaxMetaspaceSize=256m
+    -Djboss.modules.system.pkgs=org.jboss.byteman
+    -Djava.awt.headless=true
+    -Dkeycloak.profile.feature.token_exchange=enabled
+    -Djava.security.egd=file:/dev/urandom
+namespace: keycloak
+resources:
+- deployment.yaml
+- service.yaml
+generatorOptions:
+  disableNameSuffixHash: true
