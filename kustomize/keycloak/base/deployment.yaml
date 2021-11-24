@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: default
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      volumes:
+      - name: cyverse-theme
+        emptyDir: {}
+      initContainers:
+      - name: init-themes
+        image: harbor.cyverse.org/de/keycloak-cyverse-theme:default
+        command:
+        - "sh"
+        - "-c"
+        - "cp -r /themes/cyverse/* /cyverse-theme/"
+        volumeMounts:
+        - name: cyverse-theme
+          mountPath: "/cyverse-theme"
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:12.0.1
+        env:
+        - name: KEYCLOAK_HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: KEYCLOAK_HOSTNAME
+        - name: KEYCLOAK_USER
+          valueFrom:
+            secretKeyRef:
+              name: kcadmin
+              key: username
+        - name: KEYCLOAK_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kcadmin
+              key: password
+        - name: KEYCLOAK_LOGLEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: KEYCLOAK_LOGLEVEL
+        - name: DB_VENDOR
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: DB_VENDOR
+        - name: DB_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: DB_ADDR
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: dbuser
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dbuser
+              key: password
+        - name: PROXY_ADDRESS_FORWARDING
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: PROXY_ADDRESS_FORWARDING
+        - name: JAVA_OPTS
+          valueFrom:
+            configMapKeyRef:
+              name: keycloak-config
+              key: JAVA_OPTS
+        volumeMounts:
+        - name: cyverse-theme
+          mountPath: "/opt/jboss/keycloak/themes/cyverse"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /auth/realms/master
+            port: 8080
