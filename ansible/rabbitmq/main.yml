@@ -1,0 +1,10 @@
+---
+- hosts: amqp-brokers
+  become: true
+  roles:
+    - role: rabbitmq
+      admin_user: "{{ amqp.admin_user }}"
+      admin_password: "{{ amqp.admin_password }}"
+      vhosts:
+        - "{{ amqp.de }}"
+        - "{{ amqp.irods }}"

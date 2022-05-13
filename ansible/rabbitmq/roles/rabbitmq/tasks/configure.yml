@@ -1,0 +1,16 @@
+---
+- name: "create the {{ vhost.vhost }} vhost"
+  rabbitmq_vhost:
+    name: "{{ vhost.vhost }}"
+    state: present
+
+- name: "configure the admin user for the {{ vhost.vhost }} vhost"
+  rabbitmq_user:
+    user: "{{ vhost.user }}"
+    password: "{{ vhost.password }}"
+    vhost: "{{ vhost.vhost }}"
+    state: present
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    tags: administrator
