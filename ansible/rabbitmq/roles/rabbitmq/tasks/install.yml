@@ -1,8 +1,25 @@
 ---
-- name: install epel-release
+- name: determine whether or not the OS is Amazon Linux 2
+  set_fact:
+    amazon_linux_2: "{{ ansible_distribution == 'Amazon' and ansible_distribution_version == '2' }}"
+
+- debug:
+    var: amazon_linux_2
+
+- name: install epel-release on Amazon Linux 2
+  command:
+    argv:
+      - amazon-linux-extras
+      - install
+      - epel
+      - -y
+  when: "{{ amazon_linux_2 }}"
+
+- name: install epel-release on CentOS or Rocky
   package:
     name: epel-release
     state: latest
+  when: "{{ not amazon_linux_2 }}"
 
 - name: install RabbitMQ
   package:
