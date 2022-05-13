@@ -1,0 +1,37 @@
+---
+- name: install epel-release
+  package:
+    name: epel-release
+    state: latest
+
+- name: install RabbitMQ
+  package:
+    name: rabbitmq-server
+    state: latest
+
+- name: start RabbitMQ
+  systemd:
+    name: rabbitmq-server
+    state: started
+    enabled: yes
+
+- name: enable RabbitMQ management plugin
+  rabbitmq_plugin:
+    names: rabbitmq_management
+    new_only: yes
+    state: enabled
+
+- name: create the admin user
+  rabbitmq_user:
+    user: "{{ admin_user }}"
+    password: "{{ admin_password }}"
+    configure_priv: .*
+    write_priv: .*
+    read_priv: .*
+    tags: administrator
+
+- name: remove the guest user
+  when: admin_user != "guest"
+  rabbitmq_user:
+    user: guest
+    state: absent

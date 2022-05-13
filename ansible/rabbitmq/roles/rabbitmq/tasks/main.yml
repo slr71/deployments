@@ -1,0 +1,6 @@
+---
+- include_tasks: install.yml
+- include_tasks: configure.yml
+  loop: "{{ vhosts }}"
+  loop_control:
+    loop_var: vhost
