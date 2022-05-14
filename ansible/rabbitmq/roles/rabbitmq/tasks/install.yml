@@ -13,13 +13,13 @@
       - install
       - epel
       - -y
-  when: "{{ amazon_linux_2 }}"
+  when: amazon_linux_2
 
 - name: install epel-release on CentOS or Rocky
   package:
     name: epel-release
     state: latest
-  when: "{{ not amazon_linux_2 }}"
+  when: not amazon_linux_2
 
 - name: install RabbitMQ
   package:
@@ -33,10 +33,16 @@
     enabled: yes
 
 - name: enable RabbitMQ management plugin
-  rabbitmq_plugin:
-    names: rabbitmq_management
-    new_only: yes
-    state: enabled
+  block:
+    - command:
+        argv:
+          - rabbitmq-plugins
+          - enable
+          - rabbitmq_management
+    - systemd:
+        name: rabbitmq-server
+        state: restarted
+        enabled: yes
 
 - name: create the admin user
   rabbitmq_user:
