@@ -1,8 +1,23 @@
 ---
-- name: install epel-release
+- name: determine whether or not the OS is Amazon Linux 2
+  set_fact:
+    amazon_linux_2: "{{ ansible_distribution == 'Amazon' and ansible_distribution_version == '2' }}"
+
+- name: install epel-release on Amazon Linux 2
+  command:
+    argv:
+      - amazon-linux-extras
+      - install
+      - epel
+      - -y
+    creates: /etc/yum.repos.d/epel.repo
+  when: amazon_linux_2
+
+- name: install epel-release on CentOS or Rocky
   package:
     name: epel-release
     state: latest
+  when: not amazon_linux_2
 
 - name: install RabbitMQ
   package:
@@ -15,11 +30,28 @@
     state: started
     enabled: yes
 
-- name: enable RabbitMQ management plugin
-  rabbitmq_plugin:
-    names: rabbitmq_management
-    new_only: yes
-    state: enabled
+- name: list explicitly enabled RabbitMQ plugins matching `rabbitmq_management`
+  command:
+    argv:
+      - rabbitmq-plugins
+      - list
+      - -E
+      - rabbitmq_management
+  register: mgmt_plugin_listing
+  changed_when: false
+
+- name: enable the RabbitMQ management plugin
+  block:
+    - command:
+        argv:
+          - rabbitmq-plugins
+          - enable
+          - rabbitmq_management
+    - systemd:
+        name: rabbitmq-server
+        state: restarted
+        enabled: yes
+  when: not mgmt_plugin_listing is search("\srabbitmq_management\s")
 
 - name: create the admin user
   rabbitmq_user:
