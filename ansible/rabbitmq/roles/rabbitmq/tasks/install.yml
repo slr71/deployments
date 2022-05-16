@@ -10,6 +10,7 @@
       - install
       - epel
       - -y
+    creates: /etc/yum.repos.d/epel.repo
   when: amazon_linux_2
 
 - name: install epel-release on CentOS or Rocky
@@ -29,7 +30,17 @@
     state: started
     enabled: yes
 
-- name: enable RabbitMQ management plugin
+- name: list explicitly enabled RabbitMQ plugins matching `rabbitmq_management`
+  command:
+    argv:
+      - rabbitmq-plugins
+      - list
+      - -E
+      - rabbitmq_management
+  register: mgmt_plugin_listing
+  changed_when: false
+
+- name: enable the RabbitMQ management plugin
   block:
     - command:
         argv:
@@ -40,6 +51,7 @@
         name: rabbitmq-server
         state: restarted
         enabled: yes
+  when: not mgmt_plugin_listing is search("\srabbitmq_management\s")
 
 - name: create the admin user
   rabbitmq_user:
