@@ -1,0 +1,32 @@
+---
+- name: pull image-janitor image
+  shell: docker pull harbor.cyverse.org/de/image-janitor:{{docker.tag}}
+
+- name: clone k8s-resources locally
+  become: no
+  local_action:
+    module: git
+    repo: ssh://git@gitlab.cyverse.org/core-sw/k8s-resources
+    dest: k8s-resources
+    version: "{{ {'dev' : 'master', 'uat' : 'beta', 'latest' : 'prod'}[docker.tag] | default(docker.tag) }}"
+    accept_hostkey: yes
+  run_once: True
+
+- name: copy jobservice.yml to the remote host
+  copy:
+    src: k8s-resources/resources/configs/{{environment_name}}/jobservices.yml
+    dest: /etc/jobservices.yml
+    mode: 0644
+
+- name: remove local k8s-resources clone
+  become: no
+  local_action:
+    module: file
+    state: absent
+    path: k8s-resources
+  run_once: True
+
+- name: install image-janitor
+  shell: docker run --rm -v /usr/local/bin:/image-janitor --entrypoint "cp" harbor.cyverse.org/de/image-janitor:{{docker.tag}} /go/bin/image-janitor /image-janitor/image-janitor
+
+- include: systemd.yml

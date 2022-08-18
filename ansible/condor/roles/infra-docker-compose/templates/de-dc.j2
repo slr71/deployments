@@ -1,0 +1,7 @@
+#!/bin/bash
+
+HOSTNAME=$(hostname -i) DE_TAG={{docker.tag}} DE_ENV={{environment_name}} COMPOSE_PROJECT_NAME={{inventory_hostname_short}}
+{%- if consul is defined %}
+ CONSUL_TOKEN={{(inventory_hostname+environment_name+consul.get('salt', 'consul_salt')) | to_uuid}}
+{%- endif %}
+ docker-compose -f /etc/docker-compose.yml "$@"

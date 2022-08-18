@@ -1,0 +1,43 @@
+---
+- name: stop image-janitor
+  service: name=image-janitor state=stopped
+  ignore_errors: yes
+  tags:
+    - image-janitor
+    - stop
+
+- include: remove.yml
+  tags:
+    - image-janitor
+    - remove
+
+- include: cleanup.yml
+  tags:
+    - image-janitor
+    - cleanup
+
+- name: create /opt/image-janitor directory
+  file:
+    path: /opt/image-janitor
+    state: directory
+    owner: condor
+    group: condor
+    mode: 0755
+  tags:
+    - image-janitor
+
+- name: create the excludes file
+  template:
+    src: excludes.j2
+    dest: /opt/image-janitor/excludes
+  tags:
+    - image-janitor
+    - excludes-file
+
+- include: update.yml
+  tags:
+    - image-janitor
+    - update
+
+- name: start image-janitor
+  service: name=image-janitor state=started

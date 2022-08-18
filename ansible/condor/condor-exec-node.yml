@@ -1,0 +1,42 @@
+---
+- name: install prerequisites
+  hosts: condor
+  become: true
+  tasks:
+    - package:
+        name: "python2-pip"
+        state: "present"
+    - pip:
+        name: "docker"
+        state: present
+
+- hosts: condor
+  become: true
+  roles:
+    - role: infra-timezone
+    - role: infra-docker
+    - role: infra-docker-compose
+    - role: condor-exec-node
+      vars:
+        condor_admin: "{{ condor.admin }}"
+        condor_uid_domain: "{{ condor.uid_domain }}"
+        condor_filesystem_domain: "{{ condor.filesystem_domain }}"
+        condor_collector_name: "{{ condor.collector_name }}"
+        condor_allow_read: "{{ condor.allow_read }}"
+        condor_allow_write: "{{ condor.allow_write }}"
+        condor_exec_dir: "{{ condor.exec_dir }}"
+        condor_password: "{{ condor.password }}"
+    - role: de-docker-logging-plugin
+    - role: de-image-janitor
+    - role: de-network-pruner
+    - role: de-road-runner
+    - role: de-interapps-runner
+
+- name: log into required docker registries
+  hosts: condor
+  become: true
+  become_user: condor
+  tasks:
+    - command: "docker login -u {{ item.user }} -p {{ item.password | quote }} {{ item.host }}"
+      loop: "{{ docker_registries }}"
+      when: docker_registries is defined

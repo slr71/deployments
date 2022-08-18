@@ -1,0 +1,10 @@
+---
+- include: remove.yml
+  tags:
+    - interapps-runner
+    - remove
+
+- include: update.yml
+  tags:
+    - interapps-runner
+    - update

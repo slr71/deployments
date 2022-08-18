@@ -1,0 +1,76 @@
+## Which machine is your central manager?
+
+CONDOR_HOST = {{ groups['condor-master'][0] }}
+
+## Pool's short description
+
+COLLECTOR_NAME = Condor Pool at $(FULL_HOSTNAME)
+
+##  When is this machine willing to start a job?
+
+START = TRUE && (NodeDisabled =!= true)
+
+IS_OWNER = FALSE
+
+##  When to suspend a job?
+
+SUSPEND = FALSE
+
+
+##  When to nicely stop a job?
+##  (as opposed to killing it instantaneously)
+
+PREEMPT = FALSE
+
+
+##  When to instantaneously kill a preempting job
+##  (e.g. if a job is in the pre-empting stage for too long)
+
+KILL = FALSE
+
+##  This macro determines what daemons the condor_master will start and keep its watchful eyes on.
+##  The list is a comma or space separated list of subsystem names
+
+DAEMON_LIST = MASTER, STARTD
+
+##  Sets how often the condor_negotiator starts a negotiation cycle.
+##  It is defined in seconds and defaults to 60 (1 minute).
+
+NEGOTIATOR_INTERVAL = 20
+
+##  Disable UID_DOMAIN check when submit a job
+
+TRUST_UID_DOMAIN = TRUE
+#################################
+## Added for iPlant Collaborative
+#################################
+CONDOR_ADMIN        = {{ condor_admin }}
+UID_DOMAIN          = {{ condor_uid_domain }}
+FILESYSTEM_DOMAIN   = {{ condor_filesystem_domain }}
+COLLECTOR_NAME      = {{ condor_collector_name }}
+ALLOW_READ          = {{ condor_allow_read | join(',') }}
+ALLOW_WRITE         = {{ condor_allow_write | join(',') }}
+HIGHPORT            = 65535
+LOWPORT             = 61440
+ASSIGN_CPU_AFFINITY = True
+
+SEC_PASSWORD_FILE = $(LOCAL_DIR)/lib/condor/pool_password
+SEC_DAEMON_AUTHENTICATION = PREFERRED
+SEC_DAEMON_INTEGRITY = PREFERRED
+SEC_DAEMON_AUTHENTICATION_METHODS = PASSWORD
+SEC_DAEMON_ENCRYPTION = PREFERRED
+SEC_NEGOTIATOR_AUTHENTICATION = PREFERRED
+SEC_NEGOTIATOR_INTEGRITY = PREFERRED
+SEC_NEGOTIATOR_AUTHENTICATION_METHODS = PASSWORD
+SEC_CLIENT_AUTHENTICATION_METHODS = FS, PASSWORD
+
+NUM_SLOTS = 1
+NUM_SLOTS_TYPE_1 = 1
+SLOT_TYPE_1 = cpus=100%
+SLOT_TYPE_1_PARTITIONABLE = true
+
+SLOT_WEIGHT = 1
+
+HAS_CYVERSE_ROAD_RUNNER = True
+STARTD_ATTRS = $(STARTD_ATTRS) HAS_CYVERSE_ROAD_RUNNER
+MaxVacateTime = 60 * $(MINUTE)

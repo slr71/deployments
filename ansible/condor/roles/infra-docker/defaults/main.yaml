@@ -1,0 +1,6 @@
+---
+# `infra-docker` default variables file
+docker_version_lock:   true
+docker_version:        "{{docker.version | default() }}"
+docker_version_string: "{% if docker_version is defined and docker_version != '' %}-{{ docker_version }}{% endif %}"
+

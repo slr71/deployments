@@ -1,0 +1,46 @@
+---
+- name: import the PGP key used by HTCondor
+  rpm_key:
+    key: "https://research.cs.wisc.edu/htcondor/yum/RPM-GPG-KEY-HTCondor"
+    state: "present"
+
+- name: add the YUM repository file
+  get_url:
+    url: "https://research.cs.wisc.edu/htcondor/yum/repo.d/htcondor-previous-rhel7.repo"
+    dest: "/etc/yum.repos.d/htcondor-previous-rhel7.repo"
+    mode: 0644
+
+# The repository containing the Condor distributions changes depending on the version, so the version
+# that we're installing is going to be hard-coded for now.
+- name: install Condor
+  package:
+    name: "condor-all-8.6.13-1.el7"
+    state: "present"
+
+- name: ensure that the execute directory exists
+  file:
+    path: "{{ condor_exec_dir }}"
+    state: "directory"
+    owner: "condor"
+    group: "condor"
+    mode: 0755
+
+- name: generate the main configuration file
+  template:
+    src: "condor_config.local"
+    dest: "/etc/condor/condor_config.local"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: generate the execution directory configuration file
+  template:
+    src: "exec-dir"
+    dest: "/etc/condor/config.d/exec-dir"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: store the pool password
+  command: "condor_store_cred -f /var/lib/condor/pool_password -p {{ condor_password | quote }}"
+  when: condor_password != ""

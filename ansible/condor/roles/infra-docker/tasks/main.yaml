@@ -1,0 +1,197 @@
+---
+# Users and groups
+- block:
+     - name: Add the docker group
+       group:
+          name:  docker
+          state: present
+
+     - name: Add the docker user
+       user:
+          name:   docker
+          shell:  /bin/bash
+          groups: docker
+          append: yes
+
+     - when: "'condor' in group_names"
+       name: Add the condor user to the docker group
+       user:
+          name:   condor
+          groups: docker
+          append: yes
+  tags:
+      - config
+      - config_user
+
+# Uninstall old packages
+- block:
+     - name: Uninstall previous docker-ce package
+       package:
+          name:  docker-ce
+          state: absent
+
+     - name: Uninstall previous docker-ce-cli package
+       package:
+          name:  docker-ce-cli
+          state: absent
+
+     - name: Uninstall previous Docker package
+       package:
+          name:  docker
+          state: absent
+
+     - name: Uninstall previous docker-selinux package
+       package:
+          name:  docker-selinux
+          state: absent
+
+     - name: Uninstall previous lxc-docker* package
+       package:
+          name:  lxc-docker*
+          state: absent
+
+     - name: Uninstall previous docker-io* package
+       package:
+          name:  docker.io*
+          state: absent
+
+     - name: Uninstall previous docker-engine
+       package:
+          name:  docker-engine
+          state: absent
+
+     - name: Uninstall docker-common
+       package:
+          name: docker-common
+          state: absent
+
+     - name: Uninstall container-selinux
+       package:
+          name: container-selinux
+          state: absent
+  rescue:
+      - fail: msg="Error when removing old docker packages"
+  tags:
+      - uninstall
+
+# Install repos and new packages
+- block:
+    - block:
+        - name: Remove the /etc/yum.repos.d/docker-main.repo file
+          file:
+            path:  "/etc/yum.repos.d/docker-main.repo"
+            state: absent
+
+        - name: Remove the /etc/yum.repos.d/docker.repo file
+          file:
+            path:  "/etc/yum.repos.d/docker.repo"
+            state: absent
+
+        - name: Remove the /etc/yum.repos.d/docker-testing.repo file
+          file:
+            path:  "/etc/yum.repos.d/docker-testing.repo"
+            state: absent
+      tags:
+        - uninstall
+
+    - name: Add repo file
+      yum_repository:
+        name:        docker-ce
+        description: Docker CE Repository
+        baseurl:     "https://download.docker.com/linux/centos/7/$basearch/stable"
+        enabled:     no
+        gpgcheck:    yes
+        gpgkey:      https://download.docker.com/linux/centos/gpg
+      tags:
+          - install
+
+    - name: Install Docker cli package
+      yum:
+        name: "{{ docker.cli_version }}"
+        enablerepo: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install Docker package
+      yum:
+        # old version of this line was 'name: "docker-ce{{docker_version_string}}"'
+        name:  "{{ docker.version }}"
+        enablerepo: docker-ce
+        state: present
+        update_cache: yes
+  tags:
+      - install
+
+# Systemd-specific tasks and overrides
+- block:
+     - name: Place require-network.conf
+       copy:
+          src:   require-network.conf
+          dest:  /etc/systemd/system/docker.service.d/
+          group: root
+          owner: root
+          mode:  0664
+
+     - name: Place environment-file.conf
+       copy:
+          src:   environment-file.conf
+          dest:  /etc/systemd/system/docker.service.d/
+          group: root
+          owner: root
+          mode:  0664
+
+     - name: reload systemd
+       shell: systemctl daemon-reload
+  tags:
+     - update_service_files
+
+- name: ensure that /etc/docker exists
+  file: path=/etc/docker state=directory mode=0755
+  tags:
+    - config
+
+- name: place daemon.json
+  template:
+     src:   daemon.json.j2
+     dest:  /etc/docker/daemon.json
+     group: root
+     owner: root
+     mode:  0644
+  tags:
+      - config
+
+- when: docker_alt_location is defined and docker_alt_location != ""
+  tags:
+     - config
+  block:
+     - name: ensure {{docker_alt_location}} exists
+       file: path={{docker_alt_location}} state=directory mode=0755 owner=root group=root
+     - name: link separate volume location to /var/lib/docker
+       file: dest=/var/lib/docker src={{docker_alt_location}} state=link
+
+- name: enable docker
+  service:
+     name: docker
+     enabled: yes
+  tags:
+      - enable_docker
+
+- name: restart docker
+  service:
+     name: docker
+     state: restarted
+     enabled: yes
+  tags:
+      - restart_docker
+
+- include: rsyslog.yml
+  tags:
+     - rsyslog
+     - syslog
+
+- name: install/update docker-compose
+  become: yes
+  get_url: url=https://github.com/docker/compose/releases/download/1.21.2/docker-compose-Linux-x86_64 dest=/usr/bin/docker-compose mode=0755 force=yes
+  tags:
+      - install_docker-compose
+      - install

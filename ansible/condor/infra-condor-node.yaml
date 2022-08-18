@@ -1,0 +1,9 @@
+---
+# Install condor (and ensure creation of condor user)
+- hosts: condor
+  become: true
+  roles:
+      - infra-condor
+
+# Install docker
+- include: infra-docker.yaml

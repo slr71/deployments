@@ -1,0 +1,21 @@
+---
+- name: Remove the old /etc/rsyslog.d/20-iplant.conf file
+  file: 
+    path: /etc/rsyslog.d/20-iplant.conf
+    state: absent
+
+- name: Place DE Docker services Rsyslog file
+  copy:
+     src: 10-DE-Docker-Services.conf
+     dest: /etc/rsyslog.d/10-DE-Docker-Services.conf
+     mode: 0644
+
+- name: Restart Rsyslog
+  service:
+     name: rsyslog
+     state: restarted
+
+
+
+
+

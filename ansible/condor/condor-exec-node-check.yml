@@ -1,0 +1,23 @@
+---
+## There's no good way to check for iptables funkiness, so simply restart it and docker.
+- hosts: condor
+  become: true
+  tasks:
+    - name: restart iptables
+      systemd:
+        name: iptables
+        state: restarted
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted
+
+## Ensure that we can pull images from any docker registries that require it.
+- hosts: condor
+  become: true
+  become_user: condor
+  tasks:
+    - name: test docker authentication
+      command: "docker pull {{ item.host }}/{{ item.test_image }}"
+      loop: "{{ docker_registries }}"
+      when: docker_registries is defined

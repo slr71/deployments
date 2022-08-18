@@ -1,0 +1,13 @@
+---
+- name: stop old image-janitor
+  shell: docker-compose -f /etc/docker-compose.yml stop image_janitor
+  ignore_errors: yes
+
+- name: remove old image-janitor
+  shell: docker-compose -f /etc/docker-compose.yml rm -fv image_janitor
+  ignore_errors: yes
+
+- name: remove /etc/docker-compose.yml
+  file:
+    path: /etc/docker-compose.yml
+    state: absent
