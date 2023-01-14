@@ -1,0 +1,30 @@
+---
+- name: ensure that tzdata is installed via yum
+  become: yes
+  yum:
+    name: tzdata
+    state: latest
+
+- name: ensure that tzdata-java is installed via yum
+  become: yes
+  yum:
+    name: tzdata-java
+    state: latest
+
+- name: link the correct time zone to /etc/localtime
+  become: yes
+  file:
+    path: /etc/localtime
+    state: link
+    src: "/usr/share/zoneinfo/{{ timezone }}"
+    force: yes
+    mode: 0644
+
+- name: set current time zone in /etc/timezone
+  become: yes
+  template:
+    src: timezone.j2
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: 0644
