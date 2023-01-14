@@ -13,8 +13,10 @@
 - hosts: condor
   become: true
   roles:
-    - role: infra-timezone
-    - role: infra-docker
+    - role: timezone
+      vars:
+        timezone: "{{ timezone }}"
+    - role: docker
     - role: infra-docker-compose
     - role: condor-exec-node
       vars:
