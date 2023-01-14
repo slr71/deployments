@@ -1,5 +1,0 @@
-{
-	"dns-opts": [ "use-vc" ]{% if use_overlay and 'registrator' in group_names %},
-	"cluster-store": "consul://127.0.0.1:8500",
-	"cluster-advertise": "{{ ansible_default_ipv4.interface }}:2375"{% endif %}
-}

@@ -1,0 +1,82 @@
+---
+# Users and groups
+- block:
+     - name: Add the docker group
+       group:
+          name: docker
+          state: present
+
+     - name: Add the docker user
+       user:
+          name: docker
+          shell: /bin/bash
+          groups: docker
+          append: yes
+
+     - when: "'condor' in group_names"
+       name: Add the condor user to the docker group
+       user:
+          name: condor
+          groups: docker
+          append: yes
+  tags:
+      - config
+      - config_user
+
+# Install repos and packages
+- block:
+    - name: Add repo file
+      yum_repository:
+        name: docker-ce
+        description: Docker CE Repository
+        baseurl: "https://download.docker.com/linux/centos/docker-ce.repo"
+        enabled: no
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+      tags:
+          - install
+
+    - name: Install Docker CLI
+      yum:
+        name: docker-ce-cli
+        enablerepo: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install Docker
+      yum:
+        name: docker-ce
+        enablerepo: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install containerd.io
+      yum:
+        name: containerd.io
+        enablerepo: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Install docker-compose plugin
+      yum:
+        name: docker-compose-plugin
+        enablerepo: docker-ce
+        state: present
+        update_cache: yes
+  tags:
+      - install
+
+- name: enable docker
+  service:
+     name: docker
+     enabled: yes
+  tags:
+      - enable_docker
+
+- name: restart docker
+  service:
+     name: docker
+     state: restarted
+     enabled: yes
+  tags:
+      - restart_docker
