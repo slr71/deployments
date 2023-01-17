@@ -74,8 +74,10 @@ condor-node-1.example.org
 
 ## Group Variable Setup
 
-```
+``` yaml
 timezone: UTC
+docker:
+  tag: "latest"
 condor:
   admin: "admin@example.org"
   uid_domain: "example.org"
