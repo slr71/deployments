@@ -64,6 +64,5 @@ controller-node.example.org
 ## Group Variable Setup
 
 ```
-condor:
-  admin:
+timezone: UTC
 ```
