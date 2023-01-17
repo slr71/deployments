@@ -1,21 +1,19 @@
 ---
 - name: import the PGP key used by HTCondor
   rpm_key:
-    key: "https://research.cs.wisc.edu/htcondor/yum/RPM-GPG-KEY-HTCondor"
+    key: "https://research.cs.wisc.edu/htcondor/repo/keys/HTCondor-10.x-Key"
     state: "present"
 
 - name: add the YUM repository file
-  get_url:
-    url: "https://research.cs.wisc.edu/htcondor/yum/repo.d/htcondor-previous-rhel7.repo"
-    dest: "/etc/yum.repos.d/htcondor-previous-rhel7.repo"
-    mode: 0644
-
-# The repository containing the Condor distributions changes depending on the version, so the version
-# that we're installing is going to be hard-coded for now.
-- name: install Condor
-  package:
-    name: "condor-all-8.6.13-1.el7"
+  yum:
+    name: "https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el8.noarch.rpm"
     state: "present"
+
+- name: install Condor
+  yum:
+    name: "condor-all"
+    state: "present"
+    enablerepo: "powertools"
 
 - name: ensure that the execute directory exists
   file:

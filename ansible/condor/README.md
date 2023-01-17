@@ -1,4 +1,4 @@
-# HTCondor Deployment Playbooks
+# Htcondor Deployment Playbooks
 
 The playbooks in this directory can be used to prepare to add a worker node to the HTCondor cluster for the CyVerse
 Discovery Environment.
@@ -23,46 +23,66 @@ CyVerse Discovery Environment's HTCondor cluster:
 ## Inventory Setup
 
 ```
-[condor]
+[condor:children]
+condor_worker
+condor_submission
+condor_manager
+
+[condor_worker]
 condor-node-1.example.org
 condor-node-2.example.org
 
-[condor-submission]
+[condor_submission]
 submission-node.example.org
 
-[condor-controller]
-controller-node.example.org
+[condor_manager]
+central-manager-node.example.org
 ```
 
 The groups are defined as follows:
 
-| Group Name        | Description                                            |
-| ----------------- | ------------------------------------------------------ |
-| condor            | All condor worker nodes.                               |
-| condor-submission | This group contains the single Condor submission node. |
-| condor-controller | This group contains the single Condor controller node. |
+| Group Name        | Description                                                 |
+| ----------------- | ----------------------------------------------------------- |
+| condor            | All condor nodes.                                           |
+| condor_worker     | Condor worker nodes.                                        |
+| condor_submission | This group contains the single Condor submission node.      |
+| condor_manager    | This group contains the single Condor central manager node. |
 
 The Condor submission group should consist of a single node from which all Condor jobs will be submitted. The workload
 on this node can be relatively high, so it's generally a good idea for this node not to be used for anything other than
 job submission.
 
-The Condor controller group should also consist of a single node that will manage the Condor cluster. In low traffic
-environments, it may be useful for one of the worker nodes to double as a controller node, for example:
+The Condor central manager group should also consist of a single node that will manage the Condor cluster. In low
+traffic environments, it may be useful for one of the worker nodes to double as a central-manager node, for example:
 
 ```
-[condor]
+[condor:children]
+condor_worker
+condor_submission
+condor_manager
+
+[condor_worker]
 condor-node-1.example.org
 condor-node-2.example.org
 
-[condor-submission]
+[condor_submission]
 submission-node.example.org
 
-[condor-controller]
-controller-node.example.org
+[condor_manager]
+condor-node-1.example.org
 ```
 
 ## Group Variable Setup
 
 ```
 timezone: UTC
+condor:
+  admin: "admin@example.org"
+  uid_domain: "example.org"
+  filesystem_domain: "example.org"
+  collector_name: "example-collector"
+  allow_read: [ "*.example.org", "1.2.3.0/24" ]
+  allow_write: [ "*.example.org", "1.2.3.0/24" ]
+  exec_dir: "/var/lib/condor/execute"
+  password: "notreal"
 ```

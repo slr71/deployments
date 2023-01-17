@@ -1,6 +1,6 @@
 ## Which machine is your central manager?
 
-CONDOR_HOST = {{ groups['condor-master'][0] }}
+CONDOR_HOST = {{ groups['condor_manager'][0] }}
 
 ## Pool's short description
 
