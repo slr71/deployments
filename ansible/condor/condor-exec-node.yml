@@ -27,9 +27,9 @@
         condor_exec_dir: "{{ condor.exec_dir }}"
         condor_password: "{{ condor.password }}"
     - role: de-docker-logging-plugin
-    # - role: de-image-janitor
-    # - role: de-network-pruner
-    # - role: de-road-runner
+    - role: de-image-janitor
+    - role: de-network-pruner
+    - role: de-road-runner
 
 - name: log into required docker registries
   hosts: condor
