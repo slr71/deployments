@@ -30,7 +30,6 @@
     # - role: de-image-janitor
     # - role: de-network-pruner
     # - role: de-road-runner
-    # - role: de-interapps-runner
 
 - name: log into required docker registries
   hosts: condor
