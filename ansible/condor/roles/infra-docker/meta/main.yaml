@@ -1,3 +1,0 @@
----
-dependencies:
-    - { role: CyVerse-Ansible.miscvars }

@@ -1,3 +1,0 @@
----
-- name: remove binary
-  file: path=/usr/local/bin/interapps-runner state=absent

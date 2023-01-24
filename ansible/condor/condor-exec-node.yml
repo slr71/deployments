@@ -13,9 +13,9 @@
 - hosts: condor
   become: true
   roles:
-    - role: infra-timezone
-    - role: infra-docker
-    - role: infra-docker-compose
+    - role: timezone
+    - role: docker
+    - role: docker-compose
     - role: condor-exec-node
       vars:
         condor_admin: "{{ condor.admin }}"
@@ -30,7 +30,6 @@
     - role: de-image-janitor
     - role: de-network-pruner
     - role: de-road-runner
-    - role: de-interapps-runner
 
 - name: log into required docker registries
   hosts: condor
