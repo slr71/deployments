@@ -1,0 +1,11 @@
+---
+- include_tasks: variables.yml
+
+- include_tasks: install.yml
+
+- include_tasks: configure.yml
+
+- name: main | ensure postgresql is running
+  meta: flush_handlers
+
+- include_tasks: replication.yml

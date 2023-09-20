@@ -1,0 +1,17 @@
+---
+- name: reboot
+  when: >-
+    pg_reboot_allowed
+    is warn_if_false(
+      inventory_hostname + ' skipped, REBOOT REQUIRED FOR SETTINGS TO TAKE' )
+  ansible.builtin.include_tasks: reboot.yml
+
+- name: restart postgres
+  ansible.builtin.service:
+    name: postgresql
+    state: restarted
+
+- name: reload postgres
+  ansible.builtin.service:
+    name: postgresql
+    state: reloaded
