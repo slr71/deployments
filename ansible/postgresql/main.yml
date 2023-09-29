@@ -3,7 +3,7 @@
   hosts: dbms
   become: true
   roles:
-    - role: adfinis_sygroup.grub
+    - role: adfinis-sygroup.grub
       grub_console: false
       grub_consoles: []
       grub_serial: []
@@ -27,7 +27,7 @@
       {{ _dbms_max_worker_processes if _dbms_max_worker_processes else
         ansible_facts['processor_nproc'] }}
   roles:
-    - role: postgres12
+    - role: postgresql
       vars:
         pg_checkpoint_completion_target: >-
           {{ _dbms_checkpoint_completion_target }}
@@ -75,7 +75,7 @@
       {{ _dbms_max_worker_processes if _dbms_max_worker_processes else
         ansible_facts['processor_nproc'] }}
   roles:
-    - role: postgres12
+    - role: postgresql
       vars:
         pg_checkpoint_completion_target: >-
           {{ _dbms_checkpoint_completion_target }}
