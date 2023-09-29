@@ -1,4 +1,6 @@
 ---
+_dbms_postgresql_version: "{{ dbms_postgresql_version | default(14) }}"
+
 _dbms_reboot_allowed: "{{ dbms_reboot_allowed | d(false) }}"
 
 _dbms_checkpoint_completion_target: >-

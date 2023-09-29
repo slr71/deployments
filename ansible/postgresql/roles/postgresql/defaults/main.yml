@@ -7,12 +7,12 @@ pg_downstream_nodes: []
 
 pg_upstream_node: null
 
-pg_conf_path: /etc/postgresql/16/main
+pg_conf_path: "/etc/postgresql/{{_dbms_postgresql_version}}/main"
 
 pg_db: postgres
 
 # changing this requires adjusting the systemctl file.
-pg_db_path: /var/lib/postgresql/16/main
+pg_db_path: "/var/lib/postgresql/{{_dbms_postgresql_version}}/main"
 
 pg_hba_insertafter: '# ----------------------------------'
 pg_hba_users: []

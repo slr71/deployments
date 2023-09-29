@@ -1,12 +1,12 @@
 ---
 
-- name: install | apt install postgres12 and postgres12 client
+- name: install | apt install postgresql and postgresql client
   apt:
     update_cache: true
     pkg:
-      - postgresql
-      - postgresql-client
-      - python3-psycopg2
+      - "postgresql-{{_dbms_postgresql_version}}"
+      - "postgresql-client-{{_dbms_postgresql_version}}"
+      - "python3-psycopg2"
     state: present
 
 - name: install | create en_US.UTF-8

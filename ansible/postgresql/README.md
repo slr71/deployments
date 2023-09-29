@@ -11,6 +11,7 @@ This is a collection of playbooks for maintaining the DBMS for the CyVerse Disco
 
 Variable                                | Required | Default       | Comments
 --------------------------------------- | -------- | ------------- | --------
+`dbms_postgresql_version`               | no       | 14            | the PostgreSQL version to install
 `dbms_checkpoint_completion_target`     | no       | 0.9           | WAL checkpoint target duration fraction
 `dbms_checkpoint_timeout`               | no       | 15            | WAL checkpoint timeout in minutes
 `dbms_effective_cache_size`             | no       | _see comment_ | the value the query planner uses to estimate the total size of data caches in GiB, the default in 50% of the total memory
