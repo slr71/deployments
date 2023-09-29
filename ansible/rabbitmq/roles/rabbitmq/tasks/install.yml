@@ -1,34 +1,65 @@
 ---
-- name: determine whether or not the OS is Amazon Linux 2
-  set_fact:
-    amazon_linux_2: "{{ ansible_distribution == 'Amazon' and ansible_distribution_version == '2' }}"
+- name: install role dependencies
+  apt:
+    pkg:
+    - curl
+    - gnupg
+    - apt-transport-https
+  become: true
 
-- name: install epel-release on Amazon Linux 2
-  command:
-    argv:
-      - amazon-linux-extras
-      - install
-      - epel
-      - -y
-    creates: /etc/yum.repos.d/epel.repo
-  when: amazon_linux_2
+- name: grab com.rabbitmq.team.gpg
+  shell: curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
+  args:
+    creates: /usr/share/keyrings/com.rabbitmq.team.gpg
 
-- name: install epel-release on CentOS or Rocky
-  package:
-    name: epel-release
-    state: latest
-  when: not amazon_linux_2
+- name: grab rabbitmq.E495BB49CC4BBE5B.gpg
+  shell: curl -1sLf https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg > /dev/null
+  args:
+    creates: /usr/share/keyrings/rabbitmq.E495BB49CC4BBE5B.gpg
 
-- name: install RabbitMQ
-  package:
-    name: rabbitmq-server
-    state: latest
+- name: grab rabbitmq.9F4587F226208342.gpg
+  shell: curl -1sLf https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key | sudo gpg --dearmor | sudo tee /usr/share/keyrings/rabbitmq.9F4587F226208342.gpg > /dev/null
+  args:
+    creates: /usr/share/keyrings/rabbitmq.9F4587F226208342.gpg
+
+- name: create /etc/apt/sources.list.d/rabbitmq.list
+  copy:
+    src: rabbitmq.list
+    dest: /etc/apt/sources.list.d/rabbitmq.list
+    mode: 0644
+    owner: root
+    group: root
+  become: true
+
+- name: install rabbitmq-server
+  apt:
+    pkg:
+    - erlang-base
+    - erlang-asn1 
+    - erlang-crypto 
+    - erlang-eldap 
+    - erlang-ftp 
+    - erlang-inets
+    - erlang-mnesia
+    - erlang-os-mon 
+    - erlang-parsetools 
+    - erlang-public-key
+    - erlang-runtime-tools 
+    - erlang-snmp 
+    - erlang-ssl
+    - erlang-syntax-tools 
+    - erlang-tftp 
+    - erlang-tools 
+    - erlang-xmerl
+    - rabbitmq-server
+  become: true
 
 - name: start RabbitMQ
   systemd:
     name: rabbitmq-server
     state: started
     enabled: yes
+  become: true
 
 - name: list explicitly enabled RabbitMQ plugins matching `rabbitmq_management`
   command:
@@ -39,6 +70,7 @@
       - rabbitmq_management
   register: mgmt_plugin_listing
   changed_when: false
+  become: true
 
 - name: enable the RabbitMQ management plugin
   block:
@@ -52,6 +84,7 @@
         state: restarted
         enabled: yes
   when: not mgmt_plugin_listing is search("\srabbitmq_management\s")
+  become: true
 
 - name: create the admin user
   rabbitmq_user:
@@ -61,9 +94,11 @@
     write_priv: .*
     read_priv: .*
     tags: administrator
+  become: true
 
 - name: remove the guest user
   when: admin_user != "guest"
   rabbitmq_user:
     user: guest
     state: absent
+  become: true
