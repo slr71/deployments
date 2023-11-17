@@ -19,27 +19,12 @@
     owner: root
     mode: 0644
 
-- name: "Delete the OpenLDAP Configuration Directory"
-  become: true
-  file:
-    path: "/etc/ldap/slapd.d"
-    state: absent
-
-- name: "Create OpenLDAP Configuration Directory"
-  become: true
-  file:
-    path: "/etc/ldap/slapd.d"
-    state: directory
-    owner: openldap
-    group: openldap
-    mode: 0750
-
 - name: "Start the OpenLDAP Server"
   become: true
   systemd:
     name: slapd
     daemon_reload: true
     enabled: true
-    state: started
+    state: restarted
 
 - include: entities.yml
