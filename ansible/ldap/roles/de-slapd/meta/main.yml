@@ -7,9 +7,10 @@ galaxy_info:
   min_ansible_version: 2.6
 
   platforms:
-  - name: CentOS
+  - name: Ubuntu
     versions:
-    - 7
+    - 20.04
+    - 22.04
 
   galaxy_tags: []
 
