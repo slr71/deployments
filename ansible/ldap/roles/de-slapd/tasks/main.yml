@@ -1,15 +1,6 @@
 ---
 - include: prereqs.yml
 
-- name: "Create the Database Configuration File"
-  become: true
-  command:
-  args:
-    argv:
-      - "cp"
-      - "/usr/share/openldap-servers/DB_CONFIG.example"
-      - "/var/lib/ldap/DB_CONFIG"
-
 - name: "Encode the Root Password"
   become: true
   command:
@@ -24,24 +15,9 @@
   become: true
   template:
     src: "slapd.conf.j2"
-    dest: "/etc/openldap/slapd.conf"
+    dest: "/etc/ldap/ldap.conf"
     owner: root
     mode: 0644
-
-- name: "Delete the OpenLDAP Configuration Directory"
-  become: true
-  file:
-    path: "/etc/openldap/slapd.d"
-    state: absent
-
-- name: "Create OpenLDAP Configuration Directory"
-  become: true
-  file:
-    path: "/etc/openldap/slapd.d"
-    state: directory
-    owner: ldap
-    group: ldap
-    mode: 0750
 
 - name: "Start the OpenLDAP Server"
   become: true
@@ -49,6 +25,6 @@
     name: slapd
     daemon_reload: true
     enabled: true
-    state: started
+    state: restarted
 
 - include: entities.yml
