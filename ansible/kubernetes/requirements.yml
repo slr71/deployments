@@ -1,0 +1,4 @@
+---
+- name: cyverse.docker
+  src: https://github.com/CyVerse-Ansible/ansible-docker
+  version: 843c2330ed99d8e9d8044a4da56d1031d94eca72

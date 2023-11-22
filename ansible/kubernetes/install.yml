@@ -1,0 +1,6 @@
+---
+- name: Install Docker
+  hosts: k8s
+  become: true
+  roles:
+  - role: cyverse.docker
