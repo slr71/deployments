@@ -26,3 +26,9 @@
       proto: udp
     - port: 30000:32767
       proto: tcp
+
+- name: Install Kubeadm
+  hosts: k8s
+  become: true
+  roles:
+  - role: kubeadm
