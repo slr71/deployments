@@ -1,7 +1,7 @@
 ---
 - name: stop image-janitor
   service: name=image-janitor state=stopped
-  ignore_errors: yes
+  ignore_errors: true
   tags:
     - image-janitor
     - stop

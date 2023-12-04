@@ -1,27 +1,22 @@
----
-- name: ensure that tzdata is installed via yum
-  become: yes
-  yum:
-    name: tzdata
+- name: ensure that tzdata is installed via package manager
+  become: true
+  package:
+    name: 
+      - tzdata
     state: latest
-
-- name: ensure that tzdata-java is installed via yum
-  become: yes
-  yum:
-    name: tzdata-java
-    state: latest
+# tzdata-java hasn't been available in ubuntu since 16.04 https://askubuntu.com/questions/795901/what-happened-to-tzdata-java-in-xenial-16-04
 
 - name: link the correct time zone to /etc/localtime
-  become: yes
+  become: true
   file:
     path: /etc/localtime
     state: link
     src: "/usr/share/zoneinfo/{{ timezone }}"
-    force: yes
+    force: true
     mode: 0644
 
 - name: set current time zone in /etc/timezone
-  become: yes
+  become: true
   template:
     src: timezone.j2
     dest: /etc/timezone

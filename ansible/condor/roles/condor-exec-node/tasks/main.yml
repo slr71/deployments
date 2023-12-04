@@ -1,19 +1,44 @@
 ---
-- name: import the PGP key used by HTCondor
-  rpm_key:
-    key: "https://research.cs.wisc.edu/htcondor/repo/keys/HTCondor-10.x-Key"
-    state: "present"
 
-- name: add the YUM repository file
-  yum:
-    name: "https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el8.noarch.rpm"
-    state: "present"
+- name: install condor when centos
+  block:
+    - name: import the PGP key used by HTCondor
+      rpm_key:
+        key: "https://research.cs.wisc.edu/htcondor/repo/keys/HTCondor-10.x-Key"
+        state: "present"
 
-- name: install Condor
-  yum:
-    name: "condor-all"
-    state: "present"
-    enablerepo: "powertools"
+    - name: add the YUM repository file
+      yum:
+        name: "https://research.cs.wisc.edu/htcondor/repo/current/htcondor-release-current.el8.noarch.rpm"
+        state: "present"
+
+    - name: install Condor
+      yum:
+        name: "condor-all"
+        state: "present"
+        enablerepo: "powertools"
+  when: ansible_facts['distribution'] == 'CentOS'
+
+- name: install condor when ubuntu
+  block:
+    - name: get the apt key
+      ansible.builtin.get_url:
+        url: https://research.cs.wisc.edu/htcondor/repo/keys/HTCondor-10.x-Key
+        dest: /etc/apt/keyrings/HTCondor-10.x-Key
+
+    - name: copy /etc/apt/sources.list.d/htcondor.sources
+      template:
+        src: htcondor.sources.j2
+        dest: /etc/apt/sources.list.d/htcondor.sources
+
+    - name: install htcondor
+      apt:
+        pkg:
+          - htcondor
+        state: present
+        update_cache: yes
+  when: ansible_facts['distribution'] == 'Ubuntu'
+  become: true
 
 - name: ensure that the execute directory exists
   file:

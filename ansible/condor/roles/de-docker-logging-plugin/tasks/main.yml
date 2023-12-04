@@ -6,18 +6,18 @@
 
 - name: Disable the plugin
   shell: docker plugin disable de-logging
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Remove the existing plugin
   shell: docker plugin remove de-logging
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Install the new plugin
   shell: docker plugin install --alias de-logging discoenv/de-docker-logging-plugin:{{docker.tag}} --grant-all-permissions
 
 - name: Disable the plugin temporarily
   shell: docker plugin disable de-logging
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Reconfigure the mount source
   shell: docker plugin set de-logging de-log-directory.source=/var/lib/condor uid=$(id -u condor) gid=$(id -g condor)
