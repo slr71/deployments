@@ -1,12 +1,17 @@
 ---
 - name: Install Docker
-  hosts: k8s
+  hosts: k8s_nodes
   become: true
   roles:
   - role: cyverse.docker
 
+- name: Install HAProxy
+  hosts: k8s_api_proxy
+  roles:
+  - role: k8s_haproxy
+
 - name: Open Ports
-  hosts: k8s
+  hosts: k8s_nodes
   become: true
   tasks:
   - community.general.ufw:
@@ -28,7 +33,7 @@
       proto: tcp
 
 - name: Install Kubeadm
-  hosts: k8s
+  hosts: k8s_nodes
   become: true
   roles:
   - role: kubeadm
