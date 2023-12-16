@@ -1,0 +1,39 @@
+---
+- name: Initialize the Kubernetes Cluster
+  hosts: k8s_controllers
+  become: true
+  tasks:
+  - ansible.builtin.stat:
+      path: /etc/kubernetes/admin.conf
+    when: inventory_hostname == ansible_play_hosts[0]
+    register: admin_conf
+
+  - ansible.builtin.command:
+      argv:
+      - "kubeadm"
+      - "init"
+      - "--control-plane-endpoint"
+      - "{{ groups['k8s_api_proxy'][0] }}:5443"
+      - "--cri-socket"
+      - "unix:///var/run/cri-dockerd.sock"
+      - "--upload-certs"
+    when: inventory_hostname == ansible_play_hosts[0]
+    register: kubeadm_init_output
+
+  - ansible.builtin.set_fact:
+      kubeadm_token: "{{ kubeadm_init_output['stdout'] | regex_search('--token (\\S+)', '\\1') | first }}"
+      kubeadm_discovery_hash: "{{ kubeadm_init_output['stdout'] | regex_search('--discovery-token-ca-cert-hash (\\S+)', '\\1') | first }}"
+      kubeadm_certificate_key: "{{ kubeadm_init_output['stdout'] | regex_search('--certificate-key (\\S+)', '\\1') | first }}"
+    when: inventory_hostname == ansible_play_hosts[0]
+
+  - ansible.builtin.debug:
+      var: kubeadm_token
+    when: inventory_hostname == ansible_play_hosts[0]
+
+  - ansible.builtin.debug:
+      var: kubeadm_discovery_hash
+    when: inventory_hostname == ansible_play_hosts[0]
+
+  - ansible.builtin.debug:
+      var: kubeadm_certificate_key
+    when: inventory_hostname == ansible_play_hosts[0]
