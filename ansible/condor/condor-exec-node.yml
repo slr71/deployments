@@ -14,8 +14,7 @@
   become: true
   roles:
     - role: timezone 
-    - role: docker # how do we want to bring in the requirements.yaml file?
-    - role: docker-compose # https://github.com/CyVerse-Ansible/ansible-docker should cover both of these
+    - role: cyverse-ansible.docker
     - role: condor-exec-node 
       vars:
         condor_admin: "{{ condor.admin }}"
