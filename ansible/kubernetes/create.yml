@@ -17,6 +17,8 @@
       - "--cri-socket"
       - "unix:///var/run/cri-dockerd.sock"
       - "--upload-certs"
+      - "--node-name"
+      - "{{ inventory_hostname }}"
     when: inventory_hostname == ansible_play_hosts[0]
     register: kubeadm_init_output
 
@@ -26,14 +28,42 @@
       kubeadm_certificate_key: "{{ kubeadm_init_output['stdout'] | regex_search('--certificate-key (\\S+)', '\\1') | first }}"
     when: inventory_hostname == ansible_play_hosts[0]
 
-  - ansible.builtin.debug:
-      var: kubeadm_token
-    when: inventory_hostname == ansible_play_hosts[0]
+- name: Add the Remaining Control Nodes
+  hosts: k8s_controllers
+  become: true
+  tasks:
+  - ansible.builtin.command:
+      argv:
+      - "kubeadm"
+      - "join"
+      - "{{ groups['k8s_api_proxy'][0] }}:5443"
+      - "--cri-socket"
+      - "unix:///var/run/cri-dockerd.sock"
+      - "--token"
+      - "{{ hostvars[groups['k8s_controllers'][0]]['kubeadm_token'] }}"
+      - "--discovery-token-ca-cert-hash"
+      - "{{ hostvars[groups['k8s_controllers'][0]]['kubeadm_discovery_hash'] }}"
+      - "--control-plane"
+      - "--certificate-key"
+      - "{{ hostvars[groups['k8s_controllers'][0]]['kubeadm_certificate_key'] }}"
+      - "--node-name"
+      - "{{ inventory_hostname }}"
+    when: inventory_hostname != ansible_play_hosts[0]
 
-  - ansible.builtin.debug:
-      var: kubeadm_discovery_hash
-    when: inventory_hostname == ansible_play_hosts[0]
-
-  - ansible.builtin.debug:
-      var: kubeadm_certificate_key
-    when: inventory_hostname == ansible_play_hosts[0]
+- name: Add the Worker Nodes
+  hosts: k8s_workers
+  become: true
+  tasks:
+  - ansible.builtin.command:
+      argv:
+      - "kubeadm"
+      - "join"
+      - "{{ groups['k8s_api_proxy'][0] }}:5443"
+      - "--cri-socket"
+      - "unix:///var/run/cri-dockerd.sock"
+      - "--token"
+      - "{{ hostvars[groups['k8s_controllers'][0]]['kubeadm_token'] }}"
+      - "--discovery-token-ca-cert-hash"
+      - "{{ hostvars[groups['k8s_controllers'][0]]['kubeadm_discovery_hash'] }}"
+      - "--node-name"
+      - "{{ inventory_hostname }}"
