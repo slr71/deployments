@@ -67,3 +67,113 @@
       - "{{ hostvars[groups['k8s_controllers'][0]]['kubeadm_discovery_hash'] }}"
       - "--node-name"
       - "{{ inventory_hostname }}"
+
+- name: Label the DE Service Nodes
+  hosts: k8s_de_workers
+  become: true
+  tasks:
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "label"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "vice=false"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "label"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "gpu=false"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+- name: Taint and Label the VICE Worker Nodes
+  hosts: k8s_vice_workers
+  become: true
+  tasks:
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "label"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "vice=true"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "label"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "gpu=false"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "taint"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "vice=only:NoSchedule"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+- name: Taint and Label the GPU Worker Nodes
+  hosts: k8s_gpu_workers
+  become: true
+  tasks:
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "label"
+      - "node"
+      - "vice=true"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "label"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "gpu=true"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "taint"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "vice=only:NoSchedule"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
+
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "taint"
+      - "node"
+      - "{{ inventory_hostname }}"
+      - "gpu=true:NoSchedule"
+    delegate_to: "{{ groups['k8s_controllers'][0] }}"
