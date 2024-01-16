@@ -28,6 +28,20 @@
       kubeadm_certificate_key: "{{ kubeadm_init_output['stdout'] | regex_search('--certificate-key (\\S+)', '\\1') | first }}"
     when: inventory_hostname == ansible_play_hosts[0]
 
+- name: Installl the Container Networking Interface Plugin
+  hosts: k8s_controllers
+  become: true
+  tasks:
+  - ansible.builtin.command:
+      argv:
+      - "kubectl"
+      - "--kubeconfig"
+      - "/etc/kubernetes/admin.conf"
+      - "apply"
+      - "-f"
+      - "https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml"
+    when: inventory_hostname == ansible_play_hosts[0]
+
 - name: Add the Remaining Control Nodes
   hosts: k8s_controllers
   become: true
