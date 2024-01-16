@@ -4,7 +4,7 @@
 
 # TODO: come up with a way to generate the file and place it on the remote host
 - name: ensure that jobservices.yml exists
-  become: yes
+  become: true
   file:
     path: /etc/jobservices.yml
     state: touch

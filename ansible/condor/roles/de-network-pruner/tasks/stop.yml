@@ -1,4 +1,4 @@
 ---
 - name: stop network-pruner
   service: name=network-pruner state=stopped
-  ignore_errors: yes
+  ignore_errors: true
