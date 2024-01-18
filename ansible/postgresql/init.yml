@@ -6,6 +6,8 @@
     lc_collate: en_US.UTF-8
     lc_ctype: en_US.UTF-8
     template: template0
+    de_db_version: master
+    notifications_db_version: main
   tasks:
     - name: init db | create connection user-
       community.postgresql.postgresql_user:
@@ -83,3 +85,52 @@
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+
+    - name: init db | install xz-utils
+      become: true
+      become_user: root
+      apt:
+        name: xz-utils
+        state: present
+
+    - name: init db | install golang-migrate
+      become: true
+      become_user: root
+      apt:
+        deb: https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.deb
+        state: present
+
+    - name: init db | create dbs directory
+      become: true
+      become_user: root
+      file:
+        path: "/opt/dbs"
+        recurse: yes
+        state: directory
+        mode: 0777
+
+    - name: init db | create staging directory
+      file:
+        path: "/opt/dbs/{{ ansible_user_id}}"
+        recurse: yes
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        mode: 0755
+
+    - name: init db | checkout de database repo
+      git:
+        repo: "https://github.com/cyverse-de/de-database"
+        dest: "/opt/dbs/{{ ansible_user_id}}/de-database"
+        clone: yes
+        update: yes
+        force: yes
+        version: "{{ de_db_version }}"
+
+    - name: init db | checkout notifications database repo
+      git:
+        repo: "https://github.com/cyverse-de/notifications-db"
+        dest: "/opt/dbs/{{ ansible_user_id}}/notifications-db"
+        clone: yes
+        update: yes
+        force: yes
+        version: "{{ notifications_db_version }}"
