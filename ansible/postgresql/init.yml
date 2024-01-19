@@ -1,9 +1,9 @@
 ---
 - name: Initialize databases
-  hosts: dbms
-  become: true
-  become_user: postgres
+  hosts: localhost
+  connection: local
   vars:
+    ansible_python_interpreter: /usr/bin/python3
     encoding: UTF8
     lc_collate: en_US.UTF-8
     lc_ctype: en_US.UTF-8
@@ -17,181 +17,236 @@
     metdata_db_uri: "postgresql://localhost:5432/metadata?sslmode=disable"
     pg_db: postgres
     pg_listen_port: 5432
+    pg_login_user: postgres
+    pg_login_host: localhost
+    pg_login_password: Chang3m3
+    cleanup: true
+    migrate: true
+    create_user: true
+    create_dbs: true
+    unleash: true
+    grouper: true
+    qms: true
+    install_exts: true
+    migrate_release_version: v4.17.0
+    migrate_tarball_name: migrate.linux-amd64.tar.gz # or migrate.darwin-amd64.tar.gz
+    install_dir: /usr/local/bin # no trailing slash
   tasks:
-    - name: init db | install acl
-      become: true
-      become_user: root
-      apt:
-        name: acl
-        state: present
-
     - name: init db | create connection user
-      become_user: postgres
       community.postgresql.postgresql_user:
-        db: "{{ pg_db }}"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ pg_db }}"
         name: "{{ _dbms_connection_user }}"
         password: "{{ _dbms_connection_pass }}"
+      when: create_user is defined and create_user
 
     - name: init db  | create de database
       community.postgresql.postgresql_db:
-        name: "de"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "de"
         owner: "{{ _dbms_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+      when: create_dbs is defined and create_dbs
 
     - name: init db | install uuid-ossp for de database
       community.postgresql.postgresql_ext:
-        db: "de"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "de"
         name: "uuid-ossp"
+      when: install_exts is defined and install_exts
 
     - name: init db | install moddatetime for de database
       community.postgresql.postgresql_ext:
-        db: "de"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "de"
         name: "moddatetime"
+      when: install_exts is defined and install_exts
 
     - name: init db  | create notifications database
       community.postgresql.postgresql_db:
-        name: "notifications"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "notifications"
         owner: "{{ _dbms_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+      when: create_dbs is defined and create_dbs
 
     - name: init db | install uuid-ossp for notifications database
       community.postgresql.postgresql_ext:
-        db: "notifications"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "notifications"
         name: "uuid-ossp"
+      when: install_exts is defined and install_exts
 
     - name: init db  | create metadata database
       community.postgresql.postgresql_db:
-        name: "metadata"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "metadata"
         owner: "{{ _dbms_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+      when: create_dbs is defined and create_dbs
 
     - name: init db | install uuid-ossp for metdata database
       community.postgresql.postgresql_ext:
-        db: "metadata"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "metadata"
         name: "uuid-ossp"
+      when: install_exts is defined and install_exts
 
     - name: init db  | create grouper database
       community.postgresql.postgresql_db:
-        name: "grouper"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "grouper"
         owner: "{{ _dbms_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+      when: create_dbs is defined and create_dbs and grouper is defined and grouper
 
     - name: init db  | create qms database
       community.postgresql.postgresql_db:
-        name: "qms"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "qms"
         owner: "{{ _dbms_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+      when: create_dbs is defined and create_dbs and qms is defined and qms
 
     - name: init db | install uuid-ossp for qms database
       community.postgresql.postgresql_ext:
-        db: "qms"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "qms"
         name: "uuid-ossp"
+      when: install_exts is defined and install_exts and qms is defined and qms
 
     - name: init db  | create unleash database
       community.postgresql.postgresql_db:
-        name: "unleash"
+        login_host: "{{ pg_login_host }}"
         port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "unleash"
         owner: "{{ _dbms_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
-
-    - name: init db | install xz-utils
-      become: true
-      become_user: root
-      apt:
-        name: xz-utils
-        state: present
-
-    - name: init db | install golang-migrate
-      become: true
-      become_user: root
-      apt:
-        deb: https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.deb
-        state: present
-
-    - name: init db | create dbs directory
-      become: true
-      become_user: root
-      file:
-        path: "/opt/dbs"
-        recurse: yes
-        state: directory
-        mode: 0777
+      when: create_dbs is defined and create_dbs and unleash is defined and unleash
 
     - name: init db | create staging directory
-      file:
-        path: "/opt/dbs/{{ ansible_user_id}}"
-        recurse: yes
+      ansible.builtin.tempfile:
         state: directory
-        owner: "{{ ansible_user_id }}"
+        suffix: "-dbs"
+      register: dbs_dir
+
+    # - name: init db | download migrate tarball
+    #   ansible.builtin.get_url:
+    #     url: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
+    #     dest: "{{ dbs_dir.path }}/{{ migrate_tarball_name }}"
+
+    - name: init db | extract migrate tarball
+      ansible.builtin.unarchive:
+        src: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
+        dest: "{{ dbs_dir.path }}"
+        remote_src: yes
+        creates: "{{ dbs_dir.path }}/migrate"
+
+    - name: init db | install migrate
+      become: true
+      become_user: root
+      ansible.builtin.copy:
+        src: "{{ dbs_dir.path }}/migrate"
+        dest: "{{ install_dir }}/migrate"
         mode: 0755
 
     - name: init db | checkout de database repo
-      git:
+      ansible.builtin.git:
         repo: "https://github.com/cyverse-de/de-database"
-        dest: "/opt/dbs/{{ ansible_user_id}}/de-database"
+        dest: "{{ dbs_dir.path }}}}/de-database"
         clone: yes
         update: yes
         force: yes
         version: "{{ de_db_version }}"
 
     - name: init db | checkout notifications database repo
-      git:
+      ansible.builtin.git:
         repo: "https://github.com/cyverse-de/notifications-db"
-        dest: "/opt/dbs/{{ ansible_user_id}}/notifications-db"
+        dest: "{{ dbs_dir.path }}/notifications-db"
         clone: yes
         update: yes
         force: yes
         version: "{{ notifications_db_version }}"
 
     - name: init db | checkout metadata database repo
-      git:
+      ansible.builtin.git:
         repo: "https://github.com/cyverse-de/metadata-db"
-        dest: "/opt/dbs/{{ ansible_user_id}}/metadata-db"
+        dest: "{{ dbs_dir.path }}/metadata-db"
         clone: yes
         update: yes
         force: yes
         version: "{{ metadata_db_version }}"
 
     - name: init db | run de database migrations
-      shell: |
+      ansible.builtin.shell: |
         migrate -database "{{ de_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/de-database/migrations" {{ de_db_migration_cmd }}
-      when: de_db_uri is defined
+      when: de_db_uri is defined and migrate is defined and migrate
 
     - name: init db | run metadata db migrations
-      shell: |
+      ansible.builtin.shell: |
         migrate -database "{{ metdata_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/metadata-db/migrations" up
-      when: metdata_db_uri is defined
+      when: metdata_db_uri is defined and migrate is defined and migrate
 
     - name: init db | run notifications db migrations
-      shell: |
+      ansible.builtin.shell: |
         migrate -database "{{ notifications_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/notifications-db/migrations" up
-      when: notifications_db_uri is defined
+      when: notifications_db_uri is defined and migrate is defined and migrate
+
+    - name: init db | remove staging directory
+      ansible.builtin.file:
+        path: "{{ dbs_dir.path }}"
+        state: absent
+      when: dbs_dir.path is defined and cleanup is defined and cleanup
