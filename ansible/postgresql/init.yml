@@ -1,15 +1,32 @@
 ---
 - name: Initialize databases
   hosts: dbms
+  become: true
+  become_user: postgres
   vars:
     encoding: UTF8
     lc_collate: en_US.UTF-8
     lc_ctype: en_US.UTF-8
     template: template0
     de_db_version: master
+    de_db_uri: "postgresql://localhost:5432/de?sslmode=disable"
+    de_db_migration_cmd: force 18
     notifications_db_version: main
+    notifications_db_uri: "postgresql://localhost:5432/notifications?sslmode=disable"
+    metadata_db_version: master
+    metdata_db_uri: "postgresql://localhost:5432/metadata?sslmode=disable"
+    pg_db: postgres
+    pg_listen_port: 5432
   tasks:
-    - name: init db | create connection user-
+    - name: init db | install acl
+      become: true
+      become_user: root
+      apt:
+        name: acl
+        state: present
+
+    - name: init db | create connection user
+      become_user: postgres
       community.postgresql.postgresql_user:
         db: "{{ pg_db }}"
         port: "{{ pg_listen_port }}"
@@ -26,6 +43,18 @@
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
 
+    - name: init db | install uuid-ossp for de database
+      community.postgresql.postgresql_ext:
+        db: "de"
+        port: "{{ pg_listen_port }}"
+        name: "uuid-ossp"
+
+    - name: init db | install moddatetime for de database
+      community.postgresql.postgresql_ext:
+        db: "de"
+        port: "{{ pg_listen_port }}"
+        name: "moddatetime"
+
     - name: init db  | create notifications database
       community.postgresql.postgresql_db:
         name: "notifications"
@@ -36,15 +65,11 @@
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
 
-    - name: init db  | create permissions database
-      community.postgresql.postgresql_db:
-        name: "permissions"
+    - name: init db | install uuid-ossp for notifications database
+      community.postgresql.postgresql_ext:
+        db: "notifications"
         port: "{{ pg_listen_port }}"
-        owner: "{{ _dbms_connection_user }}"
-        encoding: "{{ encoding }}"
-        lc_collate: "{{ lc_collate }}"
-        lc_ctype: "{{ lc_ctype }}"
-        template: "{{ template }}"
+        name: "uuid-ossp"
 
     - name: init db  | create metadata database
       community.postgresql.postgresql_db:
@@ -55,6 +80,12 @@
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+
+    - name: init db | install uuid-ossp for metdata database
+      community.postgresql.postgresql_ext:
+        db: "metadata"
+        port: "{{ pg_listen_port }}"
+        name: "uuid-ossp"
 
     - name: init db  | create grouper database
       community.postgresql.postgresql_db:
@@ -75,6 +106,12 @@
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
+
+    - name: init db | install uuid-ossp for qms database
+      community.postgresql.postgresql_ext:
+        db: "qms"
+        port: "{{ pg_listen_port }}"
+        name: "uuid-ossp"
 
     - name: init db  | create unleash database
       community.postgresql.postgresql_db:
@@ -134,3 +171,27 @@
         update: yes
         force: yes
         version: "{{ notifications_db_version }}"
+
+    - name: init db | checkout metadata database repo
+      git:
+        repo: "https://github.com/cyverse-de/metadata-db"
+        dest: "/opt/dbs/{{ ansible_user_id}}/metadata-db"
+        clone: yes
+        update: yes
+        force: yes
+        version: "{{ metadata_db_version }}"
+
+    - name: init db | run de database migrations
+      shell: |
+        migrate -database "{{ de_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/de-database/migrations" {{ de_db_migration_cmd }}
+      when: de_db_uri is defined
+
+    - name: init db | run metadata db migrations
+      shell: |
+        migrate -database "{{ metdata_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/metadata-db/migrations" up
+      when: metdata_db_uri is defined
+
+    - name: init db | run notifications db migrations
+      shell: |
+        migrate -database "{{ notifications_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/notifications-db/migrations" up
+      when: notifications_db_uri is defined
