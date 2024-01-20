@@ -1,0 +1,47 @@
+---
+- name: install prerequisites
+  hosts: condor
+  become: true
+  tasks:
+  - package:
+      name: "python3-pip"
+      state: "present"
+  - pip:
+      name: "docker"
+      state: present
+
+- name: set the time zone
+  hosts: condor
+  become: true
+  roles:
+  - role: timezone
+
+- name: install docker
+  hosts: condor_worker
+  become: true
+  roles:
+  - role: cyverse-ansible.docker
+
+- name: install and add preliminary configuration for condor
+  become: true
+  hosts: condor
+  roles:
+  - condor
+
+- name: add configuration for the condor manager node
+  become: true
+  hosts: condor_manager
+  roles:
+  - condor-manager
+
+- name: add configuration for the condor submit nodes
+  become: true
+  hosts: condor_submit
+  roles:
+  - condor-submit
+
+- name: add configuration for the condor worker nodes
+  become: true
+  hosts: condor_worker
+  roles:
+  - condor-worker
