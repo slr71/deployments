@@ -229,18 +229,18 @@
 
     - name: init db | run de database migrations
       ansible.builtin.shell: |
-        migrate -database "postgresql://{{ pg_login_host }}:{{ pg_listen_port }}/de?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/de-database/migrations" {{ de_db_migration_cmd }}
-      when: de_db_uri is defined and migrate is defined and migrate
+        migrate -database "postgresql://{{_dbms_connection_user }}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/de?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/de-database/migrations" {{ de_db_migration_cmd }}
+      when: migrate is defined and migrate
 
     - name: init db | run metadata db migrations
       ansible.builtin.shell: |
-        migrate -database "postgresql://{{ pg_login_host }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/metadata-db/migrations" up
-      when: metdata_db_uri is defined and migrate is defined and migrate
+        migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/metadata-db/migrations" up
+      when: migrate is defined and migrate
 
     - name: init db | run notifications db migrations
       ansible.builtin.shell: |
-        migrate -database "postgresql://{{ pg_login_host }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/notifications-db/migrations" up
-      when: notifications_db_uri is defined and migrate is defined and migrate
+        migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/notifications-db/migrations" up
+      when: migrate is defined and migrate
 
     - name: init db | remove staging directory
       ansible.builtin.file:
