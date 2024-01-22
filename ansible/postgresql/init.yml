@@ -9,12 +9,9 @@
     lc_ctype: en_US.UTF-8
     template: template0
     de_db_version: master
-    de_db_uri: "postgresql://localhost:5432/de?sslmode=disable"
     de_db_migration_cmd: force 18
     notifications_db_version: main
-    notifications_db_uri: "postgresql://localhost:5432/notifications?sslmode=disable"
     metadata_db_version: master
-    metdata_db_uri: "postgresql://localhost:5432/metadata?sslmode=disable"
     pg_db: postgres
     pg_listen_port: 5432
     pg_login_user: postgres
@@ -232,17 +229,17 @@
 
     - name: init db | run de database migrations
       ansible.builtin.shell: |
-        migrate -database "{{ de_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/de-database/migrations" {{ de_db_migration_cmd }}
+        migrate -database "postgresql://{{ pg_login_host }}:{{ pg_listen_port }}/de?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/de-database/migrations" {{ de_db_migration_cmd }}
       when: de_db_uri is defined and migrate is defined and migrate
 
     - name: init db | run metadata db migrations
       ansible.builtin.shell: |
-        migrate -database "{{ metdata_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/metadata-db/migrations" up
+        migrate -database "postgresql://{{ pg_login_host }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/metadata-db/migrations" up
       when: metdata_db_uri is defined and migrate is defined and migrate
 
     - name: init db | run notifications db migrations
       ansible.builtin.shell: |
-        migrate -database "{{ notifications_db_uri }}" -path "/opt/dbs/{{ ansible_user_id}}/notifications-db/migrations" up
+        migrate -database "postgresql://{{ pg_login_host }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "/opt/dbs/{{ ansible_user_id}}/notifications-db/migrations" up
       when: notifications_db_uri is defined and migrate is defined and migrate
 
     - name: init db | remove staging directory
