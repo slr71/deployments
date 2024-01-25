@@ -44,3 +44,48 @@
       ansible.builtin.command: "bash files/nsc-init.sh {{ ns }}"
       environment:
         KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+
+    - name: get the name of the nats-box pod
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ ns }}"
+        label_selectors:
+          - app.kubernetes.io/name=nats
+          - app.kubernetes.io/instance=nats
+          - app.kubernetes.io/component=nats-box
+      register: nats_box_pod
+
+    - name: create a download temp directory locally.
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: -downloads
+      register: download_dir
+
+    - name: copy the services.creds file from the nats-box pod to the local machine
+      kubernetes.core.k8s_cp:
+        pod: "{{ nats_box_pod.resources[0].metadata.name }}"
+        remote_path: /nsc/nkeys/creds/cyverse/de/services.creds
+        local_path: "{{ download_dir.path }}/services.creds"
+        namespace: "{{ ns }}"
+        state: from_pod
+
+    - name: create a secret named nats-services-creds containing the services.creds file
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: nats-services-creds
+        namespace: "{{ ns }}"
+        state: present
+        definition:
+          kind: secret
+          api_version: v1
+          type: Opaque
+          data:
+            services.creds: "{{ lookup('pipe', 'base64 ' + download_dir.path + '/services.creds') }}"
+
+    - name: delete the download directory
+      ansible.builtin.file:
+        path: "{{ download_dir.path }}"
+        state: absent
