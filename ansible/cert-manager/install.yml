@@ -53,6 +53,48 @@
         state: present
         force: "{{ force_apply }}"
 
+    - name: wait for cert-manager deployment to be available
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: cert-manager
+        name: cert-manager
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+          reason: MinimumReplicasAvailable
+
+    - name: wait for cert-manager-webhook deployment to be available
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: cert-manager
+        name: cert-manager-webhook
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+          reason: MinimumReplicasAvailable
+
+    - name: wait for cert-manager-cainjector deployment to be available
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: cert-manager
+        name: cert-manager-cainjector
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+          reason: MinimumReplicasAvailable
+
     - name: create issuers.yaml
       ansible.builtin.copy:
         dest: "./issuers.yaml"
