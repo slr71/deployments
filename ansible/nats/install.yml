@@ -5,8 +5,18 @@
   vars:
     k8s_resc_co_dir: ./k8s-resources
     k8s_resc_sub_dir: resources/addons
-    ns: nats
+    ns: qa
     nats_cmd_pod: nats-box
+    ui_wildcard_fqdn: "*.cyverse.org"
+    vice_wildcard_fqdn: "*.cyverse.run"
+    vice_base_domain: cyverse.run
+    ca_duration: 8766h # 1 year
+    ca_renew_before: 240h # 10 days
+    nats_server_cert_duration: 8766h # 1 year
+    nats_server_cert_renew_before: 240h # 10 days
+    nats_client_cert_duration: 8766h # 1 year
+    nats_client_cert_renew_before: 240h # 10 days
+
   tasks:
     - name: Add nats helm repository
       environment:
@@ -20,7 +30,7 @@
       set_fact:
         resc_dir: "{{ k8s_resc_co_dir }}/{{ k8s_resc_sub_dir }}"
 
-    - name: Create nats namespace
+    - name: Create installation namespace
       environment:
         KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
       kubernetes.core.k8s:
@@ -89,3 +99,116 @@
       ansible.builtin.file:
         path: "{{ download_dir.path }}"
         state: absent
+
+    - name: create the selfsigned-ca secret
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: selfsigned-ca
+        namespace: "{{ ns }}"
+        state: present
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: selfsigned-ca
+          spec:
+            isCA: true
+            commonName: selfsigned-ca
+            secretName: selfsigned-ca
+            duration: "{{ ca_duration }}"
+            renewBefore: "{{ ca_renew_before }}"
+            privateKey:
+              algorithm: ECDSA
+              size: 256
+            issuerRef:
+              name: default-cluster-issuer
+              kind: ClusterIssuer
+              group: cert-manager.io
+
+    - name: create the ca-issuer issuer
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: ca-issuer
+        namespace: "{{ ns }}"
+        state: present
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: Issuer
+          metadata:
+            name: ca-issuer
+          spec:
+            ca:
+              secretName: selfsigned-ca
+
+    - name: create the nats-server-tls certificate
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: nats-server-tls
+        namespace: "{{ ns }}"
+        state: present
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: nats-server-tls
+          spec:
+            secretName: nats-server-tls
+            duration: "{{ nats_server_cert_duration }}"
+            renewBefore: "{{ nats_server_cert_renew_before }}"
+            issuerRef:
+              name: ca-issuer
+              kind: Issuer
+            usages:
+              - signing
+              - key encipherment
+              - server auth
+              - client auth
+            commonName: nats.{{ ns }}.svc.cluster.local
+            dnsNames:
+              - localhost
+              - "{{ ui_wildcard_fqdn }}"
+              - "{{ vice_wildcard_fqdn }}"
+              - "{{ vice_base_domain }}"
+              - "*.nats.{{ ns }}.svc.cluster.local"
+              - "*.nats.{{ ns }}.svc"
+              - "*.nats.{{ ns }}"
+              - "*.nats"
+              - nats.{{ ns }}.svc.cluster.local
+              - nats.{{ ns }}.svc
+              - nats.{{ ns }}
+
+    - name: create the nats-client-tls certificate
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: nats-client-tls
+        namespace: "{{ ns }}"
+        state: present
+        definition:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: nats-client-tls
+          spec:
+            secretName: nats-client-tls
+            duration: "{{ nats_client_cert_duration }}"
+            renewBefore: "{{ nats_client_cert_renew_before }}"
+            issuerRef:
+              name: ca-issuer
+              kind: Issuer
+            commonName: nats.{{ ns }}.svc.cluster.local
+            dnsNames:
+              - localhost
+              - "{{ ui_wildcard_fqdn }}"
+              - "{{ vice_wildcard_fqdn }}"
+              - "{{ vice_base_domain }}"
+              - "*.nats.{{ ns }}.svc.cluster.local"
+              - "*.nats.{{ ns }}.svc"
+              - "*.nats.{{ ns }}"
+              - "*.nats"
+              - nats.{{ ns }}.svc.cluster.local
+              - nats.{{ ns }}.svc
+              - nats.{{ ns }}
