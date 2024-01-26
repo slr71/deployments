@@ -116,6 +116,7 @@
               - nats.{{ ns }}.svc.cluster.local
               - nats.{{ ns }}.svc
               - nats.{{ ns }}
+              - nats
 
     - name: create the nats-client-tls certificate
       environment:
@@ -153,6 +154,7 @@
               - nats.{{ ns }}.svc.cluster.local
               - nats.{{ ns }}.svc
               - nats.{{ ns }}
+              - nats
 
     - name: create the nats values file from inline content
       ansible.builtin.copy:
