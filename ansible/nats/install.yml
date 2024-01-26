@@ -3,8 +3,6 @@
   hosts: localhost
   connection: local
   vars:
-    k8s_resc_co_dir: ./k8s-resources
-    k8s_resc_sub_dir: resources/addons
     ns: qa
     nats_cmd_pod: nats-box
     ui_wildcard_fqdn: "*.cyverse.org"
@@ -26,10 +24,6 @@
         repo_url: https://nats-io.github.io/k8s/helm/charts/
         state: present
 
-    - name: set resc_dir
-      set_fact:
-        resc_dir: "{{ k8s_resc_co_dir }}/{{ k8s_resc_sub_dir }}"
-
     - name: Create installation namespace
       environment:
         KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -38,67 +32,6 @@
         state: present
         kind: namespace
         api_version: v1
-
-    - name: Install nats helm chart
-      environment:
-        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-      kubernetes.core.helm:
-        name: nats
-        chart_ref: nats/nats
-        release_namespace: "{{ ns }}"
-        wait: true
-        values_files:
-          - "{{ resc_dir }}/nats/values.yaml"
-
-    - name: run the nsc-init.sh bash script with the namespace as an argument
-      ansible.builtin.command: "bash files/nsc-init.sh {{ ns }}"
-      environment:
-        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-
-    - name: get the name of the nats-box pod
-      environment:
-        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: "{{ ns }}"
-        label_selectors:
-          - app.kubernetes.io/name=nats
-          - app.kubernetes.io/instance=nats
-          - app.kubernetes.io/component=nats-box
-      register: nats_box_pod
-
-    - name: create a download temp directory locally.
-      ansible.builtin.tempfile:
-        state: directory
-        suffix: -downloads
-      register: download_dir
-
-    - name: copy the services.creds file from the nats-box pod to the local machine
-      kubernetes.core.k8s_cp:
-        pod: "{{ nats_box_pod.resources[0].metadata.name }}"
-        remote_path: /nsc/nkeys/creds/cyverse/de/services.creds
-        local_path: "{{ download_dir.path }}/services.creds"
-        namespace: "{{ ns }}"
-        state: from_pod
-
-    - name: create a secret named nats-services-creds containing the services.creds file
-      environment:
-        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-      kubernetes.core.k8s:
-        name: nats-services-creds
-        namespace: "{{ ns }}"
-        state: present
-        definition:
-          kind: secret
-          api_version: v1
-          type: Opaque
-          data:
-            services.creds: "{{ lookup('pipe', 'base64 ' + download_dir.path + '/services.creds') }}"
-
-    - name: delete the download directory
-      ansible.builtin.file:
-        path: "{{ download_dir.path }}"
-        state: absent
 
     - name: create the selfsigned-ca secret
       environment:
@@ -176,6 +109,10 @@
               - "*.nats.{{ ns }}.svc"
               - "*.nats.{{ ns }}"
               - "*.nats"
+              - "*.nats-headless.{{ ns }}.svc.cluster.local"
+              - "*.nats-headless.{{ ns }}.svc"
+              - "*.nats-headless.{{ ns }}"
+              - "*.nats-headless"
               - nats.{{ ns }}.svc.cluster.local
               - nats.{{ ns }}.svc
               - nats.{{ ns }}
@@ -209,6 +146,136 @@
               - "*.nats.{{ ns }}.svc"
               - "*.nats.{{ ns }}"
               - "*.nats"
+              - "*.nats-headless.{{ ns }}.svc.cluster.local"
+              - "*.nats-headless.{{ ns }}.svc"
+              - "*.nats-headless.{{ ns }}"
+              - "*.nats-headless"
               - nats.{{ ns }}.svc.cluster.local
               - nats.{{ ns }}.svc
               - nats.{{ ns }}
+
+    - name: create the nats values file from inline content
+      ansible.builtin.copy:
+        content: |
+          tlsCA:
+            enabled: true
+            secretName: selfsigned-ca
+            dir: /etc/nats/tls/ca/
+            ca: ca.crt
+
+          service:
+            enabled: true
+            ports:
+              nats:
+                enabled: true
+              leafnodes:
+                enabled: true
+              websocket:
+                enabled: true
+              cluster:
+                enabled: true
+
+          config:
+            cluster:
+              enabled: true
+              noAdvertise: true
+              port: 6222
+              replicas: 4
+              routeURLs:
+                useFQDN: false
+                k8sClusterDomain: cluster.local
+              tls:
+                enabled: true
+                secretName: nats-server-tls
+                dir: /etc/nats/tls/cluster/
+                cert: tls.crt
+                key: tls.key
+            nats:
+              port: 4222
+              tls:
+                enabled: true
+                secretName: nats-client-tls
+                dir: /etc/nats/tls/nats/
+                cert: tls.crt
+                key: tls.key
+            leafnodes:
+              enabled: true
+              noAdvertise: true
+              port: 7422
+              tls:
+                enabled: true
+                secretName: nats-client-tls
+                dir: /etc/nats/tls/leafnodes/
+                cert: tls.crt
+                key: tls.key
+            websocket:
+              enabled: true
+              port: 8080
+              tls:
+                enabled: true
+                secretName: nats-server-tls
+                dir: /etc/nats/tls/websocket/
+                cert: tls.crt
+                key: tls.key
+        dest: "./values.yaml"
+
+    - name: Install nats helm chart
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.helm:
+        name: nats
+        chart_ref: nats/nats
+        release_namespace: "{{ ns }}"
+        wait: true
+        values_files:
+          - "./values.yaml"
+
+    - name: run the nsc-init.sh bash script with the namespace as an argument
+      ansible.builtin.command: "bash files/nsc-init.sh {{ ns }}"
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+
+    - name: get the name of the nats-box pod
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ ns }}"
+        label_selectors:
+          - app.kubernetes.io/name=nats
+          - app.kubernetes.io/instance=nats
+          - app.kubernetes.io/component=nats-box
+      register: nats_box_pod
+
+    - name: create a download temp directory locally.
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: -downloads
+      register: download_dir
+
+    - name: copy the services.creds file from the nats-box pod to the local machine
+      kubernetes.core.k8s_cp:
+        pod: "{{ nats_box_pod.resources[0].metadata.name }}"
+        remote_path: /nsc/nkeys/creds/cyverse/de/services.creds
+        local_path: "{{ download_dir.path }}/services.creds"
+        namespace: "{{ ns }}"
+        state: from_pod
+
+    - name: create a secret named nats-services-creds containing the services.creds file
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: nats-services-creds
+        namespace: "{{ ns }}"
+        state: present
+        definition:
+          kind: secret
+          api_version: v1
+          type: Opaque
+          data:
+            services.creds: "{{ lookup('pipe', 'base64 ' + download_dir.path + '/services.creds') }}"
+
+    - name: delete the download directory
+      ansible.builtin.file:
+        path: "{{ download_dir.path }}"
+        state: absent
