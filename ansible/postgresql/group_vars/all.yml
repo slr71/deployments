@@ -6,7 +6,6 @@ _dbms_reboot_allowed: "{{ dbms_reboot_allowed | d(false) }}"
 _dbms_checkpoint_completion_target: >-
   {{ dbms_checkpoint_completion_target | d(0.9) }}
 _dbms_checkpoint_timeout: "{{ dbms_checkpoint_timeout | default(15) }}"
-
 _dbms_effective_io_concurrency: "{{ dbms_effective_io_concurrency | d(200) }}"
 
 _dbms_log_line_prefix: "{{ dbms_log_line_prefix | default('< %m %r >') }}"
@@ -39,3 +38,6 @@ _dbms_max_parallel_maintenance_workers: >-
   {{ dbms_max_parallel_maintenance_workers | d(2) }}
 _dbms_max_parallel_workers_per_gather: >-
   {{ dbms_max_parallel_workers_per_gather | d(2) }}
+
+_dbms_connection_user: "{{ dbms_connection_user | default('de') }}"
+_dbms_connection_pass: "{{ dbms_connection_pass | default('Ch@ng3M3') }}"
