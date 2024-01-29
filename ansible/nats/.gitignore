@@ -1,0 +1,5 @@
+*.crt
+*.key
+*.creds
+values.yml
+values.yaml
