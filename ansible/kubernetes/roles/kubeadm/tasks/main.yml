@@ -1,0 +1,99 @@
+---
+- block:
+  - name: Add kernel modules to load
+    ansible.builtin.copy:
+      src: k8s-kernel-modules.conf
+      dest: /etc/modules-load.d/k8s.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Load the overlay kernel module
+    community.general.modprobe:
+      name: overlay
+      state: present
+
+  - name: Load the br_netfilter module
+    community.general.modprobe:
+      name: br_netfilter
+      state: present
+
+- block:
+  - name: Enable iptables
+    ansible.posix.sysctl:
+      name: net.bridge.bridge-nf-call-iptables
+      state: present
+      value: '1'
+      sysctl_file: /etc/sysctl.d/k8s.conf
+
+  - name: Enable ip6tables
+    ansible.posix.sysctl:
+      name: net.bridge.bridge-nf-call-ip6tables
+      state: present
+      value: '1'
+      sysctl_file: /etc/sysctl.d/k8s.conf
+
+  - name: Enable IP forwarding
+    ansible.posix.sysctl:
+      name: net.ipv4.ip_forward
+      state: present
+      value: '1'
+      sysctl_file: /etc/sysctl.d/k8s.conf
+      reload: true
+
+- block:
+  - name: Install cri-dockerd
+    ansible.builtin.apt:
+      deb: https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.7/cri-dockerd_0.3.7.3-0.ubuntu-jammy_amd64.deb
+
+  - name: Start the cri-docker service
+    ansible.builtin.systemd_service:
+      name: cri-docker
+      daemon_reload: true
+      enabled: true
+      state: started
+
+- block:
+  - name: Add the Kubernetes apt key
+    ansible.builtin.apt_key:
+      url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+      keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+  - name: Add the Kubernetes apt repository
+    ansible.builtin.apt_repository:
+      filename: kubernetes.list
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+      update_cache: true
+
+  - name: Install kubeadm
+    ansible.builtin.package:
+      name: kubeadm
+      state: present
+
+  - name: Install kubectl
+    ansible.builtin.package:
+      name: kubectl
+      state: present
+
+  - name: Install kubelet
+    ansible.builtin.package:
+      name: kubectl
+      state: present
+
+- block:
+  - name: Disable swap
+    ansible.builtin.command:
+      argv:
+      - swapoff
+      - "-a"
+
+  - name: Remove the swap file from /etc/fstab
+    ansible.builtin.lineinfile:
+      path: /etc/fstab
+      regexp: "swap"
+      state: absent
+
+  - name: Mask the swap target
+    ansible.builtin.systemd:
+      name: swap.target
+      masked: true
