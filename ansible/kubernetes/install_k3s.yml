@@ -1,0 +1,74 @@
+---
+- name: Setup DB
+  hosts: localhost
+  connection: local
+  roles:
+    - role: k3s_db
+
+- name: Install Docker
+  hosts: k3s_nodes
+  become: true
+  roles:
+    - role: cyverse.docker
+
+- name: install wireguard
+  hosts: k3s_nodes
+  become: true
+  tasks:
+    - name: install wireguard
+      ansible.builtin.package:
+        name: wireguard
+        state: present
+
+- name: Install HAProxy
+  hosts: k8s_api_proxy
+  roles:
+    - role: k8s_haproxy
+
+- name: Open Ports
+  hosts: k3s_nodes
+  become: true
+  tasks:
+    - community.general.ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      loop:
+        - port: 6443 # required for k8s api
+          proto: tcp
+        - port: 10250 # kubelet metrics
+          proto: tcp
+        - port: 51820:51821 # wireguard
+          proto: udp
+        - port: 30000:32767 # nodePorts
+          proto: tcp
+
+- name: Open Pods and Services ports
+  hosts: k3s_nodes
+  become: true
+  tasks:
+    - communit.general.ufw:
+        rule: allow
+        src: "{{ item }}"
+      loop:
+        - 10.42.0.0/16 # k3s pods
+        - 10.43.0.0/16 # k3s services
+
+- name: download k3s installation script locally.
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: download k3s installation script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io"
+        dest: "./k3s_install.sh"
+        mode: "a+x"
+
+- name: upload installation script to k3s nodes
+  hosts: k3s_nodes
+  tasks:
+    - name: upload k3s installation script
+      ansible.builtin.copy:
+        src: "./k3s_install.sh"
+        dest: "/tmp/k3s_install.sh"
+        mode: "a+x"
