@@ -1,0 +1,17 @@
+mirrors:
+  {{ k3s_registry_mirror }}:
+    endpoint:
+      - "{{ k3s_registry_mirror_endpoint }}"
+
+configs:
+  {{ k3s_registry_mirror }}:
+    auth:
+      username: "{{ k3s_registry_mirror_username }}"
+      password: "{{ k3s_registry_mirror_password }}"
+      token: "{{ k3s_registry_mirror_token }}"
+    tls:
+      ca_file: "{{ k3s_registry_mirror_ca_file }}"
+      cert_file: "{{ k3s_registry_mirror_cert_file }}"
+      key_file: "{{ k3s_registry_mirror_key_file }}"
+      insecure_skip_verify: "{{ k3s_registry_mirror_insecure_skip_verify }}"
+  

@@ -34,7 +34,7 @@
         port: "{{ item.port }}"
         proto: "{{ item.proto }}"
       loop:
-        - port: 6443 # required for k8s api
+        - port: 6443 # required for k3s api
           proto: tcp
         - port: 10250 # kubelet metrics
           proto: tcp
@@ -72,3 +72,64 @@
         src: "./k3s_install.sh"
         dest: "/tmp/k3s_install.sh"
         mode: "a+x"
+
+- name: copy registries.yaml to k3s nodes
+  hosts: k3s_nodes
+  tasks:
+    - name: copy registries.yaml
+      ansible.builtin.template:
+        src: "templates/registries.yaml"
+        dest: "/etc/rancher/k3s/registries.yaml"
+        owner: root
+        group: root
+        mode: "0644"
+
+- name: set up k3s control nodes
+  hosts: k3s_controllers
+  become: true
+  tasks:
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "server"
+        K3S_TOKEN: "{{ k3s_token }}"
+        K3S_DATASTORE_ENDPOINT: "{{ k3s_datastore_endpoint }}"
+        K3S_KUBECONFIG_OUTPUT: "{{ k3s_kubeconfig_output }}"
+        K3S_KUBECONFIG_MODE: "{{ k3s_kubeconfig_mode }}"
+      ansible.builtin.shell: /tmp/k3s_install.sh --flannel-backend={{ k3s_flannel_backend }}
+      loop: "{{ groups['k3s_controllers'] }}"
+
+- name: set up k3s DE worker nodes
+  hosts: k3s_de_workers
+  become: true
+  tasks:
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "agent"
+        K3S_TOKEN: "{{ k3s_token }}"
+        K3S_URL: "https://{{ groups['k3s_controllers'][0] }}:6443"
+      ansible.builtin.shell: /tmp/k3s_install.sh
+      loop: "{{ groups['k3s_de_workers'] }}"
+
+- name: set up k3s VICE worker nodes
+  hosts: k3s_vice_workers
+  become: true
+  tasks:
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "agent"
+        K3S_TOKEN: "{{ k3s_token }}"
+        K3S_URL: "https://{{ groups['k3s_controllers'][0] }}:6443"
+      ansible.builtin.shell: /tmp/k3s_install.sh --node-label=vice=true --node-taint=vice=true:NoSchedule
+      loop: "{{ groups['k3s_vice_workers'] }}"
+
+- name: set up k3s GPU worker nodes
+  hosts: k3s_gpu_workers
+  become: true
+  tasks:
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "agent"
+        K3S_TOKEN: "{{ k3s_token }}"
+        K3S_URL: "https://{{ groups['k3s_controllers'][0] }}:6443"
+      ansible.builtin.shell: /tmp/k3s_install.sh --node-label=gpu=true --node-taint=vice=true:NoSchedule
+      loop: "{{ groups['k3s_gpu_workers'] }}"
