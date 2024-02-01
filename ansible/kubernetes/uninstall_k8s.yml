@@ -1,0 +1,45 @@
+---
+- name: Uninstall k8s (not k3s)
+  hosts: k8s_nodes
+  become: true
+  tasks:
+    - name: shutdown k8s services
+      ansible.builtin.systemd:
+        name: "{{ item}}"
+        state: stopped
+        enabled: no
+      loop:
+        - kubelet
+        - containerd
+        - docker
+
+    - name: remove k8s packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
+        - kubernetes-cni
+        - docker-ce
+        - docker-ce-cli
+        - docker-ce-rootless-extras
+        - cri-dockerd
+        - docker-buildx-plugin
+        - docker-compose-plugin
+        - containerd.io
+
+    - name: reboot to make sure directories will remove
+      ansible.builtin.reboot:
+
+    - name: remove k8s directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/kubernetes
+        - /var/lib/kubelet
+        - /var/lib/etcd
+        - /var/lib/docker
+        - /var/lib/containerd
