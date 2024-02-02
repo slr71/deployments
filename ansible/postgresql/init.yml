@@ -2,37 +2,10 @@
 - name: Initialize databases
   hosts: localhost
   connection: local
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-    encoding: UTF8
-    lc_collate: en_US.UTF-8
-    lc_ctype: en_US.UTF-8
-    template: template0
-    de_db_version: master
-    de_db_migration_cmd: force 18
-    notifications_db_version: main
-    metadata_db_version: master
-    mgmt_version: main
-    pg_db: postgres
-    pg_listen_port: 5432
-    pg_login_user: postgres
-    pg_login_host: localhost
-    pg_login_password: Chang3m3
-    cleanup: true
-    migrate: true
-    create_user: true
-    create_dbs: true
-    unleash: true
-    grouper: true
-    qms: true
-    install_exts: true
-    migrate_release_version: v4.17.0
-    migrate_tarball_name: migrate.linux-amd64.tar.gz # or migrate.darwin-amd64.tar.gz
-    install_dir: /usr/local/bin # no trailing slash
   tasks:
     - name: init db | create connection user
       community.postgresql.postgresql_user:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -43,7 +16,7 @@
 
     - name: init db  | create de database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -57,7 +30,7 @@
 
     - name: init db | install uuid-ossp for de database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -67,7 +40,7 @@
 
     - name: init db | install moddatetime for de database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -77,7 +50,7 @@
 
     - name: init db  | create notifications database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -91,7 +64,7 @@
 
     - name: init db | install uuid-ossp for notifications database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -101,7 +74,7 @@
 
     - name: init db  | create metadata database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -115,7 +88,7 @@
 
     - name: init db | install uuid-ossp for metdata database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -125,7 +98,7 @@
 
     - name: init db | create the de_releases database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -139,7 +112,7 @@
 
     - name: init db | install uuid-ossp for the de_releases database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -149,7 +122,7 @@
 
     - name: init db | install moddatetime for the de_releases database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -159,7 +132,7 @@
 
     - name: init db  | create grouper database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -173,7 +146,7 @@
 
     - name: init db  | create qms database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -187,7 +160,7 @@
 
     - name: init db | install uuid-ossp for qms database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -197,7 +170,7 @@
 
     - name: init db | install moddatetime for qms database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -207,7 +180,7 @@
 
     - name: init db | install btree_gist for qms database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -217,7 +190,7 @@
 
     - name: init_db | install insert_username for qms database
       community.postgresql.postgresql_ext:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -227,7 +200,7 @@
 
     - name: init db  | create unleash database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -241,7 +214,7 @@
 
     - name: init db | create k3s database
       community.postgresql.postgresql_db:
-        login_host: "{{ pg_login_host }}"
+        login_host: "{{ groups['dbms_primary'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -251,7 +224,7 @@
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
         template: "{{ template }}"
-      when: create_dbs is defined and create_dbs and k3s is defined and k3s
+      when: create_dbs is defined and create_dbs
 
     - name: init db | create staging directory
       ansible.builtin.tempfile:
@@ -282,7 +255,7 @@
     - name: init db | checkout de database repo
       ansible.builtin.git:
         repo: "https://github.com/cyverse-de/de-database"
-        dest: "{{ dbs_dir.path }}}}/de-database"
+        dest: "{{ dbs_dir.path }}/de-database"
         clone: yes
         update: yes
         force: yes
@@ -316,23 +289,23 @@
         version: "{{ mgmt_version }}"
 
     - name: init db | run de database migrations
-      ansible.builtin.shell: |
-        migrate -database "postgresql://{{_dbms_connection_user }}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ db_dirs.path }}/de-database/migrations" {{ de_db_migration_cmd }}
+      ansible.builtin.command: |
+        {{install_dir}}/migrate -database "postgresql://{{_dbms_connection_user }}:{{_dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" {{ de_db_migration_cmd }}
       when: migrate is defined and migrate
 
     - name: init db | run metadata db migrations
-      ansible.builtin.shell: |
-        migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "{{ db_dirs.path }}/metadata-db/migrations" up
+      ansible.builtin.command: |
+        {{install_dir}}/migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "{{ dbs_dir.path }}/metadata-db/migrations" up
       when: migrate is defined and migrate
 
     - name: init db | run notifications db migrations
-      ansible.builtin.shell: |
-        migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "{{ db_dirs.path }}/notifications-db/migrations" up
+      ansible.builtin.command: |
+        {{install_dir}}/migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "{{ dbs_dir.path }}/notifications-db/migrations" up
       when: migrate is defined and migrate
 
     - name: init db | run mgmt db migrations
-      ansible.builtin.shell: |
-        migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ pg_login_host }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ db_dirs.path }}/mgmt/db/migrations" up
+      ansible.builtin.command: |
+        {{install_dir}}/migrate -database "postgresql://{{_dbms_connection_user}}:{{_dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ dbs_dir.path }}/mgmt/db/migrations" up
       when: migrate is defined and migrate
 
     - name: init db | remove staging directory
