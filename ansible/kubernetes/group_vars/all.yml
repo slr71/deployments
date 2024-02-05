@@ -2,7 +2,10 @@
 _dbms_connection_user: "{{ dbms_connection_user | default('de') }}"
 _dbms_connection_pass: "{{ dbms_connection_pass | default('Ch@ng3M3') }}"
 
+_force_reinstall: "{{ force_reinstall | default(false) }}"
+
 _k3s_token: "{{ k3s_token | default('K3sT0k3n') }}"
+_k3s_version: "{{ k3s_version | default('v1.29.1+k3s1') }}"
 
 _k3s_flannel_backend: "{{ k3s_flannel_backend | default('wireguard-native') }}"
 
