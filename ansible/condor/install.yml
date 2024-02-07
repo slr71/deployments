@@ -45,3 +45,4 @@
   hosts: condor_worker
   roles:
   - condor-worker
+  - de-docker-logging-plugin

@@ -1,6 +1,6 @@
 ---
 - name: enable the submit role
   become: true
-  template:
+  ansible.builtin.template:
     dest: "/etc/condor/config.d/01-submit.config"
     src: "01-submit.config.j2"
