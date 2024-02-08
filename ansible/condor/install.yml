@@ -47,3 +47,4 @@
   - condor-worker
   - de-docker-logging-plugin
   - de-image-janitor
+  - de-network-pruner
