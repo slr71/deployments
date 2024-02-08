@@ -1,4 +1,8 @@
 ---
+- name: build the release URL
+  ansible.builtin.set_fact:
+    release_url: "https://github.com/cyverse-de/image-janitor/releases/download/{{image_janitor_version}}"
+
 - name: create /opt/image-janitor directory
   ansible.builtin.file:
     path: "/opt/image-janitor"
@@ -14,7 +18,7 @@
 
 - name: download the binary
   ansible.builtin.get_url:
-    url: "https://github.com/cyverse-de/image-janitor/releases/download/{{image_janitor_version}}/image-janitor"
+    url: "{{release_url}}/image-janitor"
     dest: "/usr/local/bin/image-janitor"
     owner: "root"
     group: "root"
@@ -23,7 +27,7 @@
 
 - name: download the systemd unit file
   ansible.builtin.get_url:
-    url: "https://github.com/cyverse-de/image-janitor/releases/download/{{image_janitor_version}}/image-janitor.service"
+    url: "{{release_url}}/image-janitor.service"
     dest: "/lib/systemd/system/image-janitor.service"
     owner: "root"
     group: "root"
