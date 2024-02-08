@@ -39,6 +39,7 @@
   hosts: condor_submit
   roles:
   - condor-submit
+  - de-road-runner
 
 - name: add configuration for the condor worker nodes
   become: true
