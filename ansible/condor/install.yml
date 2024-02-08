@@ -46,3 +46,4 @@
   roles:
   - condor-worker
   - de-docker-logging-plugin
+  - de-image-janitor
