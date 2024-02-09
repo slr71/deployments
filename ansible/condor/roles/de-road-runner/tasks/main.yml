@@ -1,10 +1,13 @@
 ---
-- include: remove.yml
-  tags:
-    - road-runner
-    - remove
+- name: build the release URL
+  ansible.builtin.set_fact:
+    release_url: "https://github.com/cyverse-de/road-runner/releases/download/{{road_runner_version}}"
 
-- include: update.yml
-  tags:
-    - road-runner
-    - update
+- name: download the binary
+  ansible.builtin.get_url:
+    url: "{{release_url}}/road-runner"
+    dest: "/usr/local/bin/road-runner"
+    owner: "root"
+    group: "root"
+    mode: 0755
+    force: true

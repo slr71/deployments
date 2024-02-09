@@ -1,26 +1,32 @@
 ---
 - name: Create the logging directory
-  file:
+  ansible.builtin.file:
     path: /var/log/de-docker-logging-plugin
     state: directory
 
-- name: Disable the plugin
-  shell: docker plugin disable de-logging
-  ignore_errors: true
+- name: get the information about the condor user
+  ansible.builtin.getent:
+    database: passwd
+    key: condor
 
-- name: Remove the existing plugin
-  shell: docker plugin remove de-logging
-  ignore_errors: true
+- name: install the plugin
+  community.docker.docker_plugin:
+    alias: de-logging
+    plugin_name: discoenv/de-docker-logging-plugin:{{de_docker_logging_plugin_tag}}
+    state: present
 
-- name: Install the new plugin
-  shell: docker plugin install --alias de-logging discoenv/de-docker-logging-plugin:{{docker.tag}} --grant-all-permissions
+- name: disable the plugin
+  community.docker.docker_plugin:
+    alias: de-logging
+    plugin_name: discoenv/de-docker-logging-plugin:{{de_docker_logging_plugin_tag}}
+    state: disable
 
-- name: Disable the plugin temporarily
-  shell: docker plugin disable de-logging
-  ignore_errors: true
-
-- name: Reconfigure the mount source
-  shell: docker plugin set de-logging de-log-directory.source=/var/lib/condor uid=$(id -u condor) gid=$(id -g condor)
-
-- name: Enable the plugin
-  shell: docker plugin enable de-logging
+- name: reconfigure and enable the plugin
+  community.docker.docker_plugin:
+    alias: de-logging
+    plugin_name: discoenv/de-docker-logging-plugin:{{de_docker_logging_plugin_tag}}
+    plugin_options:
+      de-log-directory.source: /var/lib/condor
+      uid: "{{ ansible_facts.getent_passwd['condor'][1] }}"
+      gid: "{{ ansible_facts.getent_passwd['condor'][2] }}"
+    state: enable
