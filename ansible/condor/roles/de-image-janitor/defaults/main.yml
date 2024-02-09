@@ -1,3 +1,5 @@
 ---
 porklock_image: discoenv/porklock
 porklock_tag: latest
+url_import_image: harbor.cyverse.org/de/url-import
+url_import_tag: latest

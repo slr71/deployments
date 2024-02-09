@@ -108,7 +108,10 @@ docker_registries:
 | image_janitor_version           | The version of `image-janitor` to install.                                  |
 | network_pruner_version          | The version of `network-pruner` to install.                                 |
 | road_runner_version             | The version of `road-runner` to install.                                    |
-| porklock_tag                    | The Docker image tag to use for Porklock.                                   |
+| porklock_image                  | The Docker image repository to use for Porklock (optional).                 |
+| porklock_tag                    | The Docker image tag to use for Porklock. (optional).                       |
+| url_import_image                | The Docker image repository to use for URL import (optional).               |
+| url_import_tag                  | The Docker image tag to use for URL imports (optional).                     |
 | docker_registries               | A list of Docker registries for each Condor node to be authenticated with.  |
 | docker_registries[n].host       | The host name for the Docker registry.                                      |
 | docker_registries[n].user       | The username to use to authenticate to the Docker registry.                 |
