@@ -1,0 +1,15 @@
+---
+- name: Copy TLS cert to haproxy host
+  hosts: de_proxy 
+  become: true
+  gather_facts: false
+  vars:
+    combined_cert_src: /etc/ssl/cyverse.combined
+  tasks:
+    - name: copy cert
+      ansible.builtin.copy:
+        src: "{{ combined_cert_src }}"
+        dest: "/etc/ssl/cyverse.combined"
+        group: root
+        owner: root
+        mode: 0600
