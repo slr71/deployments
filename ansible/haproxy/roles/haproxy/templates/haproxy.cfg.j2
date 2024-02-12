@@ -36,7 +36,7 @@ frontend http2-ssl
     bind *:443 ssl crt /etc/ssl/cyverse.combined alpn h2,http/1.1
     redirect scheme https code 301 if !{ ssl_fc }
 
-    acl de hdr(host) -i qa.cyverse.org
+    acl de hdr(host) -i {{ external_dns_name }}
     acl oldpath path_beg -i /anon-files/ /dl/ /de/agave-cb /dataone-node /terrain /de/websocket
 
     # HSTS (63072000 seconds)
