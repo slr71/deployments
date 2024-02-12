@@ -87,6 +87,19 @@
         namespace: "{{ ns }}"
         pod: gsh
         command: "gsh -registry -check -runscript -noprompt"
+      timeout: 600
+      register: init_result
+      ignore_errors: true
+
+    - name: debug the database init command result
+      debug:
+        var: init_result
+      when: init_result.failed
+
+    - name: exit if init command failed
+      fail:
+        msg: "Grouper database init command failed"
+      when: init_result.rc != 0
 
     - name: copy the grouper_init.groovy file to the gsh pod
       environment:
@@ -149,7 +162,7 @@
           GrouperSession deGrouperSession = GrouperSession.start(deGrouper)
 
           // Create the users folder
-          Stem.saveStem(deGrouperSession, null, null, 'iplant:de::{{ ns }}', null, null, SaveMode.INSERT, true)
+          Stem.saveStem(deGrouperSession, null, null, 'iplant:de:{{ ns }}:users', null, null, SaveMode.INSERT, true)
 
           // Close the de_grouper session
           GrouperSession.stopQuietly(deGrouperSession)
@@ -162,3 +175,16 @@
         namespace: "{{ ns }}"
         pod: gsh
         command: "gsh /tmp/grouper_init.groovy"
+      timeout: 600
+      register: groovy_result
+      ignore_errors: true
+
+    - name: debug the grouper_init.groovy script result
+      debug:
+        var: groovy_result
+      when: groovy_result.failed
+
+    - name: exit if grouper_init.groovy script failed
+      fail:
+        msg: "Grouper init script failed"
+      when: groovy_result.rc != 0
