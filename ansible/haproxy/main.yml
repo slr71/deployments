@@ -1,0 +1,6 @@
+- name: Set up HAProxy for the DE
+  hosts: de_proxy
+  become: true
+  gather_facts: false
+  roles:
+    - role: haproxy

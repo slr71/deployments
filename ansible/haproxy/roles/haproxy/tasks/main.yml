@@ -1,0 +1,26 @@
+---
+
+- name: install | apt install haproxy
+  apt:
+    update_cache: true
+    pkg:
+      - "haproxy"
+    state: present
+
+- name: configure | download dhparam
+  ansible.builtin.get_url:
+    url: https://ssl-config.mozilla.org/ffdhe2048.txt
+    dest: /etc/ssl/dhparam
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: configure | template config
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - restart haproxy
