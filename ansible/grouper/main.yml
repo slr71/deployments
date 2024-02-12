@@ -1,0 +1,164 @@
+---
+- name: Initialize grouper
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: create the gsh pod
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: gsh
+            namespace: "{{ ns }}"
+          spec:
+            volumes:
+              - name: localtime
+                hostPath:
+                  path: /etc/localtime
+              - name: timezone
+                configMap:
+                  name: timezone
+                  items:
+                    - key: timezone
+                      path: timezone
+              - name: service-configs
+                secret:
+                  secretName: service-configs
+                  items:
+                    - key: grouper-cache.properties
+                      path: grouper.cache.properties
+                    - key: grouper-client.properties
+                      path: grouper.client.properties
+                    - key: grouper-hibernate.properties
+                      path: grouper.hibernate.properties
+                    - key: grouper-loader.properties
+                      path: grouper-loader.properties
+                    - key: grouper-log4j.properties
+                      path: log4j.properties
+                    - key: grouper-morph-string.properties
+                      path: morphString.properties
+                    - key: grouper-subject.properties
+                      path: subject.properties
+                    - key: grouper-ui.properties
+                      path: grouper-ui.properties
+                    - key: grouper-ws.properties
+                      path: grouper-ws.properties
+                    - key: grouper.properties
+                      path: grouper.properties
+            containers:
+              - name: gsh
+                image: "{{ grouper_gsh_image }}"
+                imagePullPolicy: IfNotPresent
+                stdin: true
+                tty: true
+                command:
+                  - sh
+                volumeMounts:
+                  - name: localtime
+                    mountPath: /etc/localtime
+                    readOnly: true
+                  - name: timezone
+                    mountPath: /etc/timezone
+                    readOnly: true
+                  - name: service-configs
+                    mountPath: /etc/grouper
+                    readOnly: true
+
+    - name: wait for the gsh pod to be ready
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ ns }}"
+        name: gsh
+        wait: yes
+        wait_condition:
+          type: Ready
+          status: True
+
+    - name: run the database init command in the gsh pod
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_exec:
+        namespace: "{{ ns }}"
+        pod: gsh
+        command: "gsh -registry -check -runscript -noprompt"
+
+    - name: copy the grouper_init.groovy file to the gsh pod
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_cp:
+        namespace: "{{ ns }}"
+        pod: gsh
+        content: |
+          GrouperSession grouperSession = GrouperSession.startRootSession()
+
+          // Create the iplant folder
+          Stem.saveStem(grouperSession, null, null, 'iplant', null, null, SaveMode.INSERT, false)
+
+          // Create the iplant:ldap folder
+          Stem.saveStem(grouperSession, null, null, 'iplant:ldap', null, null, SaveMode.INSERT, false)
+
+          // Create the grouper loader group.
+          GroupSave groupSave = new GroupSave(grouperSession)
+          groupSave.assignName('iplant:ldap:ldap-group-loader')
+          groupSave.assignSaveMode(SaveMode.INSERT_OR_UPDATE)
+
+          // Assign loader attribute definitions to the loader group
+          Group group = groupSave.save()
+
+          AttributeAssignGroupDelegate delegate = group.getAttributeDelegate()
+          delegate.assignAttribute(LoaderLdapUtils.grouperLoaderLdapAttributeDefName())
+
+          AttributeValueDelegate attributeValueDelegate = delegate.retrieveAssignment(
+              null,
+              LoaderLdapUtils.grouperLoaderLdapAttributeDefName(),
+              false,
+              true
+          ).getAttributeValueDelegate()
+
+          attributeValueDelegate.with {
+              assignValue(LoaderLdapUtils.grouperLoaderLdapTypeName(), 'LDAP_GROUP_LIST')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapFilterName(), 'objectClass=posixGroup')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapQuartzCronName(), '0 0 * * * ?')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapSearchDnName(), 'ou=groups')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapServerIdName(), 'groupSource')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapSourceIdName(), 'ldap')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapSubjectAttributeName(), 'memberUid')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapSubjectIdTypeName(), 'subjectId')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapExtraAttributesName(), 'cn')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapGroupNameExpressionName(), "groups:\${groupAttributes['cn']}")
+              assignValue(LoaderLdapUtils.grouperLoaderLdapReadersName(), 'de_grouper')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapViewersName(), 'de_grouper')
+              assignValue(LoaderLdapUtils.grouperLoaderLdapGroupsLikeName(), 'iplant:ldap:groups:%')
+          }
+
+          // Create the DE folder and grant privileges to the de_grouper user
+          Stem stem = Stem.saveStem(grouperSession, null, null, 'iplant:de:{{ ns }}', null, null, SaveMode.INSERT, true)
+          Subject deGrouper = SubjectFinder.findByIdentifier('de_grouper', true)
+          stem.grantPrivs(deGrouper, true, false, false, false, false)
+
+          // Close the root grouper session
+          GrouperSession.stopQuietly(grouperSession)
+
+          // Start a session for the de_grouper user
+          GrouperSession deGrouperSession = GrouperSession.start(deGrouper)
+
+          // Create the users folder
+          Stem.saveStem(deGrouperSession, null, null, 'iplant:de::{{ ns }}', null, null, SaveMode.INSERT, true)
+
+          // Close the de_grouper session
+          GrouperSession.stopQuietly(deGrouperSession)
+        remote_path: /tmp/grouper_init.groovy
+
+    - name: run the grouper_init.groovy script in the gsh pod
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_exec:
+        namespace: "{{ ns }}"
+        pod: gsh
+        command: "gsh /tmp/grouper_init.groovy"
