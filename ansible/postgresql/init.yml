@@ -14,6 +14,17 @@
         password: "{{ _dbms_connection_pass }}"
       when: create_user is defined and create_user
 
+    - name: init db | create the grouper user
+      community.postgresql.postgresql_user:
+        login_host: "{{ groups['dbms_primary'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ pg_db }}"
+        name: "{{ _grouper_connection_user }}"
+        password: "{{ _grouper_connection_pass }}"
+      when: create_user is defined and create_user and grouper is defined and grouper
+
     - name: init db  | create de database
       community.postgresql.postgresql_db:
         login_host: "{{ groups['dbms_primary'][0] }}"
@@ -46,6 +57,16 @@
         login_password: "{{ pg_login_password }}"
         db: "de"
         name: "moddatetime"
+      when: install_exts is defined and install_exts
+
+    - name: init db | install btree_gist for de database
+      community.postgresql.postgresql_ext:
+        login_host: "{{ groups['dbms_primary'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "de"
+        name: "btree_gist"
       when: install_exts is defined and install_exts
 
     - name: init db  | create notifications database
@@ -137,7 +158,7 @@
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
         name: "grouper"
-        owner: "{{ _dbms_connection_user }}"
+        owner: "{{ _grouper_connection_user }}"
         encoding: "{{ encoding }}"
         lc_collate: "{{ lc_collate }}"
         lc_ctype: "{{ lc_ctype }}"
@@ -232,10 +253,11 @@
         suffix: "-dbs"
       register: dbs_dir
 
-    # - name: init db | download migrate tarball
-    #   ansible.builtin.get_url:
-    #     url: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
-    #     dest: "{{ dbs_dir.path }}/{{ migrate_tarball_name }}"
+    - name: check for migrate command
+      command: which migrate
+      changed_when: false
+      register: migrate_installed
+      failed_when: migrate_installed.rc not in [0, 1]
 
     - name: init db | extract migrate tarball
       ansible.builtin.unarchive:
@@ -243,6 +265,7 @@
         dest: "{{ dbs_dir.path }}"
         remote_src: yes
         creates: "{{ dbs_dir.path }}/migrate"
+      when: migrate_installed.rc == 1
 
     - name: init db | install migrate
       become: true
@@ -251,6 +274,7 @@
         src: "{{ dbs_dir.path }}/migrate"
         dest: "{{ install_dir }}/migrate"
         mode: 0755
+      when: migrate_installed.rc == 1
 
     - name: init db | checkout de database repo
       ansible.builtin.git:
@@ -290,7 +314,7 @@
 
     - name: init db | run de database migrations
       ansible.builtin.command: |
-        {{install_dir}}/migrate -database "postgresql://{{_dbms_connection_user }}:{{_dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" {{ de_db_migration_cmd }}
+        {{install_dir}}/migrate -database "postgresql://{{_dbms_connection_user }}:{{_dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" up
       when: migrate is defined and migrate
 
     - name: init db | run metadata db migrations

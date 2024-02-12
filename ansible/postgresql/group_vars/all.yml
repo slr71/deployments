@@ -42,6 +42,9 @@ _dbms_max_parallel_workers_per_gather: >-
 _dbms_connection_user: "{{ dbms_connection_user | default('de') }}"
 _dbms_connection_pass: "{{ dbms_connection_pass | default('Ch@ng3M3') }}"
 
+_grouper_connection_user: "{{ grouper_connection_user | default('grouper') }}"
+_grouper_connection_pass: "{{ grouper_connection_pass | default('Ch@ng3m3') }}"
+
 dbms_allowed_local_addresses:
   - "127.0.0.1/32"
   - "10.0.0.0/8"
