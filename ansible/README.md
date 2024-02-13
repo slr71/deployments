@@ -15,7 +15,7 @@ The following databases are created by the `postgresql/init.yml` playbook:
 | unleash       | de      |
 | k3s           | de      |
 
-The owner users are configurable through the `dmbs_connection_user` and `grouper_connection_user` group_vars.
+The owner users are configurable through the `dbms_connection_user` and `grouper_connection_user` group_vars.
 
 Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `k3s` database is initialized by the installation process for the k3s cluster and the `grouper` database is handled by it's own playbook since it's fairly complicated. The `qms`
 database is created here, but populated by the `qms` service. `unleash` is not yet initialized by this playbook.
