@@ -20,6 +20,8 @@ The owner users are configurable through the `dmbs_connection_user` and `grouper
 Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `k3s` database is initialized by the installation process for the k3s cluster and the `grouper` database is handled by it's own playbook since it's fairly complicated. The `qms`
 database is created here, but populated by the `qms` service. `unleash` is not yet initialized by this playbook.
 
+**NOTE** The `-e "@</path/to/dbms/group_vars>` setting is required here because the `hosts` setting in the playbook is localhost and ansible won't pick up the vars in the dbms group. If you have a localhost group_vars file then that won't be necessary to include.
+
 | Playbook            | Description                                    | Example                                                                                   |
 | ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | postgresql/init.yml | Creates the databases and runs some migrations | `ansible-playbook -i <inventory> -e "@</path/to/dbms/group-vars>" -K postgresql/init.yml` |
@@ -29,11 +31,11 @@ database is created here, but populated by the `qms` service. `unleash` is not y
 The [Kubernetes playbooks](kubernetes) can be used to prepare nodes for inclusion in a new or existing Kubernetes
 cluster.
 
-| Playbook                     | Description                        | Example                                                                                           |
-| ---------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
-| kubernetes/uninstall_k8s.yml | Uninstalls an existing k8s cluster | `ansible-playbook -i <inventory> -e "@</path/to/k8s/group_vars>" -K kubernetes/uninstall_k8s.yml` |
-| kubernetes/install_k3s.yml   | Installs k3s                       | `ansible-playbook -i <inventory> -e "@</path/to/group_vars>" -K kubernetes/install_k3s.yml`       |
-| kubernetes/setup_haproxy.yml | Installs k3s reverse proxy         | `ansible-playbook -i <inventory> -e "@</path/to/group_vars>" -K kubernetes/setup_haproxy.yml`     |
+| Playbook                     | Description                        | Example                                                           |
+| ---------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
+| kubernetes/uninstall_k8s.yml | Uninstalls an existing k8s cluster | `ansible-playbook -i <inventory> -K kubernetes/uninstall_k8s.yml` |
+| kubernetes/install_k3s.yml   | Installs k3s                       | `ansible-playbook -i <inventory> -K kubernetes/install_k3s.yml`   |
+| kubernetes/setup_haproxy.yml | Installs k3s reverse proxy         | `ansible-playbook -i <inventory> -K kubernetes/setup_haproxy.yml` |
 
 ## OpenLDAP
 
@@ -57,9 +59,9 @@ the recommended approach is to create a new HTCondor cluster that is dedicated t
 
 The DE uses cert-manager to generate and rotate self-signed TLS certs for use with NATS. The following playbooks are available:
 
-| Playbook                 | Description           | Example                                                        |
-| ------------------------ | --------------------- | -------------------------------------------------------------- |
-| cert-manager/install.yml | Installs cert-manager | `ansible-playbook -i <inventory> -K cert-manager/install.yml`` |
+| Playbook                 | Description           | Example                                                       |
+| ------------------------ | --------------------- | ------------------------------------------------------------- |
+| cert-manager/install.yml | Installs cert-manager | `ansible-playbook -i <inventory> -K cert-manager/install.yml` |
 
 ## NATS
 
@@ -67,6 +69,8 @@ The DE uses NATS in the backend to communicate between some services. By default
 with 5 nodes. You should be able to connect to any node to communicate with other services using NATS. The
 [NATS playbooks](nats) will install `helm` inside the cluster and use it to set up and run NATS.
 
-| Playbook         | Description   | Example                                                                      |
-| ---------------- | ------------- | ---------------------------------------------------------------------------- |
-| nats/install.yml | Installs NATS | `ansible-playbook -i inventory -e "@</path/to/group-vars> nats/install.yml`` |
+**NOTE** Make sure the `KUBECONFIG` environment variable is set to the correct value in your local shell.
+
+| Playbook         | Description   | Example                             |
+| ---------------- | ------------- | ----------------------------------- |
+| nats/install.yml | Installs NATS | `ansible-playbook nats/install.yml` |
