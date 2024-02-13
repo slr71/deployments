@@ -256,6 +256,8 @@
       register: download_dir
 
     - name: copy the services.creds file from the nats-box pod to the local machine
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
       kubernetes.core.k8s_cp:
         pod: "{{ nats_box_pod.resources[0].metadata.name }}"
         remote_path: /nsc/nkeys/creds/cyverse/de/services.creds
