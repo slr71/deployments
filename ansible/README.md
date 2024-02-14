@@ -24,7 +24,7 @@ database is created here, but populated by the `qms` service. `unleash` is not y
 
 | Playbook            | Description                                    | Example                                                                                   |
 | ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| postgresql/init.yml | Creates the databases and runs some migrations | `ansible-playbook -i <inventory> -e "@</path/to/dbms/group-vars>" -K postgresql/init.yml` |
+| postgresql/init.yml | Creates the databases and runs some migrations | `ansible-playbook -i <inventory> -K postgresql/init.yml` |
 
 ## Kubernetes
 
