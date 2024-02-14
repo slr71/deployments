@@ -1,5 +1,6 @@
 ---
 - name: init db | create connection user
+  delegate_to: localhost
   community.postgresql.postgresql_user:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -11,6 +12,7 @@
   when: create_user is defined and create_user
 
 - name: init db | create the grouper user
+  delegate_to: localhost
   community.postgresql.postgresql_user:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -22,6 +24,7 @@
   when: create_user is defined and create_user and grouper is defined and grouper
 
 - name: init db  | create de database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -36,6 +39,7 @@
   when: create_dbs is defined and create_dbs
 
 - name: init db | install uuid-ossp for de database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -46,6 +50,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db | install moddatetime for de database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -56,6 +61,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db | install btree_gist for de database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -66,6 +72,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db  | create notifications database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -80,6 +87,7 @@
   when: create_dbs is defined and create_dbs
 
 - name: init db | install uuid-ossp for notifications database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -90,6 +98,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db  | create metadata database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -104,6 +113,7 @@
   when: create_dbs is defined and create_dbs
 
 - name: init db | install uuid-ossp for metdata database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -114,6 +124,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db | create the de_releases database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -128,6 +139,7 @@
   when: create_dbs is defined and create_dbs
 
 - name: init db | install uuid-ossp for the de_releases database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -138,6 +150,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db | install moddatetime for the de_releases database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -148,6 +161,7 @@
   when: install_exts is defined and install_exts
 
 - name: init db  | create grouper database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -162,6 +176,7 @@
   when: create_dbs is defined and create_dbs and grouper is defined and grouper
 
 - name: init db  | create qms database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -176,6 +191,7 @@
   when: create_dbs is defined and create_dbs and qms is defined and qms
 
 - name: init db | install uuid-ossp for qms database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -186,6 +202,7 @@
   when: install_exts is defined and install_exts and qms is defined and qms
 
 - name: init db | install moddatetime for qms database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -196,6 +213,7 @@
   when: install_exts is defined and install_exts and qms is defined and qms
 
 - name: init db | install btree_gist for qms database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -206,6 +224,7 @@
   when: install_exts is defined and install_exts and qms is defined and qms
 
 - name: init_db | install insert_username for qms database
+  delegate_to: localhost
   community.postgresql.postgresql_ext:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -216,6 +235,7 @@
   when: install_exts is defined and install_exts and qms is defined and qms
 
 - name: init db  | create unleash database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -230,6 +250,7 @@
   when: create_dbs is defined and create_dbs and unleash is defined and unleash
 
 - name: init db | create k3s database
+  delegate_to: localhost
   community.postgresql.postgresql_db:
     login_host: "{{ groups['dbms_primary'][0] }}"
     port: "{{ pg_listen_port }}"
@@ -244,18 +265,21 @@
   when: create_dbs is defined and create_dbs
 
 - name: init db | create staging directory
+  delegate_to: localhost
   ansible.builtin.tempfile:
     state: directory
     suffix: "-dbs"
   register: dbs_dir
 
 - name: check for migrate command
+  delegate_to: localhost
   command: which migrate
   changed_when: false
   register: migrate_installed
   failed_when: migrate_installed.rc not in [0, 1]
 
 - name: init db | extract migrate tarball
+  delegate_to: localhost
   ansible.builtin.unarchive:
     src: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
     dest: "{{ dbs_dir.path }}"
@@ -264,6 +288,7 @@
   when: migrate_installed.rc == 1
 
 - name: init db | install migrate
+  delegate_to: localhost
   become: true
   become_user: root
   ansible.builtin.copy:
@@ -273,6 +298,7 @@
   when: migrate_installed.rc == 1
 
 - name: init db | checkout de database repo
+  delegate_to: localhost
   ansible.builtin.git:
     repo: "https://github.com/cyverse-de/de-database"
     dest: "{{ dbs_dir.path }}/de-database"
@@ -282,6 +308,7 @@
     version: "{{ de_db_version }}"
 
 - name: init db | checkout notifications database repo
+  delegate_to: localhost
   ansible.builtin.git:
     repo: "https://github.com/cyverse-de/notifications-db"
     dest: "{{ dbs_dir.path }}/notifications-db"
@@ -291,6 +318,7 @@
     version: "{{ notifications_db_version }}"
 
 - name: init db | checkout metadata database repo
+  delegate_to: localhost
   ansible.builtin.git:
     repo: "https://github.com/cyverse-de/metadata-db"
     dest: "{{ dbs_dir.path }}/metadata-db"
@@ -300,6 +328,7 @@
     version: "{{ metadata_db_version }}"
 
 - name: init db | checkout the mgmt repo for the de_releases schema
+  delegate_to: localhost
   ansible.builtin.git:
     repo: "https://github.com/cyverse-de/mgmt"
     dest: "{{ dbs_dir.path }}/mgmt"
@@ -309,26 +338,31 @@
     version: "{{ mgmt_version }}"
 
 - name: init db | run de database migrations
+  delegate_to: localhost
   ansible.builtin.command: |
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user }}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run metadata db migrations
+  delegate_to: localhost
   ansible.builtin.command: |
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "{{ dbs_dir.path }}/metadata-db/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run notifications db migrations
+  delegate_to: localhost
   ansible.builtin.command: |
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "{{ dbs_dir.path }}/notifications-db/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run mgmt db migrations
+  delegate_to: localhost
   ansible.builtin.command: |
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ dbs_dir.path }}/mgmt/db/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | remove staging directory
+  delegate_to: localhost
   ansible.builtin.file:
     path: "{{ dbs_dir.path }}"
     state: absent

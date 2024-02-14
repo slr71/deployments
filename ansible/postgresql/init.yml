@@ -1,6 +1,6 @@
 ---
 - name: Initialize databases
-  hosts: localhost
-  connection: local
+  hosts: dbms
+  gather_facts: false
   roles:
     - role: init
