@@ -47,7 +47,7 @@
                   path: grouper.properties
         containers:
           - name: gsh
-            image: "{{ grouper_gsh_image }}"
+            image: "{{ grouper_gsh_image }}:{{ grouper_gsh_image_version }}"
             imagePullPolicy: IfNotPresent
             stdin: true
             tty: true
