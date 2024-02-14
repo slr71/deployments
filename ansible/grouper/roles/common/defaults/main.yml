@@ -1,0 +1,4 @@
+---
+ns: qa
+grouper_gsh_image: harbor.cyverse.org/de/grouper
+grouper_gsh_image_version: v3.0.0

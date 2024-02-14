@@ -2,23 +2,21 @@
 - name: Prepare for PostgreSQL
   hosts: dbms
   become: true
-  roles:
-    - role: adfinis-sygroup.grub
-      grub_console: false
-      grub_consoles: []
-      grub_serial: []
-      grub_timeout: 0
-      grub_disable_network_predictable_interface_names: false
-      grub_cmdline_linux_default_list:
-        - transparent_hugepage=never
-      tags:
-        - no_testing
+  tasks:
+    - name: open port 5432
+      community.general.ufw:
+        rule: allow
+        port: 5432
+        proto: tcp
 
+    - name: install acl package
+      ansible.builtin.package:
+        name: acl
+        state: present
 
 - name: Set up primary DBMS
   hosts: dbms_primary
   become: true
-  gather_facts: false
   vars:
     effective_cache_size: >-
       {{ _dbms_effective_cache_size if _dbms_effective_cache_size else
@@ -45,7 +43,7 @@
         pg_replication_pass: "{{ _dbms_replication_password }}"
         pg_replication_user: "{{ _dbms_replication_user }}"
         pg_shared_buffers: "{{ ansible_facts['memtotal_mb']|int // 4 }}MB"
-        pg_standard_conforming_strings: 'off'
+        pg_standard_conforming_strings: "on"
         pg_work_mem: "{{ _dbms_work_mem }}MB"
         pg_effective_io_concurrency: "{{ _dbms_effective_io_concurrency }}"
         pg_max_worker_processes: "{{ max_worker_processes }}"
@@ -62,11 +60,9 @@
         pg_wal_keep_segments: "{{ _dbms_wal_keep_segments }}"
         pg_reboot_allowed: "{{ _dbms_reboot_allowed }}"
 
-
 - name: Set up replica DBMSs
   hosts: dbms_replicas
   become: true
-  gather_facts: false
   vars:
     effective_cache_size: >-
       {{ _dbms_effective_cache_size if _dbms_effective_cache_size else
@@ -94,7 +90,7 @@
         pg_replication_pass: "{{ _dbms_replication_password }}"
         pg_replication_user: "{{ _dbms_replication_user }}"
         pg_shared_buffers: "{{ ansible_facts['memtotal_mb']|int // 4 }}MB"
-        pg_standard_conforming_strings: 'off'
+        pg_standard_conforming_strings: "on"
         pg_work_mem: "{{ _dbms_work_mem }}MB"
         pg_effective_io_concurrency: "{{ _dbms_effective_io_concurrency }}"
         pg_max_worker_processes: "{{ max_worker_processes }}"
@@ -109,3 +105,50 @@
           {{ 'on' if _dbms_mem_num_huge_pages|int > 0 else 'off' }}
         pg_upstream_node: "{{ groups['dbms_primary'][0] }}"
         pg_reboot_allowed: "{{ _dbms_reboot_allowed }}"
+
+- name: Set up pg_hba.conf with local postgres database access
+  hosts: dbms
+  become: true
+  tasks:
+    - name: Add remote access to pg_hba.conf
+      community.postgresql.postgresql_pg_hba:
+        dest: /etc/postgresql/{{ dbms_postgresql_version }}/main/pg_hba.conf
+        contype: host
+        databases: all
+        users: all
+        address: "{{ item }}"
+        method: md5
+      loop: "{{ dbms_allowed_local_addresses }}"
+
+- name: Set up pg_hba.conf with remote postgres database access
+  hosts: dbms
+  become: true
+  tasks:
+    - name: Add remote access to pg_hba.conf
+      community.postgresql.postgresql_pg_hba:
+        dest: /etc/postgresql/{{ dbms_postgresql_version }}/main/pg_hba.conf
+        contype: host
+        databases: all
+        users: all
+        address: "{{ item }}"
+        method: md5
+      loop: "{{ dbms_allowed_remote_addresses }}"
+
+- name: Restart postgresql
+  hosts: dbms
+  become: true
+  tasks:
+    - name: Restart postgresql
+      ansible.builtin.service:
+        name: postgresql
+        state: restarted
+
+- name: Set password for postgres user
+  hosts: dbms
+  become: true
+  tasks:
+    - name: Set password for postgres user
+      community.postgresql.postgresql_user:
+        name: postgres
+        password: "{{ pg_login_password }}"
+        encrypted: yes

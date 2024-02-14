@@ -1,0 +1,47 @@
+---
+- name: system updates
+  hosts: k8s
+  become: true
+  tasks:
+    - name: print host
+      become: false
+      debug:
+        var: inventory_hostname
+
+    - name: drain hosts
+      become: false
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_drain:
+        name: "{{ inventory_hostname }}"
+        delete_options:
+          delete_emptydir_data: true
+          ignore_daemonsets: true
+          terminate_grace_period: 0
+      delegate_to: 127.0.0.1
+
+    - name: update packages
+      ansible.builtin.shell: yum update -y --disablerepo=kubernetes
+
+    - name: reboot
+      ansible.builtin.reboot:
+
+    - name: wait for node to be ready
+      become: false
+      kubernetes.core.k8s_info:
+        kind: Node
+        name: "{{ inventory_hostname }}"
+        wait: yes
+        wait_condition:
+          type: Ready
+          status: True
+      delegate_to: 127.0.0.1
+
+    - name: uncordon hosts
+      become: false
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_drain:
+        name: "{{ inventory_hostname }}"
+        state: uncordon
+      delegate_to: 127.0.0.1

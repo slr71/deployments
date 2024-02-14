@@ -2,19 +2,6 @@
 - name: Add nats helm support
   hosts: localhost
   connection: local
-  vars:
-    ns: qa
-    nats_cmd_pod: nats-box
-    ui_wildcard_fqdn: "*.cyverse.org"
-    vice_wildcard_fqdn: "*.cyverse.run"
-    vice_base_domain: cyverse.run
-    ca_duration: 8766h # 1 year
-    ca_renew_before: 240h # 10 days
-    nats_server_cert_duration: 8766h # 1 year
-    nats_server_cert_renew_before: 240h # 10 days
-    nats_client_cert_duration: 8766h # 1 year
-    nats_client_cert_renew_before: 240h # 10 days
-
   tasks:
     - name: Add nats helm repository
       environment:
@@ -256,6 +243,8 @@
       register: download_dir
 
     - name: copy the services.creds file from the nats-box pod to the local machine
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
       kubernetes.core.k8s_cp:
         pod: "{{ nats_box_pod.resources[0].metadata.name }}"
         remote_path: /nsc/nkeys/creds/cyverse/de/services.creds

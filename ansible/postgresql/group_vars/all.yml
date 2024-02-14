@@ -38,6 +38,3 @@ _dbms_max_parallel_maintenance_workers: >-
   {{ dbms_max_parallel_maintenance_workers | d(2) }}
 _dbms_max_parallel_workers_per_gather: >-
   {{ dbms_max_parallel_workers_per_gather | d(2) }}
-
-_dbms_connection_user: "{{ dbms_connection_user | default('de') }}"
-_dbms_connection_pass: "{{ dbms_connection_pass | default('Ch@ng3M3') }}"

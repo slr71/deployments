@@ -1,0 +1,186 @@
+---
+- name: download k3s installation script locally.
+  hosts: localhost
+  connection: local
+  become: false
+  tasks:
+    - name: download k3s installation script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: "./k3s_install.sh"
+        mode: "a+x"
+
+- name: prepare k3s nodes
+  hosts: k3s_nodes
+  become: true
+  tasks:
+    - name: install wireguard
+      ansible.builtin.package:
+        name: wireguard
+        state: present
+      when: do_wireguard is undefined or do_wireguard | bool
+
+    - community.general.ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      loop:
+        - port: 6443 # required for k3s api
+          proto: tcp
+        - port: 10250 # kubelet metrics
+          proto: tcp
+        - port: 5001 # embedded registry
+          proto: tcp
+        - port: 51820:51821 # wireguard
+          proto: udp
+        - port: 30000:32767 # nodePorts
+          proto: tcp
+      when: do_open_ports is undefined or do_open_ports | bool
+
+    - community.general.ufw:
+        rule: allow
+        src: "{{ item }}"
+      loop:
+        - 10.42.0.0/16 # k3s pods
+        - 10.43.0.0/16 # k3s services
+      when: do_open_ports is undefined or do_open_ports | bool
+
+    - name: upload k3s installation script
+      ansible.builtin.copy:
+        src: "./k3s_install.sh"
+        dest: "/tmp/k3s_install.sh"
+        mode: "a+x"
+
+    - name: create /etc/rancher/k3s/ directory
+      ansible.builtin.file:
+        path: "/etc/rancher/k3s/"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: copy registries.yaml
+      ansible.builtin.template:
+        src: "registries.yaml.j2"
+        dest: "/etc/rancher/k3s/registries.yaml"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: reboot nodes
+      ansible.builtin.reboot:
+      when: do_reboot is undefined or do_reboot | bool
+
+- name: set up first k3s control nodes
+  hosts: k3s_controllers[0]
+  become: true
+  tasks:
+    - ansible.builtin.stat: path=/usr/local/bin/k3s
+      register: k3s_installed_c0
+
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "server"
+        INSTALL_K3S_VERSION: "{{ _k3s_version }}"
+        K3S_TOKEN: "{{ k3s_token }}"
+        K3S_DATASTORE_ENDPOINT: "{{ _k3s_datastore_endpoint }}"
+        K3S_KUBECONFIG_OUTPUT: "{{ _k3s_kubeconfig_output }}"
+        K3S_KUBECONFIG_MODE: "{{ _k3s_kubeconfig_mode }}"
+      ansible.builtin.shell: /tmp/k3s_install.sh --flannel-backend "{{ _k3s_flannel_backend }}" --tls-san "{{ groups['k3s_api_proxy'][0] }}" --embedded-registry
+      when: not k3s_installed_c0.stat.exists or _force_reinstall | bool
+
+    - name: start k3s service
+      ansible.builtin.service:
+        name: k3s
+        state: restarted
+        enabled: true
+
+- name: set up remaining k3s control nodes
+  hosts: k3s_controllers[1:]
+  become: true
+  tasks:
+    - ansible.builtin.stat: path=/usr/local/bin/k3s
+      register: k3s_installed_c1
+
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "server"
+        INSTALL_K3S_VERSION: "{{ _k3s_version }}"
+        K3S_TOKEN: "{{ k3s_token }}"
+        K3S_DATASTORE_ENDPOINT: "{{ _k3s_datastore_endpoint }}"
+        K3S_KUBECONFIG_OUTPUT: "{{ _k3s_kubeconfig_output }}"
+        K3S_KUBECONFIG_MODE: "{{ _k3s_kubeconfig_mode }}"
+      ansible.builtin.shell: /tmp/k3s_install.sh --flannel-backend "{{ _k3s_flannel_backend }}" --tls-san "{{ groups['k3s_api_proxy'][0] }}" --embedded-registry
+      when: not k3s_installed_c1.stat.exists or _force_reinstall | bool
+
+    - name: start k3s service
+      ansible.builtin.service:
+        name: k3s
+        state: restarted
+        enabled: true
+
+- name: set up k3s DE worker nodes
+  hosts: k3s_de_workers
+  become: true
+  tasks:
+    - ansible.builtin.stat: path=/usr/local/bin/k3s
+      register: k3s_installed_workers
+
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "agent"
+        INSTALL_K3S_VERSION: "{{ _k3s_version }}"
+        K3S_TOKEN: "{{ _k3s_token }}"
+        K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5443"
+      ansible.builtin.shell: /tmp/k3s_install.sh
+      when: not k3s_installed_workers.stat.exists or _force_reinstall | bool
+
+    - name: start k3s service
+      ansible.builtin.service:
+        name: k3s-agent
+        state: restarted
+        enabled: true
+
+- name: set up k3s VICE worker nodes
+  hosts: k3s_vice_workers
+  become: true
+  tasks:
+    - ansible.builtin.stat: path=/usr/local/bin/k3s
+      register: k3s_installed_vice
+
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "agent"
+        INSTALL_K3S_VERSION: "{{ _k3s_version }}"
+        K3S_TOKEN: "{{ _k3s_token }}"
+        K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5443"
+      ansible.builtin.shell: /tmp/k3s_install.sh --node-label=vice=true --node-taint=vice=true:NoSchedule
+      when: not k3s_installed_vice.stat.exists or _force_reinstall | bool
+
+    - name: start k3s service
+      ansible.builtin.service:
+        name: k3s-agent
+        state: restarted
+        enabled: true
+
+- name: set up k3s GPU worker nodes
+  hosts: k3s_gpu_workers
+  become: true
+  tasks:
+    - ansible.builtin.stat: path=/usr/local/bin/k3s
+      register: k3s_installed_gpu
+
+    - name: install k3s
+      environment:
+        INSTALL_K3S_EXEC: "agent"
+        INSTALL_K3S_VERSION: "{{ _k3s_version }}"
+        K3S_TOKEN: "{{ _k3s_token }}"
+        K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5443"
+      ansible.builtin.shell: /tmp/k3s_install.sh --node-label=gpu=true --node-taint=vice=true:NoSchedule
+      when: not k3s_installed_gpu.stat.exists or _force_reinstall | bool
+
+    - name: start k3s service
+      ansible.builtin.service:
+        name: k3s-agent
+        state: restarted
+        enabled: true
