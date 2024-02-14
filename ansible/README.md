@@ -17,7 +17,7 @@ The following databases are created by the `postgresql/init.yml` playbook:
 
 The owner users are configurable through the `dbms_connection_user` and `grouper_connection_user` group_vars.
 
-Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `k3s` database is initialized by the installation process for the k3s cluster and the `grouper` database is handled by it's own playbook since it's fairly complicated. The `qms`
+Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `k3s` database is initialized by the installation process for the k3s cluster and the `grouper` database is handled by its own playbook since it's fairly complicated. The `qms`
 database is created here, but populated by the `qms` service. `unleash` is not yet initialized by this playbook.
 
 **NOTE** The `-e "@</path/to/dbms/group_vars>` setting is required here because the `hosts` setting in the playbook is localhost and ansible won't pick up the vars in the dbms group. If you have a localhost group_vars file then that won't be necessary to include.
