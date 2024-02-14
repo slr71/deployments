@@ -337,6 +337,16 @@
     force: yes
     version: "{{ mgmt_version }}"
 
+- name: init db | checkout the qms repo for its migrations
+  delegate_to: localhost
+  ansible.builtin.git:
+    repo: "https://github.com/cyverse/qms"
+    dest: "{{ dbs_dir.path }}/qms"
+    clone: yes
+    update: yes
+    force: yes
+    version: "{{ qms_version }}"
+
 - name: init db | run de database migrations
   delegate_to: localhost
   ansible.builtin.command: |
@@ -359,6 +369,12 @@
   delegate_to: localhost
   ansible.builtin.command: |
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ dbs_dir.path }}/mgmt/db/migrations" up
+  when: migrate is defined and migrate
+
+- name: init db | run qms repo for its migrations
+  delegate_to: localhost
+  ansible.builtin.command: |
+    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable" -path "{{ dbs_dir.path }}/qms/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | remove staging directory

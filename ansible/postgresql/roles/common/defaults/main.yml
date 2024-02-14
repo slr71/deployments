@@ -78,6 +78,7 @@ de_db_version: master
 notifications_db_version: main
 metadata_db_version: master
 mgmt_version: main
+qms_version: main
 
 pg_login_user: postgres
 pg_login_host: localhost
