@@ -1,0 +1,57 @@
+---
+- name: install wireguard
+  ansible.builtin.package:
+    name: wireguard
+    state: present
+  when: do_wireguard is undefined or do_wireguard | bool
+
+- community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - port: 6443 # required for k3s api
+      proto: tcp
+    - port: 10250 # kubelet metrics
+      proto: tcp
+    - port: 5001 # embedded registry
+      proto: tcp
+    - port: 51820:51821 # wireguard
+      proto: udp
+    - port: 30000:32767 # nodePorts
+      proto: tcp
+  when: do_open_ports is undefined or do_open_ports | bool
+
+- community.general.ufw:
+    rule: allow
+    src: "{{ item }}"
+  loop:
+    - 10.42.0.0/16 # k3s pods
+    - 10.43.0.0/16 # k3s services
+  when: do_open_ports is undefined or do_open_ports | bool
+
+- name: upload k3s installation script
+  ansible.builtin.copy:
+    src: "./k3s_install.sh"
+    dest: "/tmp/k3s_install.sh"
+    mode: "a+x"
+
+- name: create /etc/rancher/k3s/ directory
+  ansible.builtin.file:
+    path: "/etc/rancher/k3s/"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: copy registries.yaml
+  ansible.builtin.template:
+    src: "registries.yaml.j2"
+    dest: "/etc/rancher/k3s/registries.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: reboot nodes
+  ansible.builtin.reboot:
+  when: do_reboot is undefined or do_reboot | bool

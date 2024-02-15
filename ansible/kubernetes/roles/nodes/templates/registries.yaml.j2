@@ -1,0 +1,14 @@
+mirrors:
+  docker.io:
+  registry.k8s.io:
+  {{ k3s_registry_mirror }}:
+    endpoint:
+      - "{{ k3s_registry_mirror_endpoint }}"
+
+configs:
+  {{ k3s_registry_mirror }}:
+    auth:
+      token: "{{ k3s_registry_mirror_token }}"
+    tls:
+      insecure_skip_verify: {{ k3s_registry_mirror_insecure_skip_verify | bool }}
+  

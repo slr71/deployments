@@ -1,0 +1,18 @@
+---
+- ansible.builtin.stat: path=/usr/local/bin/k3s
+  register: k3s_installed_workers
+
+- name: install k3s
+  environment:
+    INSTALL_K3S_EXEC: "agent"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    K3S_TOKEN: "{{ k3s_token }}"
+    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5443"
+  ansible.builtin.shell: /tmp/k3s_install.sh
+  when: not k3s_installed_workers.stat.exists or force_reinstall | bool
+
+- name: start k3s service
+  ansible.builtin.service:
+    name: k3s-agent
+    state: restarted
+    enabled: true
