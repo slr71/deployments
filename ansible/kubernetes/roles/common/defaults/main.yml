@@ -14,3 +14,19 @@ k3s_registry_mirror_insecure_skip_verify: false
 k3s_datastore_endpoint: ;;
 k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
 k3s_kubeconfig_mode: "644"
+
+irods_csi_driver_repo: https://cyverse.github.io/irods-csi-driver
+irods_csi_driver_namespace: irods-csi-driver
+irods_csi_driver_client: irodsfuse
+irods_csi_driver_host: data.cyverse.org
+irods_csi_driver_port: 1247
+irods_csi_driver_zone: cyverse
+irods_csi_driver_user: not_a_user
+irods_csi_driver_password: not_a_password
+irods_csi_driver_retain_data: "false"
+irods_csi_driver_enforce_proxy_access: "true"
+irods_csi_driver_mount_path_white_list: "/not/a/path"
+irods_csi_driver_cache_size_max: 10737418240
+irods_csi_driver_cache_root: "/irodsfs_pool_cache"
+irods_csi_driver_temp_root: "/tmp/irodsfs_pool_temp"
+irods_csi_driver_cache_timeout_settings: '[{"path":"/","timeout":"-1ns","inherit":false},{"path":"/example","timeout":"-1ns","inherit":false},{"path":"/example/home","timeout":"1h","inherit":false},{"path":"/example/home/shared","timeout":"1h","inherit":true}]'
