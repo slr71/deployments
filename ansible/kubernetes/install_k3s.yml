@@ -34,3 +34,10 @@
   become: true
   roles:
     - role: gpu_workers
+
+- name: set up irods-csi-driver
+  hosts: k3s_controllers[0]
+  connection: local
+  become: false
+  roles:
+    - role: irods_csi_driver

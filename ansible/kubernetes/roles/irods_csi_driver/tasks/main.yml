@@ -1,5 +1,6 @@
 ---
 - name: install the irods CSI driver helm repo
+  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm_repository:
@@ -8,6 +9,7 @@
     state: present
 
 - name: Create installation namespace
+  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -16,7 +18,8 @@
     kind: namespace
     api_version: v1
 
-- name: create the nats values file from inline content
+- name: create the irods-csi-driver values file from inline content
+  delegate_to: localhost
   ansible.builtin.copy:
     content: |
       globalConfig:
@@ -36,11 +39,10 @@
           extraArgs:
             - '--cache_timeout_settings={{ irods_csi_driver_cache_timeout_settings }}'
             - --cache_size_max={{ irods_csi_driver_cache_size_max }}
-            - --cache_root={{ irods_csi_driver_cache_root }}
-            - --temp_root={{ irods_csi_driver_temp_root }}
+            - --data_root={{ irods_csi_driver_data_root }}
     dest: "./irods_csi_driver_values.yaml"
 
-- name: Install nats helm chart
+- name: Install irods-csi-driver helm chart
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm:
