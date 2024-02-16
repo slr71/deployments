@@ -1,0 +1,7 @@
+---
+- name: install iRODS CSI driver
+  hosts: k3s_controllers[0]
+  connection: local
+  gather_facts: false
+  roles:
+    - role: irods_csi_driver

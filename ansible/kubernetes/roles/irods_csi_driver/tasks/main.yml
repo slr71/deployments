@@ -1,0 +1,54 @@
+---
+- name: install the irods CSI driver helm repo
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm_repository:
+    name: irods-csi-driver
+    repo_url: "{{ irods_csi_driver_repo }}"
+    state: present
+
+- name: Create installation namespace
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: "{{ irods_csi_driver_namespace }}"
+    state: present
+    kind: namespace
+    api_version: v1
+
+- name: create the irods-csi-driver values file from inline content
+  delegate_to: localhost
+  ansible.builtin.copy:
+    content: |
+      globalConfig:
+        secret:
+          stringData:
+            client: "{{ irods_csi_driver_client }}"
+            host: "{{ irods_csi_driver_host }}"
+            port: "{{ irods_csi_driver_port }}"
+            zone: "{{ irods_csi_driver_zone }}"
+            user: "{{ irods_csi_driver_user}}"
+            password: "{{ irods_csi_driver_password }}"
+            retainData: "{{ irods_csi_driver_retain_data }}"
+            enforceProxyAccess: "{{ irods_csi_driver_enforce_proxy_access }}"
+            mountPathWhitelist: "{{ irods_csi_driver_mount_path_white_list }}"
+      nodeService:
+        irodsPool:
+          extraArgs:
+            - '--cache_timeout_settings={{ irods_csi_driver_cache_timeout_settings }}'
+            - --cache_size_max={{ irods_csi_driver_cache_size_max }}
+            - --data_root={{ irods_csi_driver_data_root }}
+    dest: "./irods_csi_driver_values.yaml"
+
+- name: Install irods-csi-driver helm chart
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm:
+    name: irods-csi-driver
+    chart_ref: irods-csi-driver/irods-csi-driver
+    release_namespace: "{{ irods_csi_driver_namespace }}"
+    wait: true
+    values_files:
+      - "./irods_csi_driver_values.yaml"
