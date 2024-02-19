@@ -35,9 +35,22 @@
   roles:
     - role: gpu_workers
 
+# This is limited to the first controller node to prevent it from
+# running multiple times, once per host. It's not actually limited
+# to the first controller node.
 - name: set up irods-csi-driver
   hosts: k3s_controllers[0]
   connection: local
   become: false
   roles:
     - role: irods_csi_driver
+
+# This is limited to the first controller node to prevent it from
+# running multiple times, once per host. It's not actually limited
+# to the first controller node.
+- name: set up kubernetes requirements for the DE
+  hosts: k3s_controllers[0]
+  connection: local
+  become: false
+  roles:
+    - role: de_reqs
