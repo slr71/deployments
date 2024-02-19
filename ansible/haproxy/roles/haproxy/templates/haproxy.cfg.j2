@@ -52,7 +52,7 @@ backend sonora
     http-request add-header X-Forwarded-Proto https
 
     balance roundrobin
-    {% for svr in groups['k8s_de_workers'] %}
+    {% for svr in groups['k3s_de_workers'] %}
     server {{ svr }} {{ svr }}:31346 check inter 5000
     {% endfor %}
 
@@ -63,6 +63,6 @@ backend de-nginx
     http-request add-header X-Forwarded-Proto https
 
     balance roundrobin
-    {% for svr in groups['k8s_de_workers'] %}
+    {% for svr in groups['k3s_de_workers'] %}
     server {{ svr }} {{ svr }}:31342 check inter 5000
     {% endfor %}
