@@ -1,0 +1,76 @@
+---
+- name: Add CORS ingresses
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: "{{ item.name }}"
+        namespace: "{{ ns }}"
+        annotations:
+          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Origin: *"
+          ingress.kubernetes.io/custom-request-headers: "Access-Control-Max-Age: 86400"
+          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Credentials: true"
+          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Methods: GET, POST, OPTIONS"
+          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Headers: DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+          ingress.kubernetes.io/custom-request-headers: "Access-Control-Expose-Headers: DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+      spec:
+        ingressClass: traefik
+        rules:
+          - host: de.cyverse.org
+            http:
+              paths:
+                - path: "{{ item.path }}"
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: "{{ item.service }}"
+                      port:
+                        number: 80
+  loop:
+    - name: anon-files
+      path: /anon-files
+      service: kifshare
+    - name: dl
+      path: /dl
+      service: kifshare
+    - name: terrain
+      path: /terrain
+      service: terrain
+
+- name: Add ingresses
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: de
+        namespace: "{{ ns }}"
+      spec:
+        ingressClass: traefik
+        rules:
+          - host: de.cyverse.org
+            http:
+              paths:
+                - path: /job
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: job-status-listener
+                      port:
+                        number: 80
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: sonora
+                      port:
+                        number: 80
