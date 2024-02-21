@@ -14,12 +14,12 @@ This playbook installs and configures HAProxy to forward traffic to the DE. This
 [de_proxy]
 proxy-node.example.org
 
-[k8s_de_workers]
-k8s-node-1.example.org
-k8s-node-2.example.org
+[k3s_de_workers]
+k3s-node-1.example.org
+k3s-node-2.example.org
 ```
 
-The `de_proxy` group should contain the server set up as the proxy node. DNS for the environment's main access point should point to this server. The `k8s_de_workers` node should be set up as for the kubernetes roles, and should contain the nodes on which the DE might be running (nodes that will have the appropriate NodePorts set up to proxy to).
+The `de_proxy` group should contain the server set up as the proxy node. DNS for the environment's main access point should point to this server. The `k3s_de_workers` node should be set up as for the kubernetes roles, and should contain the nodes on which the DE might be running (nodes that will have the appropriate NodePorts set up to proxy to).
 
 ## Group Variable Setup
 
