@@ -42,6 +42,34 @@
       path: /terrain
       service: terrain
 
+- name: Add agave-callback ingress
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: agave-callback
+        namespace: "{{ ns }}"
+        annotations:
+          traefik.ingress.kubernetes.io/rewrite-target: /callbacks/agave-job
+      spec:
+        ingressClass: traefik
+        rules:
+          - host: de.cyverse.org
+            http:
+              paths:
+                - path: /de/agave-cb
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: apps
+                      port:
+                        number: 80
+
 - name: Add ingresses
   delegate_to: localhost
   environment:
