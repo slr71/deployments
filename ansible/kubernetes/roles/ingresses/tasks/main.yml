@@ -21,7 +21,7 @@
       spec:
         ingressClass: traefik
         rules:
-          - host: de.cyverse.org
+          - host: "{{ de_hostname }}"
             http:
               paths:
                 - path: "{{ item.path }}"
@@ -59,7 +59,7 @@
       spec:
         ingressClass: traefik
         rules:
-          - host: de.cyverse.org
+          - host: "{{ de_hostname }}"
             http:
               paths:
                 - path: /de/agave-cb
@@ -85,7 +85,7 @@
       spec:
         ingressClass: traefik
         rules:
-          - host: de.cyverse.org
+          - host: "{{ de_hostname }}"
             http:
               paths:
                 - path: /job
