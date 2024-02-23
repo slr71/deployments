@@ -5,6 +5,8 @@ dbms_connection_pass: Ch@ng3M3
 ns: qa
 vice_ns: vice-apps
 
+de_hostname: de.cyverse.org
+
 force_reinstall: false
 
 k3s_token: K3sT0k3n
