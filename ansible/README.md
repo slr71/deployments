@@ -1,5 +1,10 @@
 # Ansible Playbooks
 
+## Required Ansible Collections
+
+* community.general
+* kubernetes.core
+
 ## Database Initialization
 
 The following databases are created by the `postgresql/init.yml` playbook:
