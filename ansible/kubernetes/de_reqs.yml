@@ -16,3 +16,11 @@
   gather_facts: false
   roles:
     - role: ingresses
+
+- name: set up longhorn
+  hosts: k3s_controllers[0]
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - role: longhorn
