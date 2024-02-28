@@ -25,8 +25,8 @@
           app: keycloak
       type: Opaque
       data:
-        username: "{{ keycloak_db_username }}"
-        passweord: "{{ keycloak_db_password }}"
+        username: "{{ keycloak_db_username | b64encode }}"
+        passweord: "{{ keycloak_db_password | b64encode }}"
 
 - name: create the kcadmin secret
   delegate_to: localhost
@@ -44,10 +44,11 @@
           app: keycloak
       type: Opaque
       data:
-        username: "{{ keycloak_admin_username }}"
-        password: "{{ keycloak_admin_password }}"
+        username: "{{ keycloak_admin_username | b64encode}}"
+        password: "{{ keycloak_admin_password | b64encode}}"
 
 - name: create the kc-tls certificate
+  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -97,9 +98,9 @@
           app: keycloak
       data:
         KEYCLOAK_HOSTNAME_URL: "{{ keycloak_hostname_url }}"
-        KEYCLOAK_HOSTNAME_STRICT: "{{ keycloak_hostname_strict | bool}}"
-        KEYCLOAK_HOSTNAME_STRICT_HTTPS: "{{ keycloak_hostname_strict_https | bool }}"
-        KEYCLOAK_LOGLEVEL: "{{ keycloak_loglevel }}"
+        KEYCLOAK_HOSTNAME_STRICT: "{{ keycloak_hostname_strict }}"
+        KEYCLOAK_HOSTNAME_STRICT_HTTPS: "{{ keycloak_hostname_strict_https }}"
+        KEYCLOAK_LOGLEVEL: '"{{ keycloak_log_level }}"'
         KEYCLOAK_PROXY: "{{ keycloak_proxy }}"
         DB_VENDOR: "{{ keycloak_db_vendor }}"
         DB_ADDR: "{{ keycloak_db_addr }}"
@@ -232,7 +233,7 @@
                   - name: DB_NAME
                     value: "{{ keycloak_db_name }}"
                   - name: DB_USER
-                    value: "{{ keycloak_db_user }}"
+                    value: "{{ keycloak_db_username }}"
                   - name: DB_PASSWORD
                     value: "{{ keycloak_db_password }}"
                   - name: JAVA_OPTS
@@ -289,12 +290,12 @@
             name: http
             port: 80
             targetPort: http
-            nodePort: {{keycloak_http_nodeport}}
+            nodePort: "{{keycloak_http_nodeport}}"
           - protocol: TCP
             name: https
             port: 443
             targetPort: https
-            nodePort: {{keycloak_https_nodeport}}
+            nodePort: "{{keycloak_https_nodeport}}"
         selector:
           app: keycloak
         type: NodePort
