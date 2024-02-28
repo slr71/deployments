@@ -134,4 +134,6 @@ pg_huge_pages: try
 pg_num_huge_pages: 0
 
 
-
+## Keycloak Configuration
+keycloak_db_username: de
+keycloak_db_password: Ch@ng3M3
