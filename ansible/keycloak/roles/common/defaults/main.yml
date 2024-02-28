@@ -15,7 +15,6 @@ keycloak_log_level: INFO
 keycloak_proxy: passthrough
 
 keycloak_db_vendor: postgres
-keycloak_db_addr: postgres.example.org
 keycloak_db_port: '5432'
 keycloak_db_name: keycloak
 keycloak_db_username: dbuser

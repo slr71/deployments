@@ -47,6 +47,50 @@
         username: "{{ keycloak_admin_username | b64encode}}"
         password: "{{ keycloak_admin_password | b64encode}}"
 
+- name: create the kc-selfsigned-ca secret
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: kc-selfsigned-ca
+    namespace: "{{ keycloak_namespace }}"
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: kc-selfsigned-ca
+      spec:
+        isCA: true
+        commonName: kc-selfsigned-ca
+        secretName: kc-selfsigned-ca
+        duration: "{{ keycloak_cert_duration }}"
+        renewBefore: "{{ keycloak_cert_renew_before }}"
+        privateKey:
+          algorithm: ECDSA
+          size: 256
+        issuerRef:
+          name: default-cluster-issuer
+          kind: ClusterIssuer
+          group: cert-manager.io
+
+- name: create the kc-ca-issuer issuer
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: kc-ca-issuer
+    namespace: "{{ keycloak_namespace }}"
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Issuer
+      metadata:
+        name: kc-ca-issuer
+      spec:
+        ca:
+          secretName: kc-selfsigned-ca
+
 - name: create the kc-tls certificate
   delegate_to: localhost
   environment:
@@ -65,7 +109,7 @@
         duration: "{{ keycloak_cert_duration }}"
         renewBefore: "{{ keycloak_cert_renew_before }}"
         issuerRef:
-          name: ca-issuer
+          name: kc-ca-issuer
           kind: Issuer
         commonName: keycloak.{{ keycloak_namespace }}.svc.cluster.local
         dnsNames:
@@ -103,7 +147,7 @@
         KEYCLOAK_LOGLEVEL: '"{{ keycloak_log_level }}"'
         KEYCLOAK_PROXY: "{{ keycloak_proxy }}"
         DB_VENDOR: "{{ keycloak_db_vendor }}"
-        DB_ADDR: "{{ keycloak_db_addr }}"
+        DB_ADDR: "{{ groups['dbms_primary'][0] }}"
         DB_PORT: "{{ keycloak_db_port }}"
         DB_NAME: "{{ keycloak_db_name }}"
         JDBC_PARAMS: "{{ keycloak_jdbc_params }}"
@@ -227,7 +271,7 @@
                   - name: DB_VENDOR
                     value: "{{ keycloak_db_vendor }}"
                   - name: DB_ADDR
-                    value: "{{ keycloak_db_addr }}"
+                    value: "{{ groups['dbms_primary'][0] }}"
                   - name: DB_PORT
                     value: "{{ keycloak_db_port }}"
                   - name: DB_NAME

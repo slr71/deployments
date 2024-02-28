@@ -103,3 +103,6 @@ dbms_connection_pass: Ch@ng3M3
 
 grouper_connection_user: grouper
 grouper_connection_pass: Ch@ng3m3
+
+keycloak_db_username: de
+keycloak_db_password: Ch@ng3M3
