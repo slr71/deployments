@@ -299,18 +299,22 @@
                     containerPort: 8080
                   - name: https
                     containerPort: 8443
+                startupProbe:
+                  httpGet:
+                    path: /health/live
+                    port: 8080
+                  periodSeconds: 30
+                  failureThreshold: 100
                 livenessProbe:
                   httpGet:
                     path: /health/live
                     port: 8080
-                  initialDelaySeconds: 120
                   periodSeconds: 30
                   failureThreshold: 10
                 readinessProbe:
                   httpGet:
                     path: /health/ready
                     port: 8080
-                  initialDelaySeconds: 120
                   periodSeconds: 30
                   failureThreshold: 10
 
