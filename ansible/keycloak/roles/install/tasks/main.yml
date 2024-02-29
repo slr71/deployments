@@ -237,7 +237,7 @@
               - name: keycloak
                 image: quay.io/keycloak/keycloak:21.1
                 args:
-                  - "start-dev"
+                  - "start"
                   - "--hostname-url=$KC_HOSTNAME_URL"
                   - "--hostname-admin-url=$KC_HOSTNAME_URL"
                   - "--log-level=$KEYCLOAK_LOGLEVEL"
