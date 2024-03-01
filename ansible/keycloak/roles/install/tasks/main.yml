@@ -159,6 +159,10 @@
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
     state: present
+    wait: yes
+    wait_condition:
+      type: Ready
+      status: True 
     definition:
       apiVersion: apps/v1
       kind: Deployment
