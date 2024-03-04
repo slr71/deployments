@@ -47,7 +47,7 @@ irods_csi_driver_cache_timeout_settings: '[{"path":"/","timeout":"-1ns","inherit
 ## DE Databases Variables
 dbms_connection_user: de
 dbms_connection_pass: Ch@ng3M3
-de_db_version: master
+de_db_version: main
 notifications_db_version: main
 metadata_db_version: master
 mgmt_version: main
@@ -135,5 +135,5 @@ pg_num_huge_pages: 0
 
 
 ## Keycloak Configuration
-keycloak_db_username: de
+keycloak_db_username: keycloak
 keycloak_db_password: Ch@ng3M3
