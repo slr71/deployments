@@ -21,9 +21,11 @@ keycloak_portal_web_origins:
 
 keycloak_use_theme: false
 keycloak_theme: cyverse
-keycloak_groups_dn: "ou=Groups,dc=iplantcollaborative,dc=org"
-keycloak_bind_dn: "uid=ldap_reader,ou=People,dc=iplantcollaborative,dc=org"
-keycloak_ldap_connection_url: "ldap://ldap.ldap:389"
+keycloak_groups_dn: 
+  - "ou=Groups,dc=iplantcollaborative,dc=org"
+keycloak_bind_dn: 
+  - "uid=ldap_reader,ou=People,dc=iplantcollaborative,dc=org"
+keycloak_connection_url: "ldap://ldap.ldap:389"
 
 keycloak_http_nodeport: 31360
 keycloak_https_nodeport: 31361
