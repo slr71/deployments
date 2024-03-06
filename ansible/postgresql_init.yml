@@ -3,4 +3,4 @@
   hosts: dbms
   gather_facts: false
   roles:
-    - role: init
+    - role: postgresql_init
