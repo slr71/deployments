@@ -3,19 +3,20 @@
   hosts: k3s_nodes
   become: true
   roles:
-    - role: nodes
+    - role: kubernetes_nodes
 
 - name: set up first k3s control nodes
   hosts: k3s_controllers[0]
   become: true
   roles:
-    - role: controllers
+    - role: kubernetes_controllers
 
 - name: set up remaining k3s control nodes
   hosts: k3s_controllers[1:]
   become: true
   roles:
-    - role: controllers
+    - role: kubernetes_controllers
+
 
 # This needs to be done before the worker node are set up
 # so they can register through the load-balancer, otherwise
@@ -31,19 +32,19 @@
   hosts: k3s_de_workers
   become: true
   roles:
-    - role: service_workers
+    - role: kubernetes_service_workers
 
 - name: set up k3s VICE worker nodes
   hosts: k3s_vice_workers
   become: true
   roles:
-    - role: vice_workers
+    - role: kubernetes_vice_workers
 
 - name: set up k3s GPU worker nodes
   hosts: k3s_gpu_workers
   become: true
   roles:
-    - role: gpu_workers
+    - role: kubernetes_gpu_workers
 
 # This is limited to the first controller node to prevent it from
 # running multiple times, once per host. It's not actually limited
@@ -53,7 +54,7 @@
   connection: local
   become: false
   roles:
-    - role: irods_csi_driver
+    - role: kubernetes_irods_csi_driver
 
 # This is limited to the first controller node to prevent it from
 # running multiple times, once per host. It's not actually limited
@@ -63,4 +64,4 @@
   connection: local
   become: false
   roles:
-    - role: de_reqs
+    - role: kubernetes_de_reqs

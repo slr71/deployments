@@ -3,3 +3,4 @@
 *.creds
 values.yml
 values.yaml
+cyverse.*

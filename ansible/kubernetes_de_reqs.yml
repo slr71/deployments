@@ -7,7 +7,7 @@
   connection: local
   gather_facts: false
   roles:
-    - role: de_reqs
+    - role: kubernetes_de_reqs
 
 - name: set up ingresses
   hosts: k3s_controllers[0]
@@ -15,7 +15,7 @@
   become: false
   gather_facts: false
   roles:
-    - role: ingresses
+    - role: kubernetes_ingresses
 
 - name: set up longhorn
   hosts: k3s_controllers[0]
@@ -23,4 +23,4 @@
   become: false
   gather_facts: false
   roles:
-    - role: longhorn
+    - role: kubernetes_longhorn
