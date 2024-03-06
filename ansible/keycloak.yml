@@ -5,4 +5,4 @@
   become: false
   gather_facts: false
   roles:
-    - role: install
+    - role: keycloak_install
