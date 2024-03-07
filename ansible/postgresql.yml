@@ -106,49 +106,8 @@
         pg_upstream_node: "{{ groups['dbms_primary'][0] }}"
         pg_reboot_allowed: "{{ _dbms_reboot_allowed }}"
 
-- name: Set up pg_hba.conf with local postgres database access
+- name: Set up access to PostgreSQL, both remotely, locally, and with the postgres user.
   hosts: dbms
   become: true
-  tasks:
-    - name: Add remote access to pg_hba.conf
-      community.postgresql.postgresql_pg_hba:
-        dest: /etc/postgresql/{{ dbms_postgresql_version }}/main/pg_hba.conf
-        contype: host
-        databases: all
-        users: all
-        address: "{{ item }}"
-        method: md5
-      loop: "{{ dbms_allowed_local_addresses }}"
-
-- name: Set up pg_hba.conf with remote postgres database access
-  hosts: dbms
-  become: true
-  tasks:
-    - name: Add remote access to pg_hba.conf
-      community.postgresql.postgresql_pg_hba:
-        dest: /etc/postgresql/{{ dbms_postgresql_version }}/main/pg_hba.conf
-        contype: host
-        databases: all
-        users: all
-        address: "{{ item }}"
-        method: md5
-      loop: "{{ dbms_allowed_remote_addresses }}"
-
-- name: Restart postgresql
-  hosts: dbms
-  become: true
-  tasks:
-    - name: Restart postgresql
-      ansible.builtin.service:
-        name: postgresql
-        state: restarted
-
-- name: Set password for postgres user
-  hosts: dbms
-  become: true
-  tasks:
-    - name: Set password for postgres user
-      community.postgresql.postgresql_user:
-        name: postgres
-        password: "{{ pg_login_password }}"
-        encrypted: yes
+  roles:
+    - role: postgresql_access
