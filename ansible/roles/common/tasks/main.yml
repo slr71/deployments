@@ -1,8 +1,0 @@
----
-- name: download k3s installation script locally.
-  delegate_to: localhost
-  become: false
-  ansible.builtin.get_url:
-    url: https://get.k3s.io
-    dest: "./k3s_install.sh"
-    mode: "a+x"

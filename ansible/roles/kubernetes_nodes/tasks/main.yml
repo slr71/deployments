@@ -100,6 +100,14 @@
     - 10.43.0.0/16 # k3s services
   when: do_open_ports is undefined or do_open_ports | bool
 
+- name: download k3s installation script locally.
+  delegate_to: localhost
+  become: false
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: "./k3s_install.sh"
+    mode: "a+x"
+
 - name: upload k3s installation script
   ansible.builtin.copy:
     src: "./k3s_install.sh"

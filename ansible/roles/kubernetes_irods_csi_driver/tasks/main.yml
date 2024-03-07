@@ -4,7 +4,7 @@
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm_repository:
-    name: irods-csi-driver
+    name: irods-csi-driver-repo
     repo_url: "{{ irods_csi_driver_repo }}"
     state: present
 
@@ -47,7 +47,7 @@
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm:
     name: irods-csi-driver
-    chart_ref: irods-csi-driver/irods-csi-driver
+    chart_ref: irods-csi-driver-repo/irods-csi-driver
     release_namespace: "{{ irods_csi_driver_namespace }}"
     wait: true
     values_files:
