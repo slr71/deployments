@@ -111,7 +111,7 @@
 - name: upload k3s installation script
   ansible.builtin.copy:
     src: "./k3s_install.sh"
-    dest: "/tmp/k3s_install.sh"
+    dest: "/usr/local/bin/k3s_install.sh"
     mode: "a+x"
 
 - name: create /etc/rancher/k3s/ directory

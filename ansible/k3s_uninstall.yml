@@ -1,0 +1,16 @@
+---
+- name: uninstall agents
+  hosts: k3s_workers
+  become: true
+  tasks:
+    - name: uninstall k3s
+      ansible.builtin.shell:
+        cmd: "/usr/local/bin/k3s-agent-uninstall.sh"
+
+- name: uninstall controllers
+  hosts: k3s_controllers
+  become: true
+  tasks:
+    - name: uninstall k3s
+      ansible.builtin.shell:
+        cmd: "/usr/local/bin/k3s-uninstall.sh"

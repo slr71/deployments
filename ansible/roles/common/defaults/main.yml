@@ -6,6 +6,7 @@ de_hostname: de.cyverse.org
 ui_wildcard_fqdn: "*.cyverse.org"
 vice_wildcard_fqdn: "*.cyverse.run"
 vice_base_domain: cyverse.run
+k3s_install_script: "./k3s_install.sh"
 
 
 ## Namespaces
@@ -30,7 +31,7 @@ k3s_kubeconfig_mode: "644"
 ## Cert-Manager Variables
 cmctl_download_url: https://github.com/cert-manager/cert-manager/releases/download/v1.12.7/
 cmctl_download_filename: cmctl-linux-amd64.tar.gz
-force_apply: false
+force_apply: true
 
 
 ## IRODS CSI Driver Vars
