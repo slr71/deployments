@@ -75,7 +75,6 @@
   kubernetes.core.k8s:
     state: present
     namespace: "{{ ns }}"
-    force: "{{ force_apply }}"
     definition:
       apiVersion: cert-manager.io/v1
       kind: Issuer
@@ -90,7 +89,6 @@
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
     state: present
-    force: "{{ force_apply }}"
     definition:
       apiVersion: cert-manager.io/v1
       kind: ClusterIssuer
