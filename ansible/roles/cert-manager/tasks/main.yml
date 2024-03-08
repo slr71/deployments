@@ -1,0 +1,120 @@
+---
+    - name: create a local temp directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: -cert-manager
+      register: temp_dir
+
+    - name: download cmctl
+      get_url:
+        url: "{{ cmctl_download_url }}{{ cmctl_download_filename }}"
+        dest: "{{ temp_dir.path }}/{{ cmctl_download_filename }}"
+
+    - name: extract cmctl
+      ansible.builtin.unarchive:
+        src: "{{ temp_dir.path }}/{{ cmctl_download_filename }}"
+        dest: "{{ temp_dir.path }}"
+
+    - name: use cmctl to generate cert-manager.custom.yaml
+      ansible.builtin.shell:
+        cmd: "{{ temp_dir.path }}/cmctl x install --set prometheus.enabled=false --dry-run > cert-manager.custom.yaml"
+        chdir: "{{ temp_dir.path }}"
+        creates: "./cert-manager.custom.yaml"
+
+    - name: copy cert-manager.custom.yaml to the current working directory
+      ansible.builtin.copy:
+        src: "{{ temp_dir.path }}/cert-manager.custom.yaml"
+        dest: "./cert-manager.custom.yaml"
+
+    - name: create cert-manager namespace
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        name: cert-manager
+        state: present
+        kind: namespace
+        api_version: v1
+
+    - name: apply cert-manager.custom.yaml
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        src: "./cert-manager.custom.yaml"
+        namespace: cert-manager
+        state: present
+        force: "{{ force_apply }}"
+
+    - name: wait for cert-manager deployment to be available
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: cert-manager
+        name: cert-manager
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+          reason: MinimumReplicasAvailable
+
+    - name: wait for cert-manager-webhook deployment to be available
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: cert-manager
+        name: cert-manager-webhook
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+          reason: MinimumReplicasAvailable
+
+    - name: wait for cert-manager-cainjector deployment to be available
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: cert-manager
+        name: cert-manager-cainjector
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Available
+          status: "True"
+          reason: MinimumReplicasAvailable
+
+    - name: create issuers.yaml
+      ansible.builtin.copy:
+        dest: "./issuers.yaml"
+        content: |
+          apiVersion: cert-manager.io/v1
+          kind: Issuer
+          metadata:
+            name: default-issuer
+          spec:
+            selfSigned: {}
+          ---
+          apiVersion: cert-manager.io/v1
+          kind: ClusterIssuer
+          metadata:
+            name: default-cluster-issuer
+          spec:
+            selfSigned: {}
+
+    - name: apply issuers.yaml
+      environment:
+        KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      kubernetes.core.k8s:
+        src: "./issuers.yaml"
+        state: present
+        namespace: "{{ ns }}"
+        force: "{{ force_apply }}"
+
+    - name: delete local temp directory
+      ansible.builtin.file:
+        path: "{{ temp_dir.path }}"
+        state: absent
+      when: temp_dir is defined

@@ -27,6 +27,12 @@ k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
 k3s_kubeconfig_mode: "644"
 
 
+## Cert-Manager Variables
+cmctl_download_url: https://github.com/cert-manager/cert-manager/releases/download/v1.12.7/
+cmctl_download_filename: cmctl-linux-amd64.tar.gz
+force_apply: false
+
+
 ## IRODS CSI Driver Vars
 irods_csi_driver_repo: https://cyverse.github.io/irods-csi-driver-helm/
 irods_csi_driver_namespace: irods-csi-driver
