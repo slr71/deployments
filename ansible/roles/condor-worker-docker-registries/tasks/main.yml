@@ -1,0 +1,15 @@
+---
+- community.docker.docker_login:
+    registry_url: "{{item.host}}"
+    username: "{{item.user}}"
+    password: "{{item.password | quote}}"
+    config_path: "~condor/.docker/config.json"
+  loop: "{{docker_registries}}"
+  when: docker_registries is defined
+
+- ansible.builtin.file:
+    path: "~condor/.docker"
+    owner: "condor"
+    group: "condor"
+    recurse: true
+    state: "directory"
