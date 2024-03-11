@@ -15,12 +15,15 @@
   kubernetes.core.helm:
     name: harbor
     chart_ref: harbor/harbor
+    create_namespace: true
     release_namespace: "{{ harbor_namespace }}"
     wait: true
     values:
       externalURL: "https://{{ harbor_external_domain }}"
       expose:
         type: nodePort
+        tls:
+          enabled: false
         nodePort:
           ports:
             http:
@@ -58,13 +61,13 @@
       database:
         type: external
         external:
-          host: "{{ pg_login_host }}"
-          port: "{{ pg_login_port }}"
+          host: "{{ groups['dbms_primary'][0] }}"
+          port: "{{ pg_listen_port }}"
           username: "{{ harbor_database_user }}"
           password: "{{ harbor_database_password }}"
-          coreDatabase: "{{ harbor_database_name }}"
-          clairDatabase: "{{ harbor_database_name }}"
-          notaryServerDatabase: "{{ harbor_database_name }}"
-          notarySignerDatabase: "{{ harbor_database_name }}"
+          coreDatabase: "{{ harbor_core_db_name }}"
+          clairDatabase: "{{ harbor_clair_db_name }}"
+          notaryServerDatabase: "{{ harbor_notary_server_db_name }}"
+          notarySignerDatabase: "{{ harbor_notary_signer_db_name }}"
           sslMode: "disable"
 

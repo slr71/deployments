@@ -41,8 +41,8 @@ harbor_core_db_name: harbor_core
 harbor_clair_db_name: harbor_clair
 harbor_notary_server_db_name: harbor_notary_server
 harbor_notary_signer_db_name: harbor_notary_signer
-harbor_db_user: harbor
-harbor_db_password: "Ch@ng3M3"
+harbor_database_user: harbor
+harbor_database_password: "Ch@ng3M3"
 
 
 ## IRODS CSI Driver Vars
@@ -67,7 +67,7 @@ dbms_connection_user: de
 dbms_connection_pass: Ch@ng3M3
 de_db_version: main
 notifications_db_version: main
-metadata_db_version: master
+metadata_db_version: main
 mgmt_version: main
 qms_version: main
 pg_login_user: postgres
