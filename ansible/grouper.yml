@@ -1,0 +1,6 @@
+---
+- name: Initialize grouper
+  hosts: localhost
+  connection: local
+  roles:
+    - role: grouper_init

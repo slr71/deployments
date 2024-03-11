@@ -1,0 +1,7 @@
+*.crt
+*.key
+*.creds
+values.yml
+values.yaml
+cyverse.*
+cert-manager.custom.yaml

@@ -1,0 +1,203 @@
+---
+## Common Variables
+ansible_python_interpreter: /usr/bin/python3
+install_dir: /usr/local/bin # no trailing slash
+de_hostname: de.cyverse.org
+ui_wildcard_fqdn: "*.cyverse.org"
+vice_wildcard_fqdn: "*.cyverse.run"
+vice_base_domain: cyverse.run
+k3s_install_script: "./k3s_install.sh"
+
+
+## Namespaces
+ns: qa
+vice_ns: vice-apps
+
+
+## K3s Default Variables
+force_reinstall: false
+k3s_token: K3sT0k3n
+k3s_version: v1.29.1+k3s1
+k3s_flannel_backend: wireguard-native
+k3s_registry_mirror: https://registry-1.docker.io
+k3s_registry_mirror_endpoint: https://registry-1.docker.io
+k3s_registry_mirror_token: ""
+k3s_registry_mirror_insecure_skip_verify: false
+k3s_datastore_endpoint: ;;
+k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
+k3s_kubeconfig_mode: "644"
+
+
+## Cert-Manager Variables
+cmctl_download_url: https://github.com/cert-manager/cert-manager/releases/download/v1.12.7/
+cmctl_download_filename: cmctl-linux-amd64.tar.gz
+force_apply: true
+
+
+## IRODS CSI Driver Vars
+irods_csi_driver_repo: https://cyverse.github.io/irods-csi-driver-helm/
+irods_csi_driver_namespace: irods-csi-driver
+irods_csi_driver_client: irodsfuse
+irods_csi_driver_host: data.cyverse.org
+irods_csi_driver_port: 1247
+irods_csi_driver_zone: cyverse
+irods_csi_driver_user: not_a_user
+irods_csi_driver_password: not_a_password
+irods_csi_driver_retain_data: "false"
+irods_csi_driver_enforce_proxy_access: "true"
+irods_csi_driver_mount_path_white_list: "/not/a/path"
+irods_csi_driver_cache_size_max: 10737418240
+irods_csi_driver_data_root: "/irodsfs-pool"
+irods_csi_driver_cache_timeout_settings: '[{"path":"/","timeout":"-1ns","inherit":false},{"path":"/example","timeout":"-1ns","inherit":false},{"path":"/example/home","timeout":"1h","inherit":false},{"path":"/example/home/shared","timeout":"1h","inherit":true}]'
+
+
+## DE Databases Variables
+dbms_connection_user: de
+dbms_connection_pass: Ch@ng3M3
+de_db_version: main
+notifications_db_version: main
+metadata_db_version: master
+mgmt_version: main
+qms_version: main
+pg_login_user: postgres
+pg_login_host: localhost
+pg_login_password: Chang3m3
+dbms_allowed_local_addresses:
+  - "127.0.0.1/32"
+  - "10.0.0.0/8"
+  - "172.16.0.0/12"
+  - "192.168.0.0/16"
+dbms_allowed_remote_addresses: []
+encoding: UTF8
+lc_collate: en_US.UTF-8
+lc_ctype: en_US.UTF-8
+template: template0
+cleanup: true
+migrate: true
+create_user: true
+create_dbs: true
+unleash: true
+grouper: true
+qms: true
+install_exts: true
+migrate_release_version: v4.17.0
+migrate_tarball_name: migrate.linux-amd64.tar.gz # or migrate.darwin-amd64.tar.gz
+
+
+## NATS Variables
+ca_duration: 8766h # 1 year
+ca_renew_before: 240h # 10 days
+nats_cmd_pod: nats-box
+nats_server_cert_duration: 8766h # 1 year
+nats_server_cert_renew_before: 240h # 10 days
+nats_client_cert_duration: 8766h # 1 year
+nats_client_cert_renew_before: 240h # 10 days
+
+## Grouper Variables
+grouper_connection_user: grouper
+grouper_connection_pass: Ch@ng3m3
+grouper_gsh_image: harbor.cyverse.org/de/grouper
+grouper_gsh_image_version: v3.0.0
+
+
+## PostgreSQL Installation and Configuration Variables
+pg_destroy_default_db_on_init: false
+pg_reboot_allowed: false
+pg_downstream_nodes: []
+pg_upstream_node: null
+pg_conf_path: "/etc/postgresql/{{_dbms_postgresql_version}}/main"
+pg_db: postgres
+# changing this requires adjusting the systemctl file.
+pg_db_path: "/var/lib/postgresql/{{_dbms_postgresql_version}}/main"
+pg_hba_insertafter: "# ----------------------------------"
+pg_hba_users: []
+# configuration defaults
+pg_checkpoint_completion_target: 0.5
+pg_checkpoint_timeout: 5min
+pg_effective_cache_size: 4GB
+pg_hot_standby_feedback: "off"
+pg_effective_io_concurrency: 1
+pg_extra_listen_addresses: []
+pg_listen_port: 5432
+pg_log_line_prefix: "%m [%p] %q%u@%d "
+pg_log_min_duration_statement: -1
+pg_max_connections: 100
+pg_wal_keep_segments: 0
+pg_max_wal_senders: 10
+pg_min_wal_size: 80MB
+pg_max_wal_size: 1GB
+pg_wal_buffers: "-1"
+pg_random_page_cost: 4.0
+pg_default_statistics_target: 100
+pg_shared_buffers: 128MB
+pg_standard_conforming_strings: "on"
+pg_work_mem: 4MB
+pg_maintenance_work_mem: 64MB
+pg_max_worker_processes: 8
+pg_max_parallel_workers: 8
+pg_max_parallel_maintenance_workers: 2
+pg_max_parallel_workers_per_gather: 2
+pg_huge_pages: try
+pg_num_huge_pages: 0
+
+
+## Keycloak Configuration
+keycloak_db_username: keycloak
+keycloak_db_password: Ch@ng3M3
+keycloak_namespace: keycloak
+keycloak_realm_name: CyVerseTest
+keycloak_realm_display_name: CyVerse Test Realm connected to pollit.iplantcollaborative.org
+keycloak_realm_display_name_html: CyVerse Test (pollit)
+keycloak_vice_domain: cyverse.run
+keycloak_redirect_uris:
+  - "https://qa.cyverse.org/*"
+  - "https://sonora-qa.cyverse.org/*"
+keycloak_web_origins:
+  - "https://qa.cyverse.org"
+  - "https://sonora-qa.cyverse.org/*"
+
+keycloak_portal_id: portal
+keycloak_portal_name: User Portal - development
+keycloak_portal_root_url: https://portaldev.cyverse.org
+keycloak_portal_redirect_uris:
+  - "https://portaldev.cyverse.org/*"
+keycloak_portal_web_origins:
+  - "https://portaldev.cyverse.org"
+
+keycloak_use_theme: false
+keycloak_theme: cyverse
+keycloak_groups_dn: 
+  - "ou=Groups,dc=iplantcollaborative,dc=org"
+keycloak_bind_dn: 
+  - "uid=ldap_reader,ou=People,dc=iplantcollaborative,dc=org"
+keycloak_connection_url: "ldap://ldap.ldap:389"
+
+keycloak_http_nodeport: 31360
+keycloak_https_nodeport: 31361
+
+keycloak_admin_username: kcadmin
+keycloak_admin_password: notreal
+
+keycloak_hostname_url: https://keycloak.example.org/
+keycloak_hostname_strict: 'false'
+keycloak_hostname_strict_https: 'false'
+
+keycloak_log_level: INFO
+keycloak_proxy: passthrough
+
+keycloak_db_vendor: postgres
+keycloak_db_port: '5432'
+keycloak_db_name: keycloak
+
+keycloak_jdbc_params: connectTimeout=21600
+keycloak_java_opts: "-server -Xms1024m -Xmx2048m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true -Dkeycloak.profile.feature.token_exchange=enabled -Djava.security.egd=file:/dev/urandom"
+
+keycloak_cert_duration:  '8766h' # 1 year
+keycloak_cert_renew_before: '240h' # 10 days
+
+keycloak_cpu_request: '200m'
+keycloak_memory_request: '1Gi'
+keycloak_ephemeral_storage_request: '2Gi'
+keycloak_cpu_limit: '200m'
+keycloak_memory_limit: '2Gi'
+keycloak_ephemeral_storage_limit: '2Gi'
