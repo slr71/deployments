@@ -28,10 +28,21 @@ k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
 k3s_kubeconfig_mode: "644"
 
 
-## Cert-Manager Variables
-cmctl_download_url: https://github.com/cert-manager/cert-manager/releases/download/v1.12.7/
-cmctl_download_filename: cmctl-linux-amd64.tar.gz
-force_apply: true
+## Harbor installation variables  
+harbor_repo: https://helm.goharbor.io
+harbor_namespace: harbor
+harbor_external_domain: harbor-qa.cyverse.org
+harbor_storage_class: "longhorn"
+harbor_replicas: 2
+harbor_http_nodeport: 30002
+harbor_https_nodeport: 30003
+harbor_initial_admin_password: "Ch@ng3M3"
+harbor_core_db_name: harbor_core
+harbor_clair_db_name: harbor_clair
+harbor_notary_server_db_name: harbor_notary_server
+harbor_notary_signer_db_name: harbor_notary_signer
+harbor_db_user: harbor
+harbor_db_password: "Ch@ng3M3"
 
 
 ## IRODS CSI Driver Vars
@@ -92,6 +103,7 @@ nats_server_cert_duration: 8766h # 1 year
 nats_server_cert_renew_before: 240h # 10 days
 nats_client_cert_duration: 8766h # 1 year
 nats_client_cert_renew_before: 240h # 10 days
+
 
 ## Grouper Variables
 grouper_connection_user: grouper

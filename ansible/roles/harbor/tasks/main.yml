@@ -1,0 +1,70 @@
+---
+- name: Add the harbor helm repository
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm_repository:
+    name: harbor
+    repo_url: "{{ harbor_repo }}"
+    state: present
+
+- name: Install the harbor helm chart
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm:
+    name: harbor
+    chart_ref: harbor/harbor
+    release_namespace: "{{ harbor_namespace }}"
+    wait: true
+    values:
+      externalURL: "https://{{ harbor_external_domain }}"
+      expose:
+        type: nodePort
+        nodePort:
+          ports:
+            http:
+              nodePort: "{{ harbor_http_nodeport }}"
+            https:
+              nodePort: "{{ harbor_https_nodeport }}"
+      portal:
+        replicas: "{{ harbor_replicas }}"
+      core:
+        replicas: "{{ harbor_replicas }}"
+      jobservice:
+        replicas: "{{ harbor_replicas }}"
+      registry:
+        replicas: "{{ harbor_replicas }}"
+      chartmuseum:
+        replicas: "{{ harbor_replicas }}"
+      clair:
+        replicas: "{{ harbor_replicas }}"
+      notary:
+        server:
+          replicas: "{{ harbor_replicas }}"
+        signer:
+          replicas: "{{ harbor_replicas }}"
+      persistence:
+        persistentVolumeClaim:
+          registry:
+            accessMode: ReadWriteMany
+            storageClass: "{{ harbor_storage_class }}"
+          chartmuseum:
+            accessMode: ReadWriteMany
+            storageClass: "{{ harbor_storage_class }}"
+          jobservice:
+            accessMode: ReadWriteMany
+            storageClass: "{{ harbor_storage_class }}"
+      database:
+        type: external
+        external:
+          host: "{{ pg_login_host }}"
+          port: "{{ pg_login_port }}"
+          username: "{{ harbor_database_user }}"
+          password: "{{ harbor_database_password }}"
+          coreDatabase: "{{ harbor_database_name }}"
+          clairDatabase: "{{ harbor_database_name }}"
+          notaryServerDatabase: "{{ harbor_database_name }}"
+          notarySignerDatabase: "{{ harbor_database_name }}"
+          sslMode: "disable"
+
