@@ -5,11 +5,11 @@ global
     maxconn     4000
 
     ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
-    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    #ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
     ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
 
     ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
-    ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    #ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
     ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
 
     # curl https://ssl-config.mozilla.org/ffdhe2048.txt > /etc/ssl/dhparam
@@ -36,14 +36,57 @@ frontend http2-ssl
     bind *:443 ssl crt /etc/ssl/cyverse.combined alpn h2,http/1.1
     redirect scheme https code 301 if !{ ssl_fc }
 
-    acl de hdr(host) -i {{ external_dns_name }}
-    acl oldpath path_beg -i /anon-files/ /dl/ /de/agave-cb /dataone-node /terrain /de/websocket
+    acl harbor hdr(host) -i {{ harbor_external_domain }}
+    acl de hdr(host) -i {{ de_hostname }}
+    acl anon_files path_beg -i /anon-files/
+    acl dl path_beg -i /dl/
+    acl job path_beg -i /job/
+    acl terrain path_beg -i /terrain/
+    acl agave_cb path_beg -i /de/agave-cb
 
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
-    use_backend sonora if de !oldpath
-    default_backend de-nginx
+    use_backend kifshare if de anon_files
+    use_backend kifshare if de dl
+    use_backend job if de job
+    use_backend terrain if de terrain
+    use_backend agave_cb if de agave_cb
+    use_backend harbor if harbor
+    default_backend sonora
+
+backend kifshare
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+    {% for svr in groups['k3s_de_workers'] %}
+    server {{ svr }} {{ svr }}:{{ kifshare_nodeport }} check inter 5000
+    {% endfor %}
+
+backend job
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+    {% for svr in groups['k3s_de_workers'] %}
+    server {{ svr }} {{ svr }}:{{ job_status_listener_nodeport }} check inter 5000
+    {% endfor %}
+
+backend terrain
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+    {% for svr in groups['k3s_de_workers'] %}
+    server {{ svr }} {{ svr }}:{{ terrain_nodeport }} check inter 5000
+    {% endfor %}
 
 backend sonora
     option log-health-checks
@@ -53,10 +96,10 @@ backend sonora
 
     balance roundrobin
     {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:31346 check inter 5000
+    server {{ svr }} {{ svr }}:80 check inter 5000
     {% endfor %}
 
-backend de-nginx
+backend agave_cb
     option log-health-checks
     option forwardfor
 
@@ -64,5 +107,16 @@ backend de-nginx
 
     balance roundrobin
     {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:31342 check inter 5000
+    server {{ svr }} {{ svr }}:{{ agave_cb_nodeport }} check inter 5000
+    {% endfor %}
+
+backend harbor
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+    {% for svr in groups['k3s_de_workers'] %}
+    server {{ svr }} {{ svr }}:{{ harbor_nodeport }} check inter 5000
     {% endfor %}
