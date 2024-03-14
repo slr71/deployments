@@ -22,6 +22,16 @@ agave_cb_nodeport: 31343
 harbor_nodeport: 30002
 
 
+## elaticsearch variables
+elasticsearch_server_urls: https://abby.cyverse.org:31450
+
+
+## jaeger variables
+jaeger_namespace: jaeger
+jaeger_collector_replicas: 2
+jaeger_query_replicas: 2
+
+
 ## K3s Default Variables
 force_reinstall: false
 k3s_token: K3sT0k3n
@@ -114,10 +124,22 @@ nats_client_cert_renew_before: 240h # 10 days
 
 
 ## Grouper Variables
-grouper_connection_user: grouper
+grouper_client_auth: true # actual useful value
+grouper_loader_url: ldap://not.a.ldap.server:389/dc=example,dc=org
+grouper_loader_user: uid=fake,ou=People,dc=example,dc=org
+grouper_loader_password: l0lf@k3
+grouper_environment: qa # actual useful value
+grouper_ws_url: http://grouper-ws/grouper-ws # actual useful value
+grouper_db_host: fake.db.host
+grouper_db_port: 5432 # actual useful value
+grouper_db_name: grouper # actual useful value
+grouper_db_user: grouper # possibly useful value
+grouper_db_password: l0lf@k3
+grouper_morph_string: n0tr34l
+grouper_connection_user: grouper 
 grouper_connection_pass: Ch@ng3m3
-grouper_gsh_image: harbor.cyverse.org/de/grouper
-grouper_gsh_image_version: v3.0.0
+grouper_gsh_image: harbor.cyverse.org/de/grouper # actual useful value
+grouper_gsh_image_version: v3.0.0 # actual useful value
 
 
 ## PostgreSQL Installation and Configuration Variables
