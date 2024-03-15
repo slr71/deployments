@@ -7,6 +7,7 @@ ui_wildcard_fqdn: "*.cyverse.org"
 vice_wildcard_fqdn: "*.cyverse.run"
 vice_base_domain: cyverse.run
 k3s_install_script: "./k3s_install.sh"
+timezone: "America/Phoenix"
 
 
 ## Namespaces
@@ -138,6 +139,9 @@ grouper_connection_user: grouper
 grouper_connection_pass: Ch@ng3m3
 grouper_gsh_image: harbor.cyverse.org/de/grouper # actual useful value
 grouper_gsh_image_version: v3.0.0 # actual useful value
+grouper_ws_replicas: 2
+grouper_loader_replicas: 1
+grouper_tag: v3.0.0
 
 
 ## PostgreSQL Installation and Configuration Variables
