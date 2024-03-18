@@ -135,7 +135,7 @@ grouper_db_host: fake.db.host
 grouper_db_port: 5432 # actual useful value
 grouper_db_name: grouper # actual useful value
 grouper_morph_string: n0tr34l
-grouper_connection_user: grouper 
+grouper_connection_user: GrouperSystem 
 grouper_connection_pass: Ch@ng3m3
 grouper_gsh_image: harbor.cyverse.org/de/grouper # actual useful value
 grouper_gsh_image_version: v3.0.0 # actual useful value
