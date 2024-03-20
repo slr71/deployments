@@ -139,6 +139,12 @@
     namespace: "{{ ns }}"
     pod: gsh
     content: |
+      GrouperPasswordSave gps = new GrouperPasswordSave()
+        .assignApplication(GrouperPassword.Application.WS)
+        .assignUsername("{{ grouper_connection_user }}")
+        .assignPassword("{{ grouper_connection_pass }}")
+        .save()
+
       GrouperSession grouperSession = GrouperSession.startRootSession()
 
       // Create the iplant folder
@@ -194,6 +200,12 @@
 
       // Create the users folder
       Stem.saveStem(deGrouperSession, null, null, 'iplant:de:{{ ns }}:users', null, null, SaveMode.INSERT, true)
+
+      GroupSave groupSave = new GroupSave(deGrouperSession)
+      groupSave.assignName("iplant:de:{{ ns }}:users:de-users")
+      groupSave.assignTypeOfGroup(TypeOfGroup.role)
+      groupSave.assignSaveMode(SaveMode.INSERT_OR_UPDATE)
+      Group group = groupSave.save()
 
       // Close the de_grouper session
       GrouperSession.stopQuietly(deGrouperSession)
