@@ -38,24 +38,15 @@ frontend http2-ssl
 
     acl harbor hdr(host) -i {{ harbor_external_domain }}
     acl de hdr(host) -i {{ de_hostname }}
-    acl anon_files path_beg -i /anon-files/
-    acl dl path_beg -i /dl/
-    acl job path_beg -i /job/
-    acl terrain path_beg -i /terrain/
-    acl agave_cb path_beg -i /de/agave-cb
 
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
-    use_backend kifshare if de anon_files
-    use_backend kifshare if de dl
-    use_backend job if de job
-    use_backend terrain if de terrain
-    use_backend agave_cb if de agave_cb
+    use_backend discoenv if de
     use_backend harbor if harbor
-    default_backend sonora
+    default_backend discoenv
 
-backend kifshare
+backend discoenv
     option log-health-checks
     option forwardfor
 
@@ -63,51 +54,7 @@ backend kifshare
 
     balance roundrobin
     {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:{{ kifshare_nodeport }} check inter 5000
-    {% endfor %}
-
-backend job
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:{{ job_status_listener_nodeport }} check inter 5000
-    {% endfor %}
-
-backend terrain
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:{{ terrain_nodeport }} check inter 5000
-    {% endfor %}
-
-backend sonora
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:80 check inter 5000
-    {% endfor %}
-
-backend agave_cb
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:{{ agave_cb_nodeport }} check inter 5000
+    server {{ svr }} {{ svr }}:443 ssl verify none check inter 5000
     {% endfor %}
 
 backend harbor

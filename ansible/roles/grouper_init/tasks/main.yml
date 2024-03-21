@@ -140,10 +140,13 @@
     pod: gsh
     content: |
       GrouperPasswordSave gps = new GrouperPasswordSave()
-        .assignApplication(GrouperPassword.Application.WS)
-        .assignUsername("{{ grouper_connection_user }}")
-        .assignPassword("{{ grouper_connection_pass }}")
-        .save()
+
+      gps.with {
+          assignApplication(GrouperPassword.Application.WS)
+          assignUsername("{{ grouper_connection_user }}")
+          assignPassword("{{ grouper_connection_pass }}")
+          save()
+      }
 
       GrouperSession grouperSession = GrouperSession.startRootSession()
 
