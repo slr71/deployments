@@ -476,6 +476,21 @@
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable" -path "{{ dbs_dir.path }}/qms/migrations" up
   when: migrate is defined and migrate
 
+- name: init db | add default instant launch mapping to the de db
+  delegate_to: localhost
+  community.postgresql.postgresql_query:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    db: "de"
+    query: |
+      INSERT INTO default_instant_launches 
+        (version, instant_launches, added_by) 
+      VALUES 
+        (0, '{}', '00000000-0000-0000-0000-000000000000')
+      ON CONFLICT DO NOTHING
+
 - name: init db | remove staging directory
   delegate_to: localhost
   ansible.builtin.file:
