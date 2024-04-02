@@ -54,7 +54,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "de"
+    name: "{{ de_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -69,7 +69,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "de"
+    db: "{{ de_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts
 
@@ -80,7 +80,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "de"
+    db: "{{ de_db_name }}"
     name: "moddatetime"
   when: install_exts is defined and install_exts
 
@@ -91,7 +91,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "de"
+    db: "{{ de_db_name }}"
     name: "btree_gist"
   when: install_exts is defined and install_exts
 
@@ -102,7 +102,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "notifications"
+    name: "{{ notifications_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -117,7 +117,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "notifications"
+    db: "{{ notifications_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts
 
@@ -128,7 +128,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "metadata"
+    name: "{{ metadata_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -143,7 +143,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "metadata"
+    db: "{{ metadata_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts
 
@@ -251,7 +251,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "grouper"
+    name: "{{ grouper_db_name }}"
     owner: "{{ grouper_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -266,7 +266,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "keycloak"
+    name: "{{ keycloak_db_name }}"
     owner: "{{ keycloak_db_username }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -281,7 +281,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "qms"
+    name: "{{ qms_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -296,7 +296,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -307,7 +307,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "moddatetime"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -318,7 +318,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "btree_gist"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -329,7 +329,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "insert_username"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -340,7 +340,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "unleash"
+    name: "{{ unleash_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -355,7 +355,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "k3s"
+    name: "{{ k3s_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
