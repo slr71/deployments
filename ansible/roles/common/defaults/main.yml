@@ -14,6 +14,7 @@ de_releases_repo: https://github.com/cyverse-de/de-releases
 de_releases_dir: "./de-releases"
 de_releases_version: jinja
 rendered_configs_dir: "./rendered-configs"
+exim_sender_image_digest: replace_me
 
 
 ## Namespaces
@@ -24,11 +25,12 @@ vice_ns: vice-apps
 ## Agave Variables
 agave_enabled: true
 agave_jobs_enabled: true
-agave_key:
-agave_secret:
-agave_redirect_uri:
-agave_storage_system:
-agave_callback_base_uri:
+agave_key: replace_me
+agave_secret: replace_me
+agave_redirect_uri: http://replace_me
+agave_storage_system: replace_me
+agave_callback_base_uri: http://replace_me
+agave_read_timeout: 120
 
 
 baseurls_analyses: http://analyses
@@ -55,18 +57,21 @@ baseurls_user_info: http://user-info
 dashboard_aggregator_website_url: https://cyverse.org
 
 
-de_amqp_user:
-de_amqp_password:
-de_amqp_host:
-de_amqp_port:
-de_amqp_vhost:
-de_base_uri:
-de_coge_base_uri:
-de_subscriptions_checkout_url:
-de_subscriptions_enforce:
-de_default_output_folder:
-de_info_faq:
-de_info_description:
+de_amqp_user: replace_me
+de_amqp_password: replace_me
+de_amqp_host: replace_me
+de_amqp_port: replace_me
+de_amqp_vhost: replace_me
+de_base_uri: http://replace_me
+de_coge_base_uri: http://replace_me
+de_subscriptions_checkout_url: http://replace_me
+de_subscriptions_enforce: replace_me
+de_default_output_folder: replace_me
+de_info_faq: replace_me
+de_info_description: replace_me
+de_tools_admin_max_disk_limit: replace_me
+de_tools_admin_max_cpu_limit: replace_me
+de_tools_admin_max_memory_limit: replace_me
 
 docker_tag: latest
 docker_trusted_registries:
@@ -75,33 +80,33 @@ docker_trusted_registries:
   - gims.cyverse.org:5000
   - gims.iplantcollaborative.org:5000
 
-es_base_uri:
-es_username:
-es_password:
-es_index:
+es_base_uri: http://replace_me
+es_username: replace_me
+es_password: replace_me
+es_index: replace_me
 es_enabled: true
 
-qa_ceph_password:
-qa_ceph_username:
-qa_ceph_password:
-qa_ceph_first_name:
-qa_ceph_last_name:
+qa_ceph_password: replace_me
+qa_ceph_username: replace_me
+qa_ceph_password: replace_me
+qa_ceph_first_name: replace_me
+qa_ceph_last_name: replace_me
 qa_ceph_local_user: docker
-qa_de_password:
-qa_de_admin_password:
-qa_de_username:
-qa_de_first_name:
-qa_de_last_name:
+qa_de_password: replace_me
+qa_de_admin_password: replace_me
+qa_de_username: replace_me
+qa_de_first_name: replace_me
+qa_de_last_name: replace_me
 qa_de_local_user: docker
 qa_de_jwt_name: make-jwt
-qa_legacy_admin_password:
-qa_legacy_admin_password2:
-qa_legacy_password:
-qa_legacy_jwt_priv_pass:
+qa_legacy_admin_password: replace_me
+qa_legacy_admin_password2: replace_me
+qa_legacy_password: replace_me
+qa_legacy_jwt_priv_pass: replace_me
 qa_legacy_jwt_name: make-jwt
-qa_legacy_username:
-qa_legacy_first_name:
-qa_legacy_last_name:
+qa_legacy_username: replace_me
+qa_legacy_first_name: replace_me
+qa_legacy_last_name: replace_me
 qa_legacy_local_user: docker
 
 
@@ -110,8 +115,8 @@ infosquito_prefix_length: 4
 
 
 ## Email
-email_src:
-email_Dest:
+email_src: replace_me@replace_me.replace_me
+email_dest: replace_me@replace_me.replace_me
 email_perm_id_request_dest: example@example.example
 email_support_dest: example@example.example
 
@@ -152,10 +157,9 @@ k3s_registry_mirror: https://registry-1.docker.io
 k3s_registry_mirror_endpoint: https://registry-1.docker.io
 k3s_registry_mirror_token: ""
 k3s_registry_mirror_insecure_skip_verify: false
-k3s_datastore_endpoint: ;;
+k3s_datastore_endpoint: http://replace_me
 k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
 k3s_kubeconfig_mode: "644"
-
 
 ## Harbor installation variables
 harbor_url: harbor.cyverse.org
@@ -236,29 +240,29 @@ migrate_tarball_name: migrate.linux-amd64.tar.gz # or migrate.darwin-amd64.tar.g
 
 
 ## ICAT
-icat_host:
+icat_host: replace_me
 icat_port: 5432
-icat_user:
-icat_password:
+icat_user: replace_me
+icat_password: replace_me
 
 
 ## Intercom settings
 intercom_enabled: true
-intercom_app_id:
-intercom_company_id:
-intercom_company_name:
+intercom_app_id: replace_me
+intercom_company_id: replace_me
+intercom_company_name: replace_me
 
 
 ## IRODS Variables
-irods_amqp_user: 
-irods_amqp_password:
-irods_amqp_host:
-irods_amqp_port:
-irods_amqp_vhost:
-irods_host:
-irods_user:
-irods_zone:
-irods_password:
+irods_amqp_user: replace_me
+irods_amqp_password: replace_me
+irods_amqp_host: replace_me
+irods_amqp_port: replace_me
+irods_amqp_vhost: replace_me
+irods_host: replace_me
+irods_user: replace_me
+irods_zone: replace_me
+irods_password: replace_me
 irods_port: 1247
 irods_external_host: data.cyverse.rocks
 irods_webdav_anon_uri: https://data.cyverse.rocks/dav-anon
@@ -304,28 +308,28 @@ jvm_opts_ui: "-Xmx1G -Djava.net.preferIPv4Stack=true"
 
 
 ## PGP settings
-pgp_key_password: 
+pgp_key_password: replace_me
 
 
 ## Permanent ID settings
 perm_id_enabled: true
-perm_id_curators_group:
-perm_id_datacite_base_uri:
-perm_id_datacite_user:
-perm_id_datacite_password:
-perm_id_datacite_doi_prefix:
+perm_id_curators_group: replace_me
+perm_id_datacite_base_uri: http://replace_me
+perm_id_datacite_user: replace_me
+perm_id_datacite_password: replace_me
+perm_id_datacite_doi_prefix: replace_me
 
 
 ## Unleash settings
 unleash_base_url: http://unleash:4242
 unleash_api_path: /api
-unleash_api_token:
+unleash_api_token: replace_me
 unleash_db_name: unleash
 unleash_maintenance_flag: DE-Maintenance
 
 
 ## User Portal settings
-user_portal_base_uri:
+user_portal_base_uri: http://replace_me
 
 
 ## VICE settings
@@ -353,7 +357,7 @@ vice_use_csi_driver: true
 vice_default_cas_url: https://auth.cyverse.org/cas5
 vice_default_cas_validate: validate
 vice_use_case_chars_min: 60
-vice_default_backend_loading_page_template_string: https://qa.cyverse.org/vice/{{.URL}}
+vice_default_backend_loading_page_template_string: 'https://qa.cyverse.org/vice/\{\{.URL\}\}'
 
 
 admin_groups: core-services,tito-admins,tito-qa-admins,dev,staff
@@ -445,10 +449,10 @@ keycloak_db_port: '5432'
 keycloak_db_name: keycloak
 keycloak_namespace: keycloak
 keycloak_realm_name: CyVerseTest
-keycloak_client_id:
-keycloak_client_secret:
-keycloak_vice_client_id:
-keycloak_vice_client_secret:
+keycloak_client_id: replace_me
+keycloak_client_secret: replace_me
+keycloak_vice_client_id: replace_me
+keycloak_vice_client_secret: replace_me
 keycloak_realm_display_name: CyVerse Test Realm connected to pollit.iplantcollaborative.org
 keycloak_realm_display_name_html: CyVerse Test (pollit)
 keycloak_vice_domain: cyverse.run
