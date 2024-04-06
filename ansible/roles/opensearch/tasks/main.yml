@@ -1,0 +1,348 @@
+---
+- name: add the OpenSearch helm repository
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG' ) }}"
+  kubernetes.core.helm_repository:
+    name: opensearch
+    repo_url: https://opensearch-project.github.io/helm-charts/
+    state: present
+
+- name: create the Kubernetes namespace
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG' ) }}"
+  kubernetes.core.k8s:
+    name: "{{ opensearch_ns }}"
+    state: present
+    kind: namespace
+    api_version: v1
+
+- name: create the root-ca secret
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: root-ca
+    namespace: "{{ opensearch_ns }}"
+    state: present
+    definition:
+      metadata: root-ca
+      spec:
+        isCA: true
+        commonName: "OpenSearch Root"
+        secretName:
+        duration: "{{ opensearch_ca_duration }}"
+        renewBefore: "{{ opensearch_ca_renew_before }}"
+        privateKey:
+          algorithm: ECDSA
+          size: 256
+        issuerRef:
+          name: default-cluster-issuer
+          kind: ClusterIssuer
+          group: cert-manager.io
+
+- name: create the root-issuer issuer
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: ca-issuer
+    namespace: "{{ opensearch_ns }}"
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Issuer
+      metadata:
+        name: ca-issuer
+      spec:
+        ca:
+          secretName: root-ca
+
+- name: create the server-tls certificate
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: server-tls
+    namespace: "{{ opensearch_ns }}"
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: server-tls
+      spec:
+        secretName: server-tls
+        duration: "{{ opensearch_server_cert_duration }}"
+        renewBefore: "{{ opensearch_server_cert_renew_before }}"
+        issuerRef:
+          name: ca-issuer
+          kind: Issuer
+        usages:
+          - signing
+          - key encipherment
+          - server auth
+          - client auth
+        commonName: "opensearch-cluster-manager.{{ opensearch_ns }}.svc.cluster.local"
+        dnsNames: "{{ ansible_play_hosts_all }}"
+
+- name: create the admin-tls certificate
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    name: admin-tls
+    namespace: "{{ opensearch_ns }}"
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: admin-tls
+      spec:
+        secretName: admin-tls
+        duration: "{{ opensearch_admin_cert_duration }}"
+        renewBefore: "{{ opensearch_admin_cert_renew_before }}"
+        issuerRef:
+          name: ca-issuer
+          kind: Issuer
+        commonName: "opensearch.{{ opensearch_ns }}.svc.cluster.local"
+
+- name: install the opensearch helm chart
+  delegate_to: localhost
+  run_once: true
+  environment:
+    KUECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm:
+    name: opensearch
+    chart_ref: opensearch/opensearch
+    release_namespace: "{{ opensearch_ns }}"
+    wait: true
+    values:
+      clusterName: "cyverse-opensearch"
+      nodeGroup: "cluster-manager"
+      masterService: "cyverse-opensearch-cluster-manager"
+      roles:
+      - "cluster_manager"
+      - "ingest"
+      - "data"
+      - "remote_cluster_client"
+      replicas: "{{ opensearch_replicas }}"
+      config:
+        opensearch.yml: |
+          cluster.name: cyverse-opensearch
+          cluster.initial_cluster_manager_nodes:
+            {% for n in range(opensearch_replicas) -%}
+            - cyverse-opensearch-cluster-manager-{{ n }}
+            {% endfor -%}
+          network.host: 0.0.0.0
+          plugins:
+            security:
+              allow_default_init_securityindex: true
+              ssl:
+                transport:
+                  pemcert_filepath: ssl/tls.crt
+                  pemkey_filepath: ssl/tls.key
+                  pemtrustedcas_filepath: ssl/ca.crt
+                  enforce_hostname_verification: false
+                http:
+                  enabled: true
+                  pemcert_filepath: ssl/tls.crt
+                  pemkey_filepath: ssl/tls.key
+                  pemtrustedcas_filepath: ssl/ca.crt
+              ### TODO: continue here ###
+              nodes_dn:
+                - "CN=*"
+                - "emailAddress=core-sw@cyverse.org,CN=opensearch-nodes.cyverse.org,OU=Core\ Software,O=CyVerse,L=Tucson,ST=AZ,C=US"
+                - "EMAILADDRESS=core-sw@cyverse.org,CN=opensearch-nodes.cyverse.org,OU=Core\ Software,O=CyVerse,L=Tucson,ST=AZ,C=US"
+              authcz:
+                admin_dn:
+                  - "emailAddress=core-sw@cyverse.org,CN=OpenSearch\ Administrator,C=US,ST=Arizona,L=Tucson,O=CyVerse,OU=Core\ Software"
+                  - "EMAILADDRESS=core-sw@cyverse.org,CN=OpenSearch Administrator,OU=Core Software,O=CyVerse,L=Tucson,ST=Arizona,C=US"
+                  - "EMAILADDRESS=core-sw@cyverse.org,CN=OpenSearch\ Administrator,OU=Core\ Software,O=CyVerse,L=Tucson,ST=Arizona,C=US"
+      extraEnvs:
+        - name: DISABLE_INSTALL_DEMO_CONFIG
+          value: "true"
+      secretMounts:
+      - name: "opensearch-tls"
+        secretName: "opensearch-tls"
+        path: "/usr/share/opensearch/config/ssl"
+      opensearchJavaOpts: "-Xmx128g -Xms128g"
+      resources:
+        requests:
+          cpu: 24
+          memory: "128Gi"
+        limits:
+          cpu: 40
+          memory: "240Gi"
+      persistence:
+        size: "3Ti"
+        storageClass: "longhorn"
+      service:
+        type: "NodePort"
+        nodePort: 31450
+      securityConfig:
+        config:
+          data:
+            config.yml: |
+              _meta:
+                type: "config"
+                config_version: 2
+              config:
+                dynamic:
+                  http:
+                    anonymous_auth_enabled: false
+                  authc:
+                    basic_internal_auth_domain:
+                      http_enabled: true
+                      transport_enabled: true
+                      order: 0
+                      http_authenticator:
+                        type: basic
+                        challenge: false
+                      authentication_backend:
+                        type: internal
+                    openid_auth_domain:
+                      http_enabled: true
+                      transport_enabled: true
+                      order: 1
+                      http_authenticator:
+                        type: openid
+                        challenge: false
+                        config:
+                          openid_connect_idp:
+                            enable_ssl: true
+                            verify_hostnames: true
+                          subject_key: preferred_username
+                          roles_key: roles
+                          openid_connect_url: https://kc.cyverse.org/auth/realms/CyVerse/.well-known/openid-configuration
+                      authentication_backend:
+                        type: noop
+            roles.yml: |
+              _meta:
+                type: "roles"
+                config_version: 2
+            internal_users.yml: |
+              _meta:
+                type: "internalusers"
+                config_version: 2
+              admin:
+                hash: "$2y$12$S/zfJtdZOz/Fio.a7LYcreNURK/cwnZyEvuDR8EQ6BPdrVyHwVkZ2"
+                reserved: true
+                backend_roles:
+                - "admin"
+                description: "Admin User"
+              de-user:
+                hash: "$2y$12$QxHmBlNdx6qfwM6WA1o1zuUOwR79X48uLuP1bm8ubxEqm9RZCRAdW"
+                reserved: true
+                backend_roles:
+                - "admin"
+                description: "Account used by DE services."
+            roles_mapping.yml: |
+              _meta:
+                type: "rolesmapping"
+                config_version: 2
+              manage_snapshots:
+                reserved: true
+                hidden: false
+                backend_roles:
+                - "snapshotrestore"
+                hosts: []
+                users: []
+                and_backend_roles: []
+              logstash:
+                reserved: false
+                hidden: false
+                backend_roles:
+                - "logstash"
+                hosts: []
+                users: []
+                and_backend_roles: []
+              own_index:
+                reserved: false
+                hidden: false
+                backend_roles: []
+                hosts: []
+                users:
+                - "*"
+                and_backend_roles: []
+                description: "Allow full access to an index named like the username"
+              kibana_user:
+                reserved: false
+                hidden: false
+                backend_roles:
+                - "kibanauser"
+                hosts: []
+                users: []
+                and_backend_roles: []
+                description: "Maps kibanauser to kibana_user"
+              complex-role:
+                reserved: false
+                hidden: false
+                backend_roles:
+                - "ldap-analyst"
+                hosts: []
+                users:
+                - "new-user"
+                and_backend_roles: []
+              all_access:
+                reserved: true
+                hidden: false
+                backend_roles:
+                - "admin"
+                - "dev"
+                hosts: []
+                users: []
+                and_backend_roles: []
+                description: "Maps admin to all_access"
+              readall:
+                reserved: true
+                hidden: false
+                backend_roles:
+                - "readall"
+                - "staff"
+                hosts: []
+                users: []
+                and_backend_roles: []
+              kibana_server:
+                reserved: true
+                hidden: false
+                backend_roles: []
+                hosts: []
+                users:
+                - "kibanaserver"
+                and_backend_roles: []
+            action_groups.yml: |
+              _meta:
+                type: "actiongroups"
+                config_version: 2
+            tenants.yml: |
+              _meta:
+                type: "tenants"
+                config_version: 2
+            nodes_dn.yml: |
+              _meta:
+                type: "nodesdn"
+                config_version: 2
+      ingress:
+        enabled: true
+        ingressClassName: "traefik"
+        hosts:
+        - "palmer.cyverse.org"
+        - "os-1.cyverse.org"
+        - "os-2.cyverse.org"
+        - "os-3.cyverse.org"
+        - "os-4.cyverse.org"
+        path: "/opensearch"
+        tls:
+        - secretName: "cyverse-tls"
+      plugins:
+        enabled: true
+        installList: []

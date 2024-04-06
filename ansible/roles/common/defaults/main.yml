@@ -42,7 +42,6 @@ rendered_configs_dir: "./rendered-configs"
 ## The SHA25 of the exim sender image to use.
 exim_sender_image_digest: replace_me
 
-
 # Deployment / Build vars
 ## Relative path to the directory containing the build JSON files.
 build_json_dir: "./de-releases/builds"
@@ -56,14 +55,13 @@ deploy: true
 ## Whether to commit changes to the build JSON files that occur as part of the build process.
 commit: true
 
-
 # Namespaces
-## The namespace containing the Discovery Environment services. 
+## The namespace containing the Discovery Environment services.
 ns: qa
 
 ## The namespaces containing the running VICE apps.
 vice_ns: vice-apps
-
+opensearch_ns: opensearch
 
 # Agave Variables
 ## Whether to enable Agave support.
@@ -75,7 +73,6 @@ agave_redirect_uri: http://replace_me
 agave_storage_system: replace_me
 agave_callback_base_uri: http://replace_me
 agave_read_timeout: 30000
-
 
 # Base URLS for services within the K3s cluster
 baseurls_analyses: http://analyses
@@ -229,7 +226,6 @@ harbor_qa_image_pull_secret: qa-project-image-pull-secret
 harbor_qa_robot_name: harbor-qa-robot
 harbor_qa_robot_secret: replace_me
 
-
 # IRODS CSI Driver Vars
 irods_csi_driver_repo: https://cyverse.github.io/irods-csi-driver-helm/
 irods_csi_driver_namespace: irods-csi-driver
@@ -245,7 +241,6 @@ irods_csi_driver_mount_path_white_list: "/not/a/path"
 irods_csi_driver_cache_size_max: 10737418240
 irods_csi_driver_data_root: "/irodsfs-pool"
 irods_csi_driver_cache_timeout_settings: '[{"path":"/","timeout":"-1ns","inherit":false},{"path":"/example","timeout":"-1ns","inherit":false},{"path":"/example/home","timeout":"1h","inherit":false},{"path":"/example/home/shared","timeout":"1h","inherit":true}]'
-
 
 # DE Databases Variables
 dbms_connection_user: de
@@ -380,21 +375,21 @@ vice_file_transfers_image: harbor.cyverse.org/de/vice-file-transfers
 vice_file_transfers_tag: latest
 vice_image_pull_secret: vice-image-pull-secret
 vice_image_cache:
-    - harbor.cyverse.org/de/vice-proxy:latest
-    - harbor.cyverse.org/de/porklock:latest
-    - harbor.cyverse.org/de/vice-file-transfers:latest
-    - harbor.cyverse.org/vice/cli/bash:latest
-    - harbor.cyverse.org/legacy/datahog:beta
-    - harbor.cyverse.org/vice/jupyter/datascience:latest
-    - harbor.cyverse.org/vice/jupyter/rstudio:latest
-    - harbor.cyverse.org/vice/jupyter/geospatial:latest
-    - harbor.cyverse.org/vice/rstudio/rstudio
-    - harbor.cyverse.org/vice/rstudio/geospatial:latest
-    - harbor.cyverse.org/vice/rstudio/verse:latest
-    - harbor.cyverse.org/vice/rstudio/verse:latest
-    - harbor.cyverse.org/vice/vscode:latest
-    - harbor.cyverse.org/vice/xpra/qgis:20.04
-    - harbor.cyverse.org/vice/rstudio/stan:latest
+  - harbor.cyverse.org/de/vice-proxy:latest
+  - harbor.cyverse.org/de/porklock:latest
+  - harbor.cyverse.org/de/vice-file-transfers:latest
+  - harbor.cyverse.org/vice/cli/bash:latest
+  - harbor.cyverse.org/legacy/datahog:beta
+  - harbor.cyverse.org/vice/jupyter/datascience:latest
+  - harbor.cyverse.org/vice/jupyter/rstudio:latest
+  - harbor.cyverse.org/vice/jupyter/geospatial:latest
+  - harbor.cyverse.org/vice/rstudio/rstudio
+  - harbor.cyverse.org/vice/rstudio/geospatial:latest
+  - harbor.cyverse.org/vice/rstudio/verse:latest
+  - harbor.cyverse.org/vice/rstudio/verse:latest
+  - harbor.cyverse.org/vice/vscode:latest
+  - harbor.cyverse.org/vice/xpra/qgis:20.04
+  - harbor.cyverse.org/vice/rstudio/stan:latest
 vice_use_csi_driver: true
 vice_default_cas_url: https://auth.cyverse.org/cas5
 vice_default_cas_validate: validate
@@ -419,7 +414,15 @@ nats_server_cert_renew_before: 240h # 10 days
 nats_client_cert_duration: 8766h # 1 year
 nats_client_cert_renew_before: 240h # 10 days
 
-# Grouper Variables
+## OpenSearch Variables
+opensearch_admin_cert_duration: 8766h # 1 year
+opensearch_admin_cert_renew_before: 240h # 10 days
+opensearch_ca_duration: 8766h # 1 year
+opensearch_ca_renew_before: 240h # 10 days
+opensearch_server_cert_duration: 8766h # 1 year
+opensearch_server_cert_renew_before: 240h # 10 days
+opensearch_replicas: 3
+
 grouper_client_auth: false # actual useful value
 grouper_loader_url: ldap://not.a.ldap.server:389/dc=example,dc=org
 grouper_loader_user: uid=fake,ou=People,dc=example,dc=org
@@ -430,7 +433,7 @@ grouper_db_host: fake.db.host
 grouper_db_port: 5432 # actual useful value
 grouper_db_name: grouper # actual useful value
 grouper_morph_string: n0tr34l
-grouper_connection_user: GrouperSystem 
+grouper_connection_user: GrouperSystem
 grouper_connection_pass: Ch@ng3m3
 grouper_gsh_image: harbor.cyverse.org/de/grouper # actual useful value
 grouper_gsh_image_version: v3.0.0 # actual useful value
@@ -438,7 +441,6 @@ grouper_ws_replicas: 2
 grouper_loader_replicas: 1
 grouper_tag: v3.0.0
 grouper_folder_name_prefix: "iplant:de:qa"
-
 
 # PostgreSQL Installation and Configuration Variables
 pg_destroy_default_db_on_init: false
@@ -480,13 +482,12 @@ pg_max_parallel_workers_per_gather: 2
 pg_huge_pages: try
 pg_num_huge_pages: 0
 
-
 # Keycloak Configuration
 keycloak_server_uri: https://keycloak.example.org/auth
 keycloak_db_username: keycloak
 keycloak_db_password: Ch@ng3M3
 keycloak_db_vendor: postgres
-keycloak_db_port: '5432'
+keycloak_db_port: "5432"
 keycloak_db_name: keycloak
 keycloak_namespace: keycloak
 keycloak_realm_name: CyVerseTest
@@ -512,9 +513,9 @@ keycloak_portal_web_origins:
   - "https://portaldev.cyverse.org"
 keycloak_use_theme: false
 keycloak_theme: cyverse
-keycloak_groups_dn: 
+keycloak_groups_dn:
   - "ou=Groups,dc=iplantcollaborative,dc=org"
-keycloak_bind_dn: 
+keycloak_bind_dn:
   - "uid=ldap_reader,ou=People,dc=iplantcollaborative,dc=org"
 keycloak_connection_url: "ldap://ldap.ldap:389"
 keycloak_http_nodeport: 31360
@@ -522,19 +523,17 @@ keycloak_https_nodeport: 31361
 keycloak_admin_username: kcadmin
 keycloak_admin_password: notreal
 keycloak_hostname_url: https://keycloak.example.org/
-keycloak_hostname_strict: 'false'
-keycloak_hostname_strict_https: 'false'
+keycloak_hostname_strict: "false"
+keycloak_hostname_strict_https: "false"
 keycloak_log_level: INFO
 keycloak_proxy: passthrough
 keycloak_jdbc_params: connectTimeout=21600
 keycloak_java_opts: "-server -Xms1024m -Xmx2048m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true -Dkeycloak.profile.feature.token_exchange=enabled -Djava.security.egd=file:/dev/urandom"
-keycloak_cert_duration:  '8766h' # 1 year
-keycloak_cert_renew_before: '240h' # 10 days
-keycloak_cpu_request: '200m'
-keycloak_memory_request: '1Gi'
-keycloak_ephemeral_storage_request: '2Gi'
-keycloak_cpu_limit: '200m'
-keycloak_memory_limit: '2Gi'
-keycloak_ephemeral_storage_limit: '2Gi'
-
-
+keycloak_cert_duration: "8766h" # 1 year
+keycloak_cert_renew_before: "240h" # 10 days
+keycloak_cpu_request: "200m"
+keycloak_memory_request: "1Gi"
+keycloak_ephemeral_storage_request: "2Gi"
+keycloak_cpu_limit: "200m"
+keycloak_memory_limit: "2Gi"
+keycloak_ephemeral_storage_limit: "2Gi"
