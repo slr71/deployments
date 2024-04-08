@@ -23,14 +23,14 @@ vice_ns: vice-apps
 
 
 ## Agave Variables
-agave_enabled: true
-agave_jobs_enabled: true
+agave_enabled: false
+agave_jobs_enabled: false
 agave_key: replace_me
 agave_secret: replace_me
 agave_redirect_uri: http://replace_me
 agave_storage_system: replace_me
 agave_callback_base_uri: http://replace_me
-agave_read_timeout: 120
+agave_read_timeout: 30000
 
 
 baseurls_analyses: http://analyses
@@ -63,15 +63,15 @@ de_amqp_host: replace_me
 de_amqp_port: replace_me
 de_amqp_vhost: replace_me
 de_base_uri: http://replace_me
-de_coge_base_uri: http://replace_me
+de_coge_base_uri: https://genomevolution.org/coge/api/v1
 de_subscriptions_checkout_url: http://replace_me
 de_subscriptions_enforce: replace_me
-de_default_output_folder: replace_me
-de_info_faq: replace_me
-de_info_description: replace_me
-de_tools_admin_max_disk_limit: replace_me
-de_tools_admin_max_cpu_limit: replace_me
-de_tools_admin_max_memory_limit: replace_me
+de_default_output_folder: analyses
+de_info_faq: https://learning.cyverse.org/faq/
+de_info_description: https://cyverse.org/discovery-environment
+de_tools_admin_max_disk_limit: 1099511627776
+de_tools_admin_max_cpu_limit: 24
+de_tools_admin_max_memory_limit: 75161927680
 
 docker_tag: latest
 docker_trusted_registries:
@@ -179,7 +179,7 @@ harbor_database_user: harbor
 harbor_database_password: "Ch@ng3M3"
 harbor_qa_image_pull_secret: qa-project-image-pull-secret
 harbor_qa_robot_name: harbor-qa-robot
-harbor_qa_robot_secret: secret
+harbor_qa_robot_secret: replace_me
 
 
 ## IRODS CSI Driver Vars
@@ -210,7 +210,7 @@ qms_version: main
 de_db_name: de
 notifications_db_name: notifications
 metadata_db_name: metadata
-permissions_db_name: permissions
+permissions_db_name: de
 qms_db_name: qms
 qms_automigrate: false
 qms_reinitialize: false
@@ -259,7 +259,7 @@ irods_amqp_password: replace_me
 irods_amqp_host: replace_me
 irods_amqp_port: replace_me
 irods_amqp_vhost: replace_me
-irods_host: replace_me
+irods_host: data.cyverse.rocks
 irods_user: replace_me
 irods_zone: replace_me
 irods_password: replace_me
@@ -312,7 +312,7 @@ pgp_key_password: replace_me
 
 
 ## Permanent ID settings
-perm_id_enabled: true
+perm_id_enabled: false
 perm_id_curators_group: replace_me
 perm_id_datacite_base_uri: http://replace_me
 perm_id_datacite_user: replace_me
@@ -326,6 +326,9 @@ unleash_api_path: /api
 unleash_api_token: replace_me
 unleash_db_name: unleash
 unleash_maintenance_flag: DE-Maintenance
+unleash_db_user: replace_me
+unleash_db_password: replace_me
+
 
 
 ## User Portal settings
@@ -333,7 +336,7 @@ user_portal_base_uri: http://replace_me
 
 
 ## VICE settings
-vice_base_uri: https://cyverse.run:4343
+vice_base_uri: https://cyverse.run
 vice_file_transfers_image: harbor.cyverse.org/de/vice-file-transfers
 vice_file_transfers_tag: latest
 vice_image_pull_secret: vice-image-pull-secret
@@ -379,7 +382,7 @@ nats_client_cert_renew_before: 240h # 10 days
 
 
 ## Grouper Variables
-grouper_client_auth: true # actual useful value
+grouper_client_auth: false # actual useful value
 grouper_loader_url: ldap://not.a.ldap.server:389/dc=example,dc=org
 grouper_loader_user: uid=fake,ou=People,dc=example,dc=org
 grouper_loader_password: l0lf@k3
