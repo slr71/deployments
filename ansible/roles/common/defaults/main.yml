@@ -53,6 +53,9 @@ baseurls_search: http://search
 baseurls_terrain: http://terrain
 baseurls_user_info: http://user-info
 
+cas_base_uri: http://replace_me
+cas_terrain_client_id: replace_me
+cas_terrain_client_secret: replace_me
 
 dashboard_aggregator_website_url: https://cyverse.org
 
