@@ -30,3 +30,31 @@
     dest: "{{ [[ rendered_configs_dir ] + [item.path | basename | splitext | first]] | flatten | path_join }}"
     mode: 0640
   loop: "{{ template_list.files }}"
+
+- name: load configmap data
+  set_fact:
+    config_data: "{{ config_data | default({}) | combine({ item | basename : lookup('file', item) }) }}"
+  with_fileglob: "{{ rendered_configs_dir }}/*"
+
+- name: load the configurations into the cluster
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: service-configs
+        namespace: "{{ ns }}"
+      data: "{{ config_data }}"
+  
+- name: remove the locally rendered files
+  delegate_to: localhost
+  run_once: True
+  ansible.builtin.file:
+    path: "{{ rendered_configs_dir }}"
+    state: absent
+
