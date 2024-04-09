@@ -1,6 +1,5 @@
 ---
 - name: Initialize grouper
-  hosts: localhost
-  connection: local
+  hosts: k3s_de_workers
   roles:
     - role: grouper_init

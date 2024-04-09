@@ -28,3 +28,6 @@
 
 - name: install keycloak into k3s
   ansible.builtin.import_playbook: keycloak.yml
+
+- name: install harbor into k3s
+  ansible.builtin.import_playbook: harbor.yml

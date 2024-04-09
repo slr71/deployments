@@ -9,13 +9,21 @@
   roles:
     - role: kubernetes_de_reqs
 
-- name: set up ingresses
+# - name: set up ingresses
+#   hosts: k3s_controllers[0]
+#   connection: local
+#   become: false
+#   gather_facts: false
+#   roles:
+#     - role: kubernetes_ingresses
+
+- name: set up networking related options in k3s
   hosts: k3s_controllers[0]
   connection: local
   become: false
   gather_facts: false
   roles:
-    - role: kubernetes_ingresses
+    - role: kubernetes_networking
 
 - name: set up longhorn
   hosts: k3s_controllers[0]

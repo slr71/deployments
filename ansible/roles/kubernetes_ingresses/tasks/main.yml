@@ -9,9 +9,10 @@
       apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
-        name: "{{ item.name }}"
+        name: "discoenv"
         namespace: "{{ ns }}"
         annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Origin: *"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Max-Age: 86400"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Credentials: true"
@@ -24,24 +25,42 @@
           - host: "{{ de_hostname }}"
             http:
               paths:
-                - path: "{{ item.path }}"
+                - path: "/anon-files"
                   pathType: Prefix
                   backend:
                     service:
-                      name: "{{ item.service }}"
+                      name: kifshare
                       port:
                         number: 80
-  loop:
-    - name: anon-files
-      path: /anon-files
-      service: kifshare
-    - name: dl
-      path: /dl
-      service: kifshare
-    - name: terrain
-      path: /terrain
-      service: terrain
-
+                - path: "/dl"
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: kifshare
+                      port:
+                        number: 80
+                - path: "/terrain"
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: terrain
+                      port:
+                        number: 80
+                - path: /job
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: job-status-listener
+                      port:
+                        number: 80
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: sonora
+                      port:
+                        number: 80
+                        
 - name: Add agave-callback ingress
   delegate_to: localhost
   environment:
@@ -55,6 +74,7 @@
         name: agave-callback
         namespace: "{{ ns }}"
         annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: web
           traefik.ingress.kubernetes.io/rewrite-target: /callbacks/agave-job
       spec:
         ingressClass: traefik
@@ -70,35 +90,5 @@
                       port:
                         number: 80
 
-- name: Add ingresses
-  delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: de
-        namespace: "{{ ns }}"
-      spec:
-        ingressClass: traefik
-        rules:
-          - host: "{{ de_hostname }}"
-            http:
-              paths:
-                - path: /job
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: job-status-listener
-                      port:
-                        number: 80
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: sonora
-                      port:
-                        number: 80
+
+

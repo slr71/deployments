@@ -1,0 +1,183 @@
+---
+- name: create the jaeger namespace
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ jaeger_namespace }}"
+
+- name: create the jaeger-collector deployment
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: jaeger-collector
+        namespace: "{{ jaeger_namespace }}"
+        labels:
+          app: jaeger
+          component: collector
+      spec:
+        replicas: "{{ jaeger_collector_replicas }}"
+        selector:
+          matchLabels:
+            app: jaeger-collector
+        template:
+          metadata:
+            labels:
+              app: jaeger-collector
+          spec:
+            containers:
+              - name: jaeger-collector
+                image: "jaegertracing/all-in-one:1.22"
+                env:
+                  - name: SPAN_STORAGE_TYPE
+                    value: "elasticsearch"
+                  - name: ES_SERVER_URLS
+                    value: "{{ elasticsearch_server_urls }}"
+                  - name: ES_USE_ALIASES
+                    value: "true"
+                  - name: ES_INDEX_PREFIX
+                    value: "{{ ns }}"
+                ports:
+                  - name: jaeger-grpc
+                    containerPort: 14250
+                    protocol: TCP
+                  - name: jaeger-http
+                    containerPort: 14268
+                    protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: "/"
+                    port: 14269
+
+- name: create the jaeger-collector service
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: jaeger-collector
+        namespace: "{{ jaeger_namespace }}"
+      spec:
+        selector:
+          app: jaeger-collector
+        ports:
+        - name: jaeger-grpc
+          port: 14250
+          targetPort: jaeger-grpc
+        - name: jaeger-http
+          port: 14268
+          targetPort: jaeger-http
+
+- name: create the jaeger-query deployment
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: jaeger-query
+        namespace: "{{ jaeger_namespace }}"
+      spec:
+        replicas: "{{ jaeger_query_replicas }}"
+        selector:
+          matchLabels:
+            app: jaeger-query
+        template:
+          metadata:
+            labels:
+              app: jaeger-query
+          spec:
+            containers:
+              - name: jaeger-query
+                image: jaegertracing/jaeger-query:1.22
+                env:
+                  - name: SPAN_STORAGE_TYPE
+                    value: "elasticsearch"
+                  - name: ES_SERVER_URLS
+                    value: "{{ elasticsearch_server_urls }}"
+                  - name: ES_USE_ALIASES
+                    value: "true"
+                  - name: ES_INDEX_PREFIX
+                    value: "{{ ns }}"
+                ports:
+                  - name: http-listen
+                    containerPort: 16686
+                    protocol: TCP
+                  - containerPort: 16687
+                    protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: "/"
+                    port: 16687
+
+- name: create the jaeger-query service
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: jaeger-query
+        namespace: "{{ jaeger_namespace }}"
+      spec:
+        selector:
+          app: jaeger-query
+        ports:
+        - name: http-listen
+          port: 16686
+          targetPort: http-listen
+
+- name: set up the rollover cron job in the cluster
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: jaeger-rollover
+        namespace: "{{ jaeger_namespace }}"
+      spec:
+        schedule: "*/30 * * * *"
+        jobTemplate:
+          spec:
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                containers:
+                - name: jaeger-rollover
+                  image: jaegertracing/jaeger-es-rollover:latest
+                  imagePullPolicy: IfNotPresent
+                  env:
+                  - name: CONDITIONS
+                    value: "{\"max_age\": \"3d\", \"max_docs\": 500000000}"
+                  command:
+                  - /go/bin/es-rollover
+                  - rollover
+                  - "{{ elasticsearch_server_urls }}"
+                  - --index-prefix
+                  - "{{ ns }}"
+                restartPolicy: OnFailure

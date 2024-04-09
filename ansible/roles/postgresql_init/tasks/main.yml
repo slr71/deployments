@@ -35,6 +35,18 @@
     password: "{{ keycloak_db_password }}"
   when: create_user is defined and create_user
 
+- name: init db | create the harbor database user
+  delegate_to: localhost
+  community.postgresql.postgresql_user:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    db: "{{ pg_db }}"
+    name: "{{ harbor_database_user }}"
+    password: "{{ harbor_database_password }}"
+  when: create_user is defined and create_user
+
 - name: init db  | create de database
   delegate_to: localhost
   community.postgresql.postgresql_db:
@@ -42,7 +54,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "de"
+    name: "{{ de_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -57,7 +69,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "de"
+    db: "{{ de_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts
 
@@ -68,7 +80,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "de"
+    db: "{{ de_db_name }}"
     name: "moddatetime"
   when: install_exts is defined and install_exts
 
@@ -79,7 +91,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "de"
+    db: "{{ de_db_name }}"
     name: "btree_gist"
   when: install_exts is defined and install_exts
 
@@ -90,7 +102,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "notifications"
+    name: "{{ notifications_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -105,7 +117,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "notifications"
+    db: "{{ notifications_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts
 
@@ -116,7 +128,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "metadata"
+    name: "{{ metadata_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -131,7 +143,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "metadata"
+    db: "{{ metadata_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts
 
@@ -172,6 +184,66 @@
     name: "moddatetime"
   when: install_exts is defined and install_exts
 
+- name: init db | create the harbor core database
+  delegate_to: localhost
+  community.postgresql.postgresql_db:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    name: "{{ harbor_core_db_name }}"
+    owner: "{{ harbor_database_user }}"
+    encoding: "{{ encoding }}"
+    lc_collate: "{{ lc_collate }}"
+    lc_ctype: "{{ lc_ctype }}"
+    template: "{{ template }}"
+  when: create_dbs is defined and create_dbs
+
+- name: init db | create the harbor clair database
+  delegate_to: localhost
+  community.postgresql.postgresql_db:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    name: "{{ harbor_clair_db_name }}"
+    owner: "{{ harbor_database_user }}"
+    encoding: "{{ encoding }}"
+    lc_collate: "{{ lc_collate }}"
+    lc_ctype: "{{ lc_ctype }}"
+    template: "{{ template }}"
+  when: create_dbs is defined and create_dbs
+
+- name: init db | create the harbor notary server database
+  delegate_to: localhost
+  community.postgresql.postgresql_db:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    name: "{{ harbor_notary_server_db_name }}"
+    owner: "{{ harbor_database_user }}"
+    encoding: "{{ encoding }}"
+    lc_collate: "{{ lc_collate }}"
+    lc_ctype: "{{ lc_ctype }}"
+    template: "{{ template }}"
+  when: create_dbs is defined and create_dbs
+
+- name: init db | create the harbor notary signer database
+  delegate_to: localhost
+  community.postgresql.postgresql_db:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    name: "{{ harbor_notary_signer_db_name }}"
+    owner: "{{ harbor_database_user }}"
+    encoding: "{{ encoding }}"
+    lc_collate: "{{ lc_collate }}"
+    lc_ctype: "{{ lc_ctype }}"
+    template: "{{ template }}"
+  when: create_dbs is defined and create_dbs
+
 - name: init db  | create grouper database
   delegate_to: localhost
   community.postgresql.postgresql_db:
@@ -179,7 +251,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "grouper"
+    name: "{{ grouper_db_name }}"
     owner: "{{ grouper_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -194,7 +266,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "keycloak"
+    name: "{{ keycloak_db_name }}"
     owner: "{{ keycloak_db_username }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -209,7 +281,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "qms"
+    name: "{{ qms_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -224,7 +296,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "uuid-ossp"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -235,7 +307,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "moddatetime"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -246,7 +318,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "btree_gist"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -257,7 +329,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    db: "qms"
+    db: "{{ qms_db_name }}"
     name: "insert_username"
   when: install_exts is defined and install_exts and qms is defined and qms
 
@@ -268,7 +340,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "unleash"
+    name: "{{ unleash_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -283,7 +355,7 @@
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
-    name: "k3s"
+    name: "{{ k3s_db_name }}"
     owner: "{{ dbms_connection_user }}"
     encoding: "{{ encoding }}"
     lc_collate: "{{ lc_collate }}"
@@ -403,6 +475,21 @@
   ansible.builtin.command: |
     {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable" -path "{{ dbs_dir.path }}/qms/migrations" up
   when: migrate is defined and migrate
+
+- name: init db | add default instant launch mapping to the de db
+  delegate_to: localhost
+  community.postgresql.postgresql_query:
+    login_host: "{{ groups['dbms_primary'][0] }}"
+    port: "{{ pg_listen_port }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
+    db: "de"
+    query: |
+      INSERT INTO default_instant_launches 
+        (version, instant_launches, added_by) 
+      VALUES 
+        (0, '{}', '00000000-0000-0000-0000-000000000000')
+      ON CONFLICT DO NOTHING
 
 - name: init db | remove staging directory
   delegate_to: localhost

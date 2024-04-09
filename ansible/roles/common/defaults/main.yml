@@ -7,6 +7,14 @@ ui_wildcard_fqdn: "*.cyverse.org"
 vice_wildcard_fqdn: "*.cyverse.run"
 vice_base_domain: cyverse.run
 k3s_install_script: "./k3s_install.sh"
+timezone: "America/Phoenix"
+uid_domain: iplantcollaborative.org
+timezone: America/Phoenix
+de_releases_repo: https://github.com/cyverse-de/de-releases
+de_releases_dir: "./de-releases"
+de_releases_version: jinja
+rendered_configs_dir: "./rendered-configs"
+exim_sender_image_digest: replace_me
 
 
 ## Namespaces
@@ -14,8 +22,137 @@ ns: qa
 vice_ns: vice-apps
 
 
+## Agave Variables
+agave_enabled: false
+agave_jobs_enabled: false
+agave_key: replace_me
+agave_secret: replace_me
+agave_redirect_uri: http://replace_me
+agave_storage_system: replace_me
+agave_callback_base_uri: http://replace_me
+agave_read_timeout: 30000
+
+
+baseurls_analyses: http://analyses
+baseurls_apps: http://apps
+baseurls_app_exposer: http://app-exposer
+baseurls_async_tasks: http://async-tasks
+baseurls_dashboard_aggregator: http://dashboard-aggregator
+baseurls_data_info: http://data-info
+baseurls_grouper_web_services: http://grouper-ws/grouper-ws
+baseurls_iplant_email: http://de-mailer
+baseurls_iplant_groups: http://iplant-groups
+baseurls_jex_adapter: http://jex-adapter
+baseurls_job_status_listener: http://job-status-listener
+baseurls_metadata: http://metadata
+baseurls_notifications: http://notifications/v1
+baseurls_permissions: http://permissions
+baseurls_qms: http://qms
+baseurls_requests: http://requests
+baseurls_search: http://search
+baseurls_terrain: http://terrain
+baseurls_user_info: http://user-info
+
+cas_base_uri: http://replace_me
+cas_terrain_client_id: replace_me
+cas_terrain_client_secret: replace_me
+
+dashboard_aggregator_website_url: https://cyverse.org
+
+
+de_amqp_user: replace_me
+de_amqp_password: replace_me
+de_amqp_host: replace_me
+de_amqp_port: replace_me
+de_amqp_vhost: replace_me
+de_base_uri: http://replace_me
+de_coge_base_uri: https://genomevolution.org/coge/api/v1
+de_subscriptions_checkout_url: http://replace_me
+de_subscriptions_enforce: replace_me
+de_default_output_folder: analyses
+de_info_faq: https://learning.cyverse.org/faq/
+de_info_description: https://cyverse.org/discovery-environment
+de_tools_admin_max_disk_limit: 1099511627776
+de_tools_admin_max_cpu_limit: 24
+de_tools_admin_max_memory_limit: 75161927680
+
+docker_tag: latest
+docker_trusted_registries:
+  - harbor.cyverse.org
+  - docker.cyverse.org
+  - gims.cyverse.org:5000
+  - gims.iplantcollaborative.org:5000
+
+es_base_uri: http://replace_me
+es_username: replace_me
+es_password: replace_me
+es_index: replace_me
+es_enabled: true
+
+qa_ceph_password: replace_me
+qa_ceph_username: replace_me
+qa_ceph_password: replace_me
+qa_ceph_first_name: replace_me
+qa_ceph_last_name: replace_me
+qa_ceph_local_user: docker
+qa_de_password: replace_me
+qa_de_admin_password: replace_me
+qa_de_username: replace_me
+qa_de_first_name: replace_me
+qa_de_last_name: replace_me
+qa_de_local_user: docker
+qa_de_jwt_name: make-jwt
+qa_legacy_admin_password: replace_me
+qa_legacy_admin_password2: replace_me
+qa_legacy_password: replace_me
+qa_legacy_jwt_priv_pass: replace_me
+qa_legacy_jwt_name: make-jwt
+qa_legacy_username: replace_me
+qa_legacy_first_name: replace_me
+qa_legacy_last_name: replace_me
+qa_legacy_local_user: docker
+
+
+infosquito_daynum: 4
+infosquito_prefix_length: 4
+
+
+## Email
+email_src: replace_me@replace_me.replace_me
+email_dest: replace_me@replace_me.replace_me
+email_perm_id_request_dest: example@example.example
+email_support_dest: example@example.example
+
+
+qms_enabled: true
+
+
+jaeger_enabled: true
+jaeger_endpoint: http://jaeger-collector.jaeger.svc.cluster.local:14250
+jaeger_http_endpoint: http://jaeger-collector.jaeger.svc.cluster.local:14268/api/traces
+
+
+## Nodeports
+kifshare_nodeport: 31340
+terrain_nodeport: 31341
+job_status_listener_nodeport: 31342
+agave_cb_nodeport: 31343
+harbor_nodeport: 30002
+
+
+## elaticsearch variables
+es_server_urls: https://abby.cyverse.org:31450
+
+
+## jaeger variables
+jaeger_namespace: jaeger
+jaeger_collector_replicas: 2
+jaeger_query_replicas: 2
+
+
 ## K3s Default Variables
 force_reinstall: false
+k3s_db_name: k3s
 k3s_token: K3sT0k3n
 k3s_version: v1.29.1+k3s1
 k3s_flannel_backend: wireguard-native
@@ -23,15 +160,29 @@ k3s_registry_mirror: https://registry-1.docker.io
 k3s_registry_mirror_endpoint: https://registry-1.docker.io
 k3s_registry_mirror_token: ""
 k3s_registry_mirror_insecure_skip_verify: false
-k3s_datastore_endpoint: ;;
+k3s_datastore_endpoint: http://replace_me
 k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
 k3s_kubeconfig_mode: "644"
 
-
-## Cert-Manager Variables
-cmctl_download_url: https://github.com/cert-manager/cert-manager/releases/download/v1.12.7/
-cmctl_download_filename: cmctl-linux-amd64.tar.gz
-force_apply: true
+## Harbor installation variables
+harbor_url: harbor.cyverse.org
+harbor_repo: https://helm.goharbor.io
+harbor_namespace: harbor
+harbor_external_domain: harbor-qa.example.org
+harbor_storage_class: "longhorn"
+harbor_replicas: 2
+harbor_http_nodeport: 30002
+harbor_https_nodeport: 30003
+harbor_initial_admin_password: "Ch@ng3M3"
+harbor_core_db_name: harbor_core
+harbor_clair_db_name: harbor_clair
+harbor_notary_server_db_name: harbor_notary_server
+harbor_notary_signer_db_name: harbor_notary_signer
+harbor_database_user: harbor
+harbor_database_password: "Ch@ng3M3"
+harbor_qa_image_pull_secret: qa-project-image-pull-secret
+harbor_qa_robot_name: harbor-qa-robot
+harbor_qa_robot_secret: replace_me
 
 
 ## IRODS CSI Driver Vars
@@ -56,9 +207,16 @@ dbms_connection_user: de
 dbms_connection_pass: Ch@ng3M3
 de_db_version: main
 notifications_db_version: main
-metadata_db_version: master
+metadata_db_version: main
 mgmt_version: main
 qms_version: main
+de_db_name: de
+notifications_db_name: notifications
+metadata_db_name: metadata
+permissions_db_name: de
+qms_db_name: qms
+qms_automigrate: false
+qms_reinitialize: false
 pg_login_user: postgres
 pg_login_host: localhost
 pg_login_password: Chang3m3
@@ -84,6 +242,138 @@ migrate_release_version: v4.17.0
 migrate_tarball_name: migrate.linux-amd64.tar.gz # or migrate.darwin-amd64.tar.gz
 
 
+## ICAT
+icat_host: replace_me
+icat_port: 5432
+icat_user: replace_me
+icat_password: replace_me
+
+
+## Intercom settings
+intercom_enabled: true
+intercom_app_id: replace_me
+intercom_company_id: replace_me
+intercom_company_name: replace_me
+
+
+## IRODS Variables
+irods_amqp_user: replace_me
+irods_amqp_password: replace_me
+irods_amqp_host: replace_me
+irods_amqp_port: replace_me
+irods_amqp_vhost: replace_me
+irods_host: data.cyverse.rocks
+irods_user: replace_me
+irods_zone: replace_me
+irods_password: replace_me
+irods_port: 1247
+irods_external_host: data.cyverse.rocks
+irods_webdav_anon_uri: https://data.cyverse.rocks/dav-anon
+irods_quota_root_resources: mainIngestRes,mainReplRes
+irods_admin_users:
+  - de-irods
+  - rodsadmin_acl
+  - rodsBoot
+  - rodsadmin
+  - ipcservices
+  - QuickShare
+  - ibp-proxy
+  - ipc_admin
+  - proxy-de-tools
+  - admin_proxy
+  - admin2
+  - bioci_god
+  - edwin
+  - coge
+irods_perms_filter:
+  - rodsadmin_acl
+  - rodsBoot
+  - rodsadmin
+  - ipcservices
+  - QuickShare
+  - ibp-proxy
+  - ipc_admin
+  - proxy-de-tools
+  - admin_proxy
+  - admin2
+  - bioci_god
+  - edwin
+  - coge
+
+
+## Jobs settings
+jobs_data_transfer_image: harbor.cyverse.org/de/porklock
+jobs_data_transfer_tag: latest
+
+jvm_opts_high: "-Xmx1G -Dlog4j2.formatMsgNoLookups=true"
+jvm_opts_low: "-Xmx512M -Dlog4j2.formatMsgNoLookups=true"
+jvm_opts_ui: "-Xmx1G -Djava.net.preferIPv4Stack=true"
+
+
+## PGP settings
+pgp_key_password: replace_me
+
+
+## Permanent ID settings
+perm_id_enabled: false
+perm_id_curators_group: replace_me
+perm_id_datacite_base_uri: http://replace_me
+perm_id_datacite_user: replace_me
+perm_id_datacite_password: replace_me
+perm_id_datacite_doi_prefix: replace_me
+
+
+## Unleash settings
+unleash_base_url: http://unleash:4242
+unleash_api_path: /api
+unleash_api_token: replace_me
+unleash_db_name: unleash
+unleash_maintenance_flag: DE-Maintenance
+unleash_db_user: replace_me
+unleash_db_password: replace_me
+
+
+
+## User Portal settings
+user_portal_base_uri: http://replace_me
+
+
+## VICE settings
+vice_base_uri: https://cyverse.run
+vice_file_transfers_image: harbor.cyverse.org/de/vice-file-transfers
+vice_file_transfers_tag: latest
+vice_image_pull_secret: vice-image-pull-secret
+vice_image_cache:
+    - harbor.cyverse.org/de/vice-proxy:latest
+    - harbor.cyverse.org/de/porklock:latest
+    - harbor.cyverse.org/de/vice-file-transfers:latest
+    - harbor.cyverse.org/vice/cli/bash:latest
+    - harbor.cyverse.org/legacy/datahog:beta
+    - harbor.cyverse.org/vice/jupyter/datascience:latest
+    - harbor.cyverse.org/vice/jupyter/rstudio:latest
+    - harbor.cyverse.org/vice/jupyter/geospatial:latest
+    - harbor.cyverse.org/vice/rstudio/rstudio
+    - harbor.cyverse.org/vice/rstudio/geospatial:latest
+    - harbor.cyverse.org/vice/rstudio/verse:latest
+    - harbor.cyverse.org/vice/rstudio/verse:latest
+    - harbor.cyverse.org/vice/vscode:latest
+    - harbor.cyverse.org/vice/xpra/qgis:20.04
+    - harbor.cyverse.org/vice/rstudio/stan:latest
+vice_use_csi_driver: true
+vice_default_cas_url: https://auth.cyverse.org/cas5
+vice_default_cas_validate: validate
+vice_use_case_chars_min: 60
+vice_default_backend_loading_page_template_string: 'https://qa.cyverse.org/vice/\{\{.URL\}\}'
+
+
+admin_groups: core-services,tito-admins,tito-qa-admins,dev,staff
+admin_attribute: entitlement
+
+
+analytics_enabled: false
+analytics_id: g-id
+
+
 ## NATS Variables
 ca_duration: 8766h # 1 year
 ca_renew_before: 240h # 10 days
@@ -93,11 +383,26 @@ nats_server_cert_renew_before: 240h # 10 days
 nats_client_cert_duration: 8766h # 1 year
 nats_client_cert_renew_before: 240h # 10 days
 
+
 ## Grouper Variables
-grouper_connection_user: grouper
+grouper_client_auth: false # actual useful value
+grouper_loader_url: ldap://not.a.ldap.server:389/dc=example,dc=org
+grouper_loader_user: uid=fake,ou=People,dc=example,dc=org
+grouper_loader_password: l0lf@k3
+grouper_environment: qa # actual useful value
+grouper_ws_url: http://grouper-ws/grouper-ws # actual useful value
+grouper_db_host: fake.db.host
+grouper_db_port: 5432 # actual useful value
+grouper_db_name: grouper # actual useful value
+grouper_morph_string: n0tr34l
+grouper_connection_user: GrouperSystem 
 grouper_connection_pass: Ch@ng3m3
-grouper_gsh_image: harbor.cyverse.org/de/grouper
-grouper_gsh_image_version: v3.0.0
+grouper_gsh_image: harbor.cyverse.org/de/grouper # actual useful value
+grouper_gsh_image_version: v3.0.0 # actual useful value
+grouper_ws_replicas: 2
+grouper_loader_replicas: 1
+grouper_tag: v3.0.0
+grouper_folder_name_prefix: "iplant:de:qa"
 
 
 ## PostgreSQL Installation and Configuration Variables
@@ -142,10 +447,18 @@ pg_num_huge_pages: 0
 
 
 ## Keycloak Configuration
+keycloak_server_uri: https://keycloak.example.org/auth
 keycloak_db_username: keycloak
 keycloak_db_password: Ch@ng3M3
+keycloak_db_vendor: postgres
+keycloak_db_port: '5432'
+keycloak_db_name: keycloak
 keycloak_namespace: keycloak
 keycloak_realm_name: CyVerseTest
+keycloak_client_id: replace_me
+keycloak_client_secret: replace_me
+keycloak_vice_client_id: replace_me
+keycloak_vice_client_secret: replace_me
 keycloak_realm_display_name: CyVerse Test Realm connected to pollit.iplantcollaborative.org
 keycloak_realm_display_name_html: CyVerse Test (pollit)
 keycloak_vice_domain: cyverse.run
@@ -184,10 +497,6 @@ keycloak_hostname_strict_https: 'false'
 
 keycloak_log_level: INFO
 keycloak_proxy: passthrough
-
-keycloak_db_vendor: postgres
-keycloak_db_port: '5432'
-keycloak_db_name: keycloak
 
 keycloak_jdbc_params: connectTimeout=21600
 keycloak_java_opts: "-server -Xms1024m -Xmx2048m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=256m -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true -Dkeycloak.profile.feature.token_exchange=enabled -Djava.security.egd=file:/dev/urandom"

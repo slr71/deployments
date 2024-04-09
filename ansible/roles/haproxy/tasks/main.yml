@@ -1,11 +1,18 @@
 ---
+- name: check if haproxy is installed manually
+  ansible.builtin.stat:
+    path: /usr/local/sbin/haproxy
+  register: h
 
-- name: install | apt install haproxy
-  apt:
-    update_cache: true
-    pkg:
-      - "haproxy"
+- name: debug | haproxy_installed
+  ansible.builtin.debug:
+    var: h
+
+- name: install | install haproxy
+  ansible.builtin.package:
+    name: haproxy
     state: present
+  when: h.stat is not defined or not h.stat.exists
 
 - name: configure | download dhparam
   ansible.builtin.get_url:

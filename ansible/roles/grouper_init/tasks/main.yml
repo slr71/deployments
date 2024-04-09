@@ -1,5 +1,33 @@
 ---
+- name: create the grouper-configs secret
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: grouper-configs
+        namespace: "{{ ns }}"
+      data:
+        grouper-cache.properties: "{{ lookup('template', 'grouper-cache.properties.j2') | b64encode }}"
+        grouper-client.properties: "{{ lookup('template', 'grouper-client.properties.j2') | b64encode }}"
+        grouper-hibernate.properties: "{{ lookup('template', 'grouper-hibernate.properties.j2') | b64encode }}"
+        grouper-loader.properties: "{{ lookup('template', 'grouper-loader.properties.j2') | b64encode }}"
+        grouper-log4j.properties: "{{ lookup('template', 'grouper-log4j.properties.j2') | b64encode }}"
+        grouper-morph-string.properties: "{{ lookup('template', 'grouper-morph-string.properties.j2') | b64encode }}"
+        grouper-realm.properties: "{{ lookup('template', 'grouper-realm.properties.j2') | b64encode }}"
+        grouper-subject.properties: "{{ lookup('template', 'grouper-subject.properties.j2') | b64encode }}"
+        grouper-ui.properties: "{{ lookup('template', 'grouper-ui.properties.j2') | b64encode }}"
+        grouper-ws.properties: "{{ lookup('template', 'grouper-ws.properties.j2') | b64encode }}"
+        grouper.properties: "{{ lookup('template', 'grouper.properties.j2') | b64encode }}"
+
 - name: create the gsh pod
+  delegate_to: localhost
+  run_once: True
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -21,9 +49,9 @@
               items:
                 - key: timezone
                   path: timezone
-          - name: service-configs
+          - name: grouper-configs
             secret:
-              secretName: service-configs
+              secretName: grouper-configs
               items:
                 - key: grouper-cache.properties
                   path: grouper.cache.properties
@@ -60,11 +88,13 @@
               - name: timezone
                 mountPath: /etc/timezone
                 readOnly: true
-              - name: service-configs
+              - name: grouper-configs
                 mountPath: /etc/grouper
                 readOnly: true
 
 - name: wait for the gsh pod to be ready
+  delegate_to: localhost
+  run_once: True
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_info:
@@ -75,8 +105,11 @@
     wait_condition:
       type: Ready
       status: True
+    wait_timeout: 600
 
 - name: run the database init command in the gsh pod
+  delegate_to: localhost
+  run_once: True
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_exec:
@@ -98,12 +131,23 @@
   when: init_result.rc != 0
 
 - name: copy the grouper_init.groovy file to the gsh pod
+  delegate_to: localhost
+  run_once: True
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_cp:
     namespace: "{{ ns }}"
     pod: gsh
     content: |
+      GrouperPasswordSave gps = new GrouperPasswordSave()
+
+      gps.with {
+          assignApplication(GrouperPassword.Application.WS)
+          assignUsername("{{ grouper_connection_user }}")
+          assignPassword("{{ grouper_connection_pass }}")
+          save()
+      }
+
       GrouperSession grouperSession = GrouperSession.startRootSession()
 
       // Create the iplant folder
@@ -160,11 +204,19 @@
       // Create the users folder
       Stem.saveStem(deGrouperSession, null, null, 'iplant:de:{{ ns }}:users', null, null, SaveMode.INSERT, true)
 
+      GroupSave groupSave = new GroupSave(deGrouperSession)
+      groupSave.assignName("iplant:de:{{ ns }}:users:de-users")
+      groupSave.assignTypeOfGroup(TypeOfGroup.role)
+      groupSave.assignSaveMode(SaveMode.INSERT_OR_UPDATE)
+      Group group = groupSave.save()
+
       // Close the de_grouper session
       GrouperSession.stopQuietly(deGrouperSession)
     remote_path: /tmp/grouper_init.groovy
 
 - name: run the grouper_init.groovy script in the gsh pod
+  delegate_to: localhost
+  run_once: True
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_exec:
@@ -184,3 +236,302 @@
   fail:
     msg: "Grouper init script failed"
   when: groovy_result.rc != 0
+
+- name: create the grouper-loader deployment
+  delegate_to: localhost
+  run_once: True
+  timeout: 600
+  environment: 
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ ns }}"
+    wait: true
+    wait_condition:
+      type: Available
+      status: True
+    wait_timeout: 600
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: grouper-loader
+      spec:
+        replicas: "{{ grouper_loader_replicas }}"
+        selector:
+          matchLabels:
+            de-app: grouper-loader
+        template:
+          metadata:
+            labels:
+              de-app: grouper-loader
+          spec:
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  - labelSelector:
+                      matchExpressions:
+                        - key: de-app
+                          operator: In
+                          values:
+                            - grouper-loader
+                    topologyKey: kubernetes.io/hostname
+            restartPolicy: Always
+            volumes:
+              - name: localtime
+                hostPath:
+                  path: /etc/localtime
+              - name: timezone
+                configMap:
+                  name: timezone
+                  items:
+                    - key: timezone
+                      path: timezone
+              - name: realm-config
+                secret:
+                  secretName: grouper-configs
+                  items:
+                    - key: grouper-realm.properties
+                      path: realm.properties
+              - name: grouper-configs
+                secret:
+                  secretName: grouper-configs
+                  items:
+                    - key: grouper-cache.properties
+                      path: grouper.cache.properties
+
+                    - key: grouper-client.properties
+                      path: grouper.client.properties
+
+                    - key: grouper-hibernate.properties
+                      path: grouper.hibernate.properties
+
+                    - key: grouper-loader.properties
+                      path: grouper-loader.properties
+
+                    - key: grouper-log4j.properties
+                      path: log4j.properties
+
+                    - key: grouper-morph-string.properties
+                      path: morphString.properties
+
+                    - key: grouper-subject.properties
+                      path: subject.properties
+
+                    - key: grouper-ui.properties
+                      path: grouper-ui.properties
+
+                    - key: grouper-ws.properties
+                      path: grouper-ws.properties
+
+                    - key: grouper.properties
+                      path: grouper.properties
+            containers:
+              - name: grouper
+                image: harbor.cyverse.org/de/grouper:{{ grouper_tag }}
+                resources:
+                  requests:
+                    cpu: "256m"
+                    memory: "1Gi"
+                    ephemeral-storage: "1Gi"
+                  limits:
+                    cpu: "1024m"
+                    memory: "3Gi"
+                    ephemeral-storage: "1Gi"
+                command: ["/bin/bash"]
+                args: ["-c", "gsh -loader"]
+                volumeMounts:
+                  - name: localtime
+                    mountPath: /etc/localtime
+                    readOnly: true
+
+                  - name: timezone
+                    mountPath: /etc/timezone
+                    subPath: timezone
+
+                  - name: realm-config
+                    mountPath: /usr/src/app/realm.properties
+                    subPath: realm.properties
+
+                  - name: grouper-configs
+                    mountPath: /etc/grouper
+                    readOnly: true
+                env:
+                  - name: JAVA_TOOL_OPTIONS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: java-tool-options
+                        key: high
+                  - name: GROUPER_USE_SSL
+                    value: "false"
+
+- name: deploy grouper-ws
+  delegate_to: localhost
+  run_once: True
+  timeout: 600
+  environment: 
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ ns }}"
+    wait: true
+    wait_condition:
+      type: Available
+      status: True
+    wait_timeout: 600
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: grouper-ws
+      spec:
+        replicas: "{{ grouper_ws_replicas }}"
+        selector:
+          matchLabels:
+            de-app: grouper-ws
+        template:
+          metadata:
+            labels:
+              de-app: grouper-ws
+          spec:
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  - labelSelector:
+                      matchExpressions:
+                        - key: de-app
+                          operator: In
+                          values:
+                            - grouper-ws
+                    topologyKey: kubernetes.io/hostname
+            restartPolicy: Always
+            volumes:
+              - name: localtime
+                hostPath:
+                  path: /etc/localtime
+              - name: timezone
+                configMap:
+                  name: timezone
+                  items:
+                    - key: timezone
+                      path: timezone
+              - name: realm-config
+                secret:
+                  secretName: grouper-configs
+                  items:
+                    - key: grouper-realm.properties
+                      path: realm.properties
+              - name: grouper-configs
+                secret:
+                  secretName: grouper-configs
+                  items:
+                    - key: grouper-cache.properties
+                      path: grouper.cache.properties
+
+                    - key: grouper-client.properties
+                      path: grouper.client.properties
+
+                    - key: grouper-hibernate.properties
+                      path: grouper.hibernate.properties
+
+                    - key: grouper-loader.properties
+                      path: grouper-loader.properties
+
+                    - key: grouper-log4j.properties
+                      path: log4j.properties
+
+                    - key: grouper-morph-string.properties
+                      path: morphString.properties
+
+                    - key: grouper-subject.properties
+                      path: subject.properties
+
+                    - key: grouper-ui.properties
+                      path: grouper-ui.properties
+
+                    - key: grouper-ws.properties
+                      path: grouper-ws.properties
+
+                    - key: grouper.properties
+                      path: grouper.properties
+            containers:
+              - name: grouper
+                image: harbor.cyverse.org/de/grouper:{{ grouper_tag }}
+                resources:
+                  requests:
+                    cpu: "256m"
+                    memory: "1Gi"
+                    ephemeral-storage: "1Gi"
+                  limits:
+                    cpu: "1024m"
+                    memory: "3Gi"
+                    ephemeral-storage: "1Gi"
+                args: ["ws"]
+                volumeMounts:
+                  - name: localtime
+                    mountPath: /etc/localtime
+                    readOnly: true
+
+                  - name: timezone
+                    mountPath: /etc/timezone
+                    subPath: timezone
+
+                  - name: realm-config
+                    mountPath: /usr/src/app/realm.properties
+                    subPath: realm.properties
+
+                  - name: grouper-configs
+                    mountPath: /etc/grouper
+                    readOnly: true
+                env:
+                  - name: WEBAPPS_HOME
+                    value: "/usr/src/app"
+                  - name: JAVA_TOOL_OPTIONS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: java-tool-options
+                        key: high
+                  - name: GROUPER_USE_SSL
+                    value: "false"
+                  - name: GROUPER_WS_GROUPER_AUTH
+                    value: "true"
+                ports:
+                  - name: listen-port
+                    containerPort: 80
+                livenessProbe:
+                  httpGet:
+                    path: /grouper-ws/status?diagnosticType=trivial
+                    port: 80
+                  timeoutSeconds: 20
+                  initialDelaySeconds: 180
+                  periodSeconds: 20
+                readinessProbe:
+                  httpGet:
+                    path: /grouper-ws/status?diagnosticType=trivial
+                    port: 80
+                  timeoutSeconds: 20
+                  initialDelaySeconds: 180
+                  periodSeconds: 20
+
+- name: deploy grouper-ws service
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ ns }}"
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: grouper-ws
+      spec:
+        selector:
+          de-app: grouper-ws
+        ports:
+          - protocol: TCP
+            port: 80
+            targetPort: listen-port
+
+

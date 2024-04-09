@@ -1,0 +1,66 @@
+---
+- name: add a kifshare nodeport
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "kifshare-svc-nodeport"
+        namespace: "{{ ns }}"
+      spec:
+        type: NodePort
+        selector:
+          de-app: kifshare
+        ports:
+          - name: http
+            port: 80
+            targetPort: 60000
+            nodePort: "{{ kifshare_nodeport }}"
+
+- name: add a terrain nodeport
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "terrain-svc-nodeport"
+        namespace: "{{ ns }}"
+      spec:
+        type: NodePort
+        selector:
+          de-app: terrain
+        ports:
+          - name: http
+            port: 80
+            targetPort: 60000
+            nodePort: "{{ terrain_nodeport }}"
+
+- name: add a job-status-listener nodeport
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "job-status-listener-svc-nodeport"
+        namespace: "{{ ns }}"
+      spec:
+        type: NodePort
+        selector:
+          de-app: job-status-listener
+        ports:
+          - name: http
+            port: 80
+            targetPort: 60000
+            nodePort: "{{ job_status_listener_nodeport }}"
