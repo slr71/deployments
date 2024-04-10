@@ -1,0 +1,10 @@
+---
+- name: clone the de-releases repository to the configured path.
+  delegate_to: localhost
+  ansible.builtin.git:
+    repo: "{{ de_releases_repo }}"
+    version: "{{ de_releases_version }}"
+    dest: "{{ de_releases_dir }}"
+    clone: true
+    force: true
+    update: true

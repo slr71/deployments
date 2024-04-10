@@ -17,6 +17,13 @@ rendered_configs_dir: "./rendered-configs"
 exim_sender_image_digest: replace_me
 
 
+# Deployment / Build vars
+build_json_dir: "./de-releases/builds"
+build: true
+deploy: true
+commit: true
+
+
 ## Namespaces
 ns: qa
 vice_ns: vice-apps
@@ -510,3 +517,5 @@ keycloak_ephemeral_storage_request: '2Gi'
 keycloak_cpu_limit: '200m'
 keycloak_memory_limit: '2Gi'
 keycloak_ephemeral_storage_limit: '2Gi'
+
+

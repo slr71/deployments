@@ -1,0 +1,41 @@
+---
+- import_tasks: build.yml
+  when: build is true
+  tags:
+    - build
+
+- import_tasks: deploy.yml
+  when: deploy is true
+  tags:
+    - deploy
+
+- name: add changes
+  ansible.builtin.command: 
+    cmd: git add --all "{{ de_releases_dir }}"
+    chdir: "{{ de_releases_dir }}"
+  when: build is true and commit is true
+  tags:
+    - build 
+    - commit
+
+- name: check for staged changes
+  ansible.builtin.shell: 
+    cmd: "git status | grep 'nothing to commit'"
+    chdir: "{{ de_releases_dir }}"
+  ignore_errors: true
+  register: staged
+  # tags:
+  #   - build
+  #   - commit
+
+- name: commit changes
+  ansible.builtin.command: 
+    cmd: git commit -m "update builds for the {{ project_name }} project"
+    chdir: "{{ de_releases_dir }}"
+  when: staged.rc != 0
+  # tags:
+  #   - build
+  #   - commit
+
+
+
