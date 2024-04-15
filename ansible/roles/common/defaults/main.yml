@@ -17,6 +17,13 @@ rendered_configs_dir: "./rendered-configs"
 exim_sender_image_digest: replace_me
 
 
+# Concourse variables
+use_concourse: false
+concourse_db: concourse
+concourse_database_user: concourse
+concouse_database_pass: replace_me
+
+
 # Deployment / Build vars
 build_json_dir: "./de-releases/builds"
 build: true
