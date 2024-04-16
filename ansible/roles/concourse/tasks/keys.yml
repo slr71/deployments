@@ -49,12 +49,19 @@
     - web
     - create
 
+- name: concourse | set the path to the worker key file
+  ansible.builtin.set_fact:
+    concourse_worker_key: "{{(concourse_install_dir, 'worker.key') | path_join}}"
+  tags:
+    - keys
+    - web
+    - create
+
 - name: create the worker key
   ansible.builtin.command:
-    chdir: "{{ concourse_install_dir }}"
-    cmd: "{{ concourse_bin }} generate-key -t rsa -f ./worker.key"
+    cmd: "{{ concourse_bin }} generate-key -t rsa -f {{ concourse_worker_key }}"
     creates:
-      - "{{ (concourse_install_dir, 'worker.key') | path_join }}"
+      - "{{ concourse_worker_key }}"
   tags:
     - keys
     - web
@@ -62,9 +69,20 @@
 
 - name: set worker key permissions
   ansible.builtin.file:
-    path: "{{ (concourse_install_dir, 'worker.key') | path_join }}"
+    path: "{{ concourse_worker_key }}"
     owner: "{{ concourse_user }}"
     mode: '0644'
+  tags:
+    - keys
+    - web
+    - create
+
+- name: concourse | create the authorized_worker_keys file
+  ansible.builtin.copy:
+    path: "{{(concourse_install_dir, 'authorized_worker_keys') | path_join }}"
+    owner: "{{concourse_user}}"
+    mode: '0644'
+    content: "{{ lookup('ansible.builtin.file', concourse_worker_key) }}"
   tags:
     - keys
     - web

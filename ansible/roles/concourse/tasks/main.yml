@@ -5,6 +5,8 @@
     password: "{{ concourse_user_password }}"
     shell: "{{ concourse_user_shell }}"
     state: present
+  tags:
+    - install
 
 
 - name: check for the concourse command
@@ -35,10 +37,4 @@
     tags:
       - install
 
-- name: install concourse-web systemd unit
-
-- name: install concourse-worker systemd unit
-
-- name: start concourse-web
-
-- name: start concourse-worker
+- include_tasks: systemd.yml
