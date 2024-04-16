@@ -1,0 +1,33 @@
+---
+- name: check for the concourse command
+  stat:
+    path: "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
+  register: concourse_installed
+  tags:
+    - download
+
+- name: download and uncompress tarball
+  when: not concourse_installed.stat.exists
+  ansible.builtin.unarchive:
+    src: "{{ concourse_archive_url }}"
+    dest: "{{ concourse_install_dir }}"
+    remote_src: yes
+    creates:
+      - "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
+      - "{{ (concourse_install_dir, 'concourse/bin/gdn') | path_join }}"
+      - "{{ (concourse_install_dir, 'concourse/fly-assets/') | path_join }}"
+      - "{{ (concourse_install_dir, 'concourse/resource-types/') | path_join }}"
+  tags:
+    - download
+
+- name: generate keys
+
+- name: distribute keys
+
+- name: install concourse-web systemd unit
+
+- name: install concourse-worker systemd unit
+
+- name: start concourse-web
+
+- name: start concourse-worker
