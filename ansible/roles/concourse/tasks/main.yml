@@ -1,4 +1,12 @@
 ---
+- name: create the concourse user
+  ansible.builtin.user:
+    name: "{{ concourse_user }}"
+    password: "{{ concourse_user_password }}"
+    shell: "{{ concourse_user_shell }}"
+    state: present
+
+
 - name: check for the concourse command
   stat:
     path: "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"

@@ -18,6 +18,16 @@
     - web
     - create
 
+- name: set session signing key permissions
+  ansible.builtin.file:
+    path: "{{ (concourse_install_dir, 'session_signing.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+  tags:
+    - keys
+    - web
+    - create
+
 - name: create the tsa host key
   cansible.builtin.ommand:
     chdir: "{{ concourse_install_dir }}"
@@ -29,12 +39,32 @@
     - web
     - create
 
+- name: set session tsa host key permissions
+  ansible.builtin.file:
+    path: "{{ (concourse_install_dir, 'tsa_host.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+  tags:
+    - keys
+    - web
+    - create
+
 - name: create the worker key
   ansible.builtin.command:
     chdir: "{{ concourse_install_dir }}"
     cmd: "{{ concourse_bin }} generate-key -t rsa -f ./worker.key"
     creates:
       - "{{ (concourse_install_dir, 'worker.key') | path_join }}"
+  tags:
+    - keys
+    - web
+    - create
+
+- name: set worker key permissions
+  ansible.builtin.file:
+    path: "{{ (concourse_install_dir, 'worker.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
   tags:
     - keys
     - web
@@ -74,6 +104,7 @@
   ansible.builtin.copy:
     src: "./session_signing.key"
     dest: "{{ (concourse_install_dir, 'session_signing.key') | path_join }}"
+    owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
     - keys
@@ -84,6 +115,7 @@
   ansible.builtin.copy:
     src: "./tsa_host.key"
     dest: "{{ (concourse_install_dir, 'tsa_host.key') | path_join }}"
+    owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
     - keys
@@ -94,6 +126,7 @@
   ansible.builtin.copy:
     src: "./worker.key"
     dest: "{{ (concourse_install_dir, 'worker.key') | path_join }}"
+    owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
     - keys
