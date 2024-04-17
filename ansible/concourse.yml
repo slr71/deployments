@@ -26,6 +26,7 @@
 
 - name: start web service
   hosts: concourse_web
+  become: true
   tasks:
     - name: concourse | enable and start concourse-web service
       ansible.builtin.service:
@@ -35,6 +36,7 @@
 
 - name: start worker service
   hosts: concourse_worker
+  become: true
   tasks:
     - name: concourse | enable and start concourse-worker service
       ansible.builtin.service:

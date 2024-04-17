@@ -7,7 +7,12 @@
   ansible.builtin.set_fact:
     concourse_worker_dir: "{{(concourse_dir, 'worker') | path_join}}"
 
+- name: concourse | set the env file path
+  ansible.builtin.set_fact:
+    concourse_env_file: "{{(concourse_dir, 'env.conf') | path_join}}"
+
 - name: concourse | create worker directory
+  become: true
   ansible.builtin.file:
     path: "{{ concourse_worker_dir }}"
     owner: "{{ concourse_user }}"
@@ -15,15 +20,17 @@
     mode: '0755'
 
 - name: concourse | install worker environment file
+  become: true
   ansible.builtin.copy:
     dest: "{{ concourse_env_file }}"
     mode: '0644'
     content: |
       CONCOURSE_WORK_DIR={{concourse_worker_dir}}
-      CONCOURSE_TSA_HOST={{groups['concourse_web'][0]:2222}}
+      CONCOURSE_TSA_HOST={{groups['concourse_web'][0]}}:2222
       CONCOURSE_TSA_WORKER_PRIVATE_KEY={{(concourse_dir, 'worker.key') | path_join}}
 
 - name: concourse | install worker service file
+  become: true
   ansible.builtin.copy:
     dest: "/etc/systemd/system/concourse-worker.service"
     mode: '0644'

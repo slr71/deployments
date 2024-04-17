@@ -8,6 +8,7 @@
     concourse_env_file: "{{ (concourse_dir, 'env.conf') | path_join }}"
 
 - name: concourse | install web environment file
+  become: true
   ansible.builtin.copy:
     dest: "{{ concourse_env_file }}"
     mode: '0644'
@@ -24,6 +25,7 @@
       CONCOURSE_POSTGRES_PASSWORD={{concourse_database_pass}}
 
 - name: concourse | install web systemd service file
+  become: true
   ansible.builtin.copy:
     dest: "/etc/systemd/system/concourse-web.service"
     mode: '0644'
