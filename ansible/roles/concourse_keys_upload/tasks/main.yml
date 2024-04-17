@@ -1,0 +1,29 @@
+---
+- name: set concourse directory fact
+  ansible.builtin.set_fact:
+    concourse_dir: "{{ (concourse_install_dir, 'concourse') | path_join }}"
+
+- name: concourse | upload session signing key
+  become: true
+  ansible.builtin.copy:
+    src: "./session_signing.key"
+    dest: "{{ (concourse_dir, 'session_signing.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
+- name: concourse | upload tsa host key
+  become: true
+  ansible.builtin.copy:
+    src: "./tsa_host.key"
+    dest: "{{ (concourse_dir, 'tsa_host.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
+- name: concourse | upload worker key
+  become: true
+  ansible.builtin.copy:
+    src: "./worker.key"
+    dest: "{{ (concourse_dir, 'worker.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+

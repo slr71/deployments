@@ -1,0 +1,94 @@
+---
+- name: set concourse path fact
+  ansible.builtin.set_fact:
+    concourse_bin: "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
+
+- name: set concourse directory fact
+  ansible.builtin.set_fact:
+    concourse_dir: "{{ (concourse_install_dir, 'concourse') | path_join }}"
+
+- name: create session signing key
+  become: true
+  ansible.builtin.command:
+    chdir: "{{ concourse_dir }}"
+    cmd: "{{ concourse_bin }} generate-key -t rsa -f ./session_signing.key"
+    creates: "{{ (concourse_dir, 'session_signing.key') | path_join }}"
+
+- name: set session signing key permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ (concourse_dir, 'session_signing.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
+- name: create_keys the tsa host key
+  become: true
+  ansible.builtin.command:
+    chdir: "{{ concourse_dir }}"
+    cmd: "{{ concourse_bin }} generate-key -t ssh -f ./tsa_host.key"
+    creates: "{{ (concourse_dir, 'tsa_host.key') | path_join }}"
+
+- name: set session tsa host key permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ (concourse_dir, 'tsa_host.key') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
+- name: concourse | set the path to the worker key file
+  ansible.builtin.set_fact:
+    concourse_worker_key: "{{(concourse_dir, 'worker.key') | path_join}}"
+
+- name: concourse | set the path to the worker pub file
+  ansible.builtin.set_fact:
+    concourse_worker_pub: "{{(concourse_dir, 'worker.key.pub') | path_join}}"
+
+- name: concourse | create the worker key
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ concourse_bin }} generate-key -t ssh -f {{ concourse_worker_key }}"
+    creates: "{{ concourse_worker_key }}"
+
+- name: set worker key permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ concourse_worker_key }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
+- name: set worker pub permissions
+  become: true
+  ansible.builtin.file:
+    path: "{{ concourse_worker_pub }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
+- name: concourse | create the authorized_worker_keys file
+  become: true
+  ansible.builtin.copy:
+    src: "{{ concourse_worker_pub }}"
+    dest: "{{(concourse_dir, 'authorized_worker_keys') | path_join }}"
+    owner: "{{concourse_user}}"
+    mode: '0644'
+    remote_src: true
+
+- name: concourse | download session signing key
+  become: true
+  ansible.builtin.fetch:
+    flat: true
+    src: "{{ (concourse_dir, 'session_signing.key') | path_join }}"
+    dest: "./"
+
+- name: concourse | download tsa host key
+  become: true
+  ansible.builtin.fetch:
+    flat: true
+    src: "{{ (concourse_dir, 'tsa_host.key') | path_join }}"
+    dest: "./"
+
+- name: concourse | download worker key
+  become: true
+  ansible.builtin.fetch:
+    flat: true
+    src: "{{ (concourse_dir, 'worker.key') | path_join }}"
+    dest: "./"

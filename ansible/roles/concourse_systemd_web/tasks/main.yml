@@ -1,0 +1,45 @@
+---
+- name: concourse | set the concourse dir
+  ansible.builtin.set_fact:
+    concourse_dir: "{{ (concourse_install_dir, 'concourse') | path_join }}"
+
+- name: concourse | set the web environment file
+  ansible.builtin.set_fact:
+    concourse_env_file: "{{ (concourse_dir, 'env.conf') | path_join }}"
+
+- name: concourse | install web environment file
+  ansible.builtin.copy:
+    dest: "{{ concourse_env_file }}"
+    mode: '0644'
+    content: |
+      CONCOURSE_ADD_LOCAL_USER={{concourse_login_user}}:{{concourse_login_password}}
+      CONCOURSE_MAIN_TEAM_LOCAL_USER={{concourse_login_user}}
+      CONCOURSE_SESSION_SIGNING_KEY={{(concourse_dir, 'session_signing.key') | path_join}}
+      CONCOURSE_TSA_HOST_KEY={{(concourse_dir, 'tsa_host.key') | path_join}}
+      CONCOURSE_TSA_AUTHORIZED_KEYS={{(concourse_dir, 'authorized_worker_keys') | path_join}}
+      CONCOURSE_POSTGRES_HOST={{groups['dbms_primary'][0]}}
+      CONCOURSE_POSTGRES_PORT={{pg_listen_port}}
+      CONCOURSE_POSTGRES_DATABASE={{concourse_db}}
+      CONCOURSE_POSTGRES_USER={{concourse_database_user}}
+      CONCOURSE_POSTGRES_PASSWORD={{concourse_database_pass}}
+
+- name: concourse | install web systemd service file
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/concourse-web.service"
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Concourse Web Service
+      After=network.target
+
+      [Service]
+      Type=simple
+      Restart=on-failure
+      RestartSec=1
+      User={{concourse_user}}
+      EnvironmentFile={{(concourse_dir, 'env.conf') | path_join}}
+      ExecStart={{(concourse_install_dir, 'concourse/bin/concourse') | path_join}} web
+
+      [Install]
+      WantedBy=multi-user.target
+

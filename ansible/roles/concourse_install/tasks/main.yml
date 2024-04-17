@@ -1,40 +1,26 @@
 ---
 - name: create the concourse user
+  become: true
   ansible.builtin.user:
     name: "{{ concourse_user }}"
     password: "{{ concourse_user_password }}"
     shell: "{{ concourse_user_shell }}"
     state: present
-  tags:
-    - install
-
 
 - name: check for the concourse command
   stat:
     path: "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
   register: concourse_installed
-  tags:
-    - install
-    - download
+
+- name:
+  debug:
+    msg: "{{concourse_archive_url}}"
 
 - name: download and uncompress tarball
+  become: true
   when: not concourse_installed.stat.exists
   ansible.builtin.unarchive:
     src: "{{ concourse_archive_url }}"
     dest: "{{ concourse_install_dir }}"
     remote_src: yes
-    creates:
-      - "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
-      - "{{ (concourse_install_dir, 'concourse/bin/gdn') | path_join }}"
-      - "{{ (concourse_install_dir, 'concourse/fly-assets/') | path_join }}"
-      - "{{ (concourse_install_dir, 'concourse/resource-types/') | path_join }}"
-  tags:
-    - install
-    - download
-
-- include_tasks: keys.yml
-  apply:
-    tags:
-      - install
-
-- include_tasks: systemd.yml
+    creates: "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
