@@ -21,7 +21,7 @@ exim_sender_image_digest: replace_me
 use_concourse: false
 concourse_db: concourse
 concourse_database_user: concourse
-concouse_database_pass: replace_me
+concourse_database_pass: replace_me
 concourse_install_dir: /usr/local
 concourse_version: 7.11.2
 concourse_release: "{{concourse_version}}"
