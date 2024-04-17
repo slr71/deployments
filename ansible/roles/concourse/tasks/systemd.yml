@@ -3,10 +3,7 @@
   ansible.builtin.set_fact:
     concourse_env_file: "{{ (concourse_install_dir, 'env.conf') | path_join }}"
   tags:
-    - install
-    - systemd
-    - web
-    - worker
+    - web_systemd
 
 - name: concourse | install web environment file
   ansible.builtin.copy:
@@ -24,9 +21,7 @@
       CONCOURSE_POSTGRES_USER={{concourse_database_user}}
       CONCOURSE_POSTGRES_PASSWORD={{concourse_database_pass}}
   tags:
-    - install
-    - systemd
-    - web
+    - web_systemd
 
 - name: concourse | install web systemd service file
   ansible.builtin.copy:
@@ -48,17 +43,13 @@
       [Install]
       WantedBy=multi-user.target
   tags:
-    - install
-    - systemd
-    - web
+    - web_systemd
 
 - name: concourse | set the worker directory
   ansible.builtin.set_fact:
     concourse_worker_dir: "{{(concourse_install_dir, 'worker') | path_join}}"
   tags:
-    - install
-    - systemd
-    - worker
+    - worker_systemd
 
 - name: concourse | create worker directory
   ansible.builtin.file:
@@ -67,9 +58,7 @@
     state: directory
     mode: '0755'
   tags:
-    - install
-    - systemd
-    - worker
+    - worker_systemd
 
 - name: concourse | install worker environment file
   ansible.builtin.copy:
@@ -80,9 +69,7 @@
       CONCOURSE_TSA_HOST={{groups['concourse_web'][0]:2222}}
       CONCOURSE_TSA_WORKER_PRIVATE_KEY={{(concourse_install_dir, 'worker.key') | path_join}}
   tags:
-    - install
-    - systemd
-    - worker
+    - worker_systemd
 
 - name: concourse | install worker service file
   ansible.builtin.copy:
@@ -104,9 +91,7 @@
       [Install]
       WantedBy=multi-user.target
   tags:
-    - install
-    - systemd
-    - worker
+    - worker_systemd
 
 - name: concourse | enable and start concourse-web service
   ansible.builtin.service:
@@ -114,9 +99,7 @@
     state: started
     enabled: true
   tags:
-    - systemd
-    - web
-    - start
+    - web_start
 
 - name: concourse | enable and start concourse-worker service
   ansible.builtin.service:
@@ -124,9 +107,7 @@
     state: started
     enabled: true
   tags:
-    - systemd
-    - worker
-    - start
+    - worker_start
 
 
 

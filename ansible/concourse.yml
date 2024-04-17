@@ -1,0 +1,65 @@
+---
+- name: install concourse
+  hosts: concourse
+  tasks:
+  - name: install concourse
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - install
+
+- name: create keys
+  hosts: concourse_web[0]
+  tasks:
+  - name: create keys
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - create_keys
+      - download_keys
+
+- name: upload keys
+  hosts: concourse_worker,concourse_web[1:]
+  tasks:
+  - name: upload keys
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - upload_keys
+
+- name: web systemd
+  hosts: concourse_web
+  tasks:
+  - name: set up systemd service for the web node
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - web_systemd
+
+- name: worker systemd
+  hosts: concourse_worker
+  tasks:
+  - name: set up systemd service for the worker nodes
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - worker_systemd
+
+- name: start web service
+  hosts: concourse_web
+  tasks:
+  - name: start the concourse web service
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - web_start
+
+- name: start worker service
+  hosts: concourse_worker
+  tasks:
+  - name: start the concourse worker service
+    ansible.builtin.include_tasks:
+      name: concourse
+    tags:
+      - worker_start
+

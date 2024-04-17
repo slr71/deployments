@@ -3,20 +3,18 @@
   ansible.builtin.set_fact:
     concourse_bin: "{{ (concourse_install_dir, 'concourse/bin/concourse') | path_join }}"
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
-- name: create session signing key
+- name: create_keys session signing key
   ansible.builtin.command:
     chdir: "{{ concourse_install_dir }}"
     cmd: "{{ concourse_bin }} generate-key -t rsa -f ./session_signing.key"
-    creates:
+    create_keyss:
       - "{{ (concourse_install_dir, 'session_signing.key') | path_join }}"
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
 - name: set session signing key permissions
   ansible.builtin.file:
@@ -24,48 +22,43 @@
     owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
-- name: create the tsa host key
+- name: create_keys the tsa host key
   cansible.builtin.ommand:
     chdir: "{{ concourse_install_dir }}"
     cmd: "{{ concourse_bin }} generate-key -t rsa -f ./tsa_host.key"
-    creates:
+    create_keyss:
       - "{{ (concourse_install_dir, 'tsa_host.key') | path_join }}"
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
 - name: set session tsa host key permissions
   ansible.builtin.file:
     path: "{{ (concourse_install_dir, 'tsa_host.key') | path_join }}"
-    owner: "{{ concourse_user }}"
+    owner: "{{ concourse_user }/}"
     mode: '0644'
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
 - name: concourse | set the path to the worker key file
   ansible.builtin.set_fact:
     concourse_worker_key: "{{(concourse_install_dir, 'worker.key') | path_join}}"
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
-- name: create the worker key
+- name: create_keys the worker key
   ansible.builtin.command:
     cmd: "{{ concourse_bin }} generate-key -t rsa -f {{ concourse_worker_key }}"
-    creates:
+    create_keyss:
       - "{{ concourse_worker_key }}"
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
 - name: set worker key permissions
   ansible.builtin.file:
@@ -73,80 +66,72 @@
     owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
-- name: concourse | create the authorized_worker_keys file
+- name: concourse | create_keys the authorized_worker_keys file
   ansible.builtin.copy:
     path: "{{(concourse_install_dir, 'authorized_worker_keys') | path_join }}"
     owner: "{{concourse_user}}"
     mode: '0644'
     content: "{{ lookup('ansible.builtin.file', concourse_worker_key) }}"
   tags:
-    - keys
     - web
-    - create
+    - create_keys
 
-- name: download session signing key
+- name: download_keys session signing key
   ansible.builtin.fetch:
     flat: true
     src: "{{ (concourse_install_dir, 'session_signing.key') | path_join }}"
     dest: "./"
   tags:
-    - keys
     - web
-    - download
+    - download_keys
 
-- name: download tsa host key
+- name: download_keys tsa host key
   ansible.builtin.fetch:
     flat: true
     src: "{{ (concourse_install_dir, 'tsa_host.key') | path_join }}"
     dest: "./"
   tags:
-    - keys
     - web
-    - download
+    - download_keys
 
-- name: download worker key
+- name: download_keys worker key
   ansible.builtin.fetch:
     flat: true
     src: "{{ (concourse_install_dir, 'worker.key') | path_join }}"
     dest: "./"
   tags:
-    - keys
     - web
-    - download
+    - download_keys
 
-- name: upload session signing key
+- name: upload_keys session signing key
   ansible.builtin.copy:
     src: "./session_signing.key"
     dest: "{{ (concourse_install_dir, 'session_signing.key') | path_join }}"
     owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
-    - keys
     - worker
-    - upload
+    - upload_keys
 
-- name: upload tsa host key
+- name: upload_keys tsa host key
   ansible.builtin.copy:
     src: "./tsa_host.key"
     dest: "{{ (concourse_install_dir, 'tsa_host.key') | path_join }}"
     owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
-    - keys
     - worker
-    - upload
+    - upload_keys
 
-- name: upload worker key
+- name: upload_keys worker key
   ansible.builtin.copy:
     src: "./worker.key"
     dest: "{{ (concourse_install_dir, 'worker.key') | path_join }}"
     owner: "{{ concourse_user }}"
     mode: '0644'
   tags:
-    - keys
     - worker
-    - upload
+    - upload_keys
