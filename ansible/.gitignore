@@ -1,6 +1,7 @@
 *.crt
 *.key
 *.creds
+*.key.pub
 values.yml
 values.yaml
 cyverse.*
