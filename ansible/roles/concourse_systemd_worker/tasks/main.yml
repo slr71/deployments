@@ -29,6 +29,9 @@
       CONCOURSE_TSA_HOST={{groups['concourse_web'][0]}}:2222
       CONCOURSE_TSA_PUBLIC_KEY={{(concourse_dir, 'tsa_host.key.pub') | path_join}}
       CONCOURSE_TSA_WORKER_PRIVATE_KEY={{(concourse_dir, 'worker.key') | path_join}}
+  notify:
+    - systemctl daemon-reload
+    - restart concourse-worker
 
 - name: concourse | install worker service file
   become: true
@@ -50,4 +53,7 @@
 
       [Install]
       WantedBy=multi-user.target
+  notify:
+    - systemctl daemon-reload
+    - restart concourse-worker
 

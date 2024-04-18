@@ -37,6 +37,9 @@
       CONCOURSE_POSTGRES_DATABASE={{concourse_db}}
       CONCOURSE_POSTGRES_USER={{concourse_database_user}}
       CONCOURSE_POSTGRES_PASSWORD={{concourse_database_pass}}
+  notify: 
+    - systemctl daemon-reload
+    - restart concourse-web
 
 - name: concourse | install web systemd service file
   become: true
@@ -54,8 +57,11 @@
       RestartSec=1
       User={{concourse_user}}
       EnvironmentFile={{(concourse_dir, 'env.conf') | path_join}}
-      ExecStart={{(concourse_install_dir, 'concourse/bin/concourse') | path_join}} web
+      ExecStart={{(concourse_install_dir, 'concourse/bin/concourse') | path_join}} web --encryption-key {{concourse_encryption_key}}
 
       [Install]
       WantedBy=multi-user.target
+  notify: 
+    - systemctl daemon-reload
+    - restart concourse-web
 
