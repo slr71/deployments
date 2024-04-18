@@ -19,6 +19,14 @@
     owner: "{{ concourse_user }}"
     mode: '0644'
 
+- name: concourse | upload tsa host pub key
+  become: true
+  ansible.builtin.copy:
+    src: "./tsa_host.key.pub"
+    dest: "{{ (concourse_dir, 'tsa_host.key.pub') | path_join }}"
+    owner: "{{ concourse_user }}"
+    mode: '0644'
+
 - name: concourse | upload worker key
   become: true
   ansible.builtin.copy:

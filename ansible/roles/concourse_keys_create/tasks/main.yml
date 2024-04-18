@@ -86,6 +86,13 @@
     src: "{{ (concourse_dir, 'tsa_host.key') | path_join }}"
     dest: "./"
 
+- name: concourse | download tsa host pub key
+  become: true
+  ansible.builtin.fetch:
+    flat: true
+    src: "{{ (concourse_dir, 'tsa_host.key.pub') | path_join }}"
+    dest: "./"
+
 - name: concourse | download worker key
   become: true
   ansible.builtin.fetch:

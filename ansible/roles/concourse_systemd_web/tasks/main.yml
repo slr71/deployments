@@ -7,6 +7,20 @@
   ansible.builtin.set_fact:
     concourse_env_file: "{{ (concourse_dir, 'env.conf') | path_join }}"
 
+- name: concourse | open the 8080 port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: '8080'
+    proto: tcp
+
+- name: concourse | open the 2222 port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: '2222'
+    proto: tcp
+
 - name: concourse | install web environment file
   become: true
   ansible.builtin.copy:

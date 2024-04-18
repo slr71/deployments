@@ -1,0 +1,20 @@
+---
+- name: restart the web service
+  hosts: concourse_web
+  become: true
+  tasks:
+    - name: concourse | restart the concourse-web service
+      ansible.builtin.service:
+        name: concourse-web
+        state: restarted
+        enabled: true
+
+- name: restart the worker service
+  hosts: concourse_worker
+  become: true
+  tasks:
+    - name: concourse | restart the concourse-worker service
+      ansible.builtin.service:
+        name: concourse-worker
+        state: restarted
+        enabled: true
