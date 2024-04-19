@@ -38,7 +38,7 @@ frontend http2-ssl
 
     acl harbor hdr(host) -i {{ harbor_external_domain }}
     {% if use_concourse %}
-    acl concourse path -i -m beg /concourse/
+    acl concourse hdr(host) -i {{ concourse_external_domain }}
     {% endif %}
     acl de hdr(host) -i {{ de_hostname }}
 
@@ -61,7 +61,7 @@ backend concourse
 
     balance roundrobin
     {% for svr in groups['concourse_web'] %}
-    server {{ svr }} {{ svr }}:8080 check inter 5000
+    server {{ svr }} {{ svr }}:8383 ssl verify none check inter 5000
     {% endfor %}
 {% endif %}
 

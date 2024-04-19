@@ -20,7 +20,7 @@
   become: true
   community.crypto.openssl_csr_pipe:
     privatekey_path: "{{ concourse_private_key }}"
-    common_name: "{{ concourse_external_url }}"
+    common_name: "{{ concourse_external_domain }}"
     organization_name: CyVerse Discovery Environment
   register: csr
 
@@ -59,7 +59,7 @@
     dest: "{{ concourse_env_file }}"
     mode: '0644'
     content: |
-      CONCOURSE_EXTERNAL_URL={{concourse_external_url}}
+      CONCOURSE_EXTERNAL_URL=https://{{concourse_external_domain}}
       CONCOURSE_TLS_CERT={{ (concourse_dir, 'concourse.crt') | path_join }}
       CONCOURSE_TLS_KEY={{ concourse_private_key }}
       CONCOURSE_TLS_BIND_PORT=8383
