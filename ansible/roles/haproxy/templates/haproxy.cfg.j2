@@ -37,14 +37,33 @@ frontend http2-ssl
     redirect scheme https code 301 if !{ ssl_fc }
 
     acl harbor hdr(host) -i {{ harbor_external_domain }}
+    {% if use_concourse %}
+    acl concourse path -i -m beg /concourse/
+    {% endif %}
     acl de hdr(host) -i {{ de_hostname }}
 
     # HSTS (63072000 seconds)
     http-response set-header Strict-Transport-Security max-age=63072000
 
+    {% if use_concourse %}
+    use_backend concourse if concourse
+    {% endif %}
     use_backend discoenv if de
     use_backend harbor if harbor
     default_backend discoenv
+
+{% if use_concourse %}
+backend concourse
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+    {% for svr in groups['concourse_web'] %}
+    server {{ svr }} {{ svr }}:8080 check inter 5000
+    {% endfor %}
+{% endif %}
 
 backend discoenv
     option log-health-checks

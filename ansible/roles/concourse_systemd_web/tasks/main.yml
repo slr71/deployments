@@ -27,6 +27,7 @@
     dest: "{{ concourse_env_file }}"
     mode: '0644'
     content: |
+      CONCOURSE_EXTERNAL_URL={{concourse_external_url}}
       CONCOURSE_ADD_LOCAL_USER={{concourse_login_user}}:{{concourse_login_password}}
       CONCOURSE_MAIN_TEAM_LOCAL_USER={{concourse_login_user}}
       CONCOURSE_SESSION_SIGNING_KEY={{(concourse_dir, 'session_signing.key') | path_join}}
