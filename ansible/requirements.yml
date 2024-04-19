@@ -1,2 +1,8 @@
-# from galaxy
-- name: adfinis-sygroup.grub
+---
+collections:
+  - community.crypto
+
+
+roles:
+  - name: adfinis-sygroup.grub
+
