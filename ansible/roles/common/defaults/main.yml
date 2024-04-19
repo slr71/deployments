@@ -35,7 +35,8 @@ concourse_login_user: concourse_admin
 concourse_login_password: replace_me
 concourse_encryption_key: replace_me
 concourse_external_url: replace_me
-concourse_use_lets_encrypt: true
+concourse_use_lets_encrypt: false
+  
 
 
 # Deployment / Build vars

@@ -7,11 +7,43 @@
   ansible.builtin.set_fact:
     concourse_env_file: "{{ (concourse_dir, 'env.conf') | path_join }}"
 
+- name: concourse | set the TLS private key path
+  ansible.builtin.set_fact:
+    concourse_private_key: "{{ (concourse_dir, 'concourse.key') | path_join }}"
+
+- name: concourse | create the TLS private key
+  become: true
+  community.crypto.openssl_privatekey:
+    path: "{{ concourse_private_key }}"
+
+- name: concourse | create the CSR signing request
+  become: true
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ concourse_private_key }}"
+    common_name: "{{ concourse_external_url }}"
+    organization_name: CyVerse Discovery Environment
+  register: csr
+
+- name: concourse | create the self-signed certificate from CSR
+  become: true
+  community.crypto.x509_certificate:
+    path: "{{ (concourse_dir, 'concourse.crt') | path_join }}"
+    csr_content: "{{ csr.csr }}"
+    privatekey_path: "{{ concourse_private_key }}"
+    provider: selfsigned
+
 - name: concourse | open the 8080 port
   become: true
   community.general.ufw:
     rule: allow
     port: '8080'
+    proto: tcp
+
+- name: concourse | open the 8383 port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: '8383'
     proto: tcp
 
 - name: concourse | open the 2222 port
@@ -28,6 +60,9 @@
     mode: '0644'
     content: |
       CONCOURSE_EXTERNAL_URL={{concourse_external_url}}
+      CONCOURSE_TLS_CERT={{ (concourse_dir, 'concourse.crt') | path_join }}
+      CONCOURSE_TLS_KEY={{ concourse_private_key }}
+      CONCOURSE_TLS_BIND_PORT=8383
       CONCOURSE_ADD_LOCAL_USER={{concourse_login_user}}:{{concourse_login_password}}
       CONCOURSE_MAIN_TEAM_LOCAL_USER={{concourse_login_user}}
       CONCOURSE_SESSION_SIGNING_KEY={{(concourse_dir, 'session_signing.key') | path_join}}
