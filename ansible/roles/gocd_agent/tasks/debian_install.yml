@@ -1,0 +1,28 @@
+---
+- name: set up the apt repository
+  block:
+    - name: get the gpg key
+      ansible.builtin.get_url:
+        url: htps://download.gocd.org/GOCD-GPG-KEY.asc
+        dest: /etc/apt/keyrings/gocd-gpg-key.asc
+        mode: '0644'
+        force: true
+
+    - name: add the repo
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/gocd-gpg-key.asc] https://download.gocd.org /"
+        state: present
+        update_cache: true
+
+- name: install the go-agent package
+  ansible.builtin.pacakge:
+    name: go-agent
+    state: present
+
+- name: start and enable go-agent
+  ansible.builtin.service:
+    name: go-agent
+    state: started
+    enabled: true
+
+

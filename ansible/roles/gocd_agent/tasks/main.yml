@@ -1,0 +1,16 @@
+---
+- name: setup gocd worker on debian systems
+  ansible.builtin.include_tasks:
+    file: debian_install.yml
+  when: ansible_os_family == 'Debian'
+
+- name: setup gocd worker on Red Hat systems
+  ansible.builtin.include_tasks:
+    file: redhat_install.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: set the server url
+  ansible.builtin.lineinfile:
+    path: /usr/share/go-agent/wrapper-config/wrapper-properties.conf
+    regexp: '^wrapper\.app\.parameter\.101'
+    line: "wrapper.app.parameter.101={{ gocd_external_url }}"
