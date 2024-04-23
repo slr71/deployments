@@ -1,0 +1,16 @@
+---
+- name: install yum repo
+  ansible.builtin.url:
+    url: https://download.gocd.org/gocd.repo
+    dest: /etc/yum.repos.d/gocd.repo
+
+- name: install the go-agent package
+  ansible.builtin.package:
+    name: go-agent
+    state: present
+
+- name: start and enable go-agent
+  ansible.builtin.service:
+    name: go-agent
+    state: started
+    enabled: true
