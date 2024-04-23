@@ -15,7 +15,7 @@
         update_cache: true
 
 - name: install the go-agent package
-  ansible.builtin.pacakge:
+  ansible.builtin.package:
     name: go-agent
     state: present
 
