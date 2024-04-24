@@ -14,3 +14,5 @@
     path: /usr/share/go-agent/wrapper-config/wrapper-properties.conf
     regexp: '^wrapper\.app\.parameter\.101'
     line: "wrapper.app.parameter.101={{ gocd_external_url }}"
+  notify:
+    - restart go-agent

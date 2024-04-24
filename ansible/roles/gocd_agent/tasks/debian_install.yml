@@ -3,14 +3,19 @@
   block:
     - name: get the gpg key
       ansible.builtin.get_url:
-        url: htps://download.gocd.org/GOCD-GPG-KEY.asc
-        dest: /etc/apt/keyrings/gocd-gpg-key.asc
+        url: https://download.gocd.org/GOCD-GPG-KEY.asc
+        dest: /usr/share/keyrings/GOCD-GPG-KEY.asc
         mode: '0644'
         force: true
 
-    - name: add the repo
+    - name: de-armor the gpg key
+      command: gpg -o /etc/apt/keyrings/gocd.gpg --dearmor /usr/share/keyrings/GOCD-GPG-KEY.asc 
+      args:
+        creates: /etc/apt/keyrings/gocd.gpg
+
+    - name: add the repo 
       ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/gocd-gpg-key.asc] https://download.gocd.org /"
+        repo: "deb [signed-by=/etc/apt/keyrings/gocd.gpg] https://download.gocd.org /"
         state: present
         update_cache: true
 
