@@ -1,12 +1,22 @@
 ---
 - name: setup gocd worker on debian systems
-  ansible.builtin.include_tasks:
-    file: debian_install.yml
+  block:
+    - name: install gocd worker
+      ansible.builtin.include_tasks:
+        file: debian_install.yml
+    - name: install tools
+      ansible.builtin.include_tasks:
+        file: debian_tools.yml
   when: ansible_os_family == 'Debian'
 
 - name: setup gocd worker on Red Hat systems
-  ansible.builtin.include_tasks:
-    file: redhat_install.yml
+  block:
+    - name: install gocd worker
+      ansible.builtin.include_tasks:
+        file: redhat_install.yml
+    - name: install tools
+      ansible.builtin.include_tasks:
+        file: redhat_tools.yml
   when: ansible_os_family == 'RedHat'
 
 - name: set the server url
