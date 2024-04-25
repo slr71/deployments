@@ -99,7 +99,7 @@ es_enabled: true
 
 gocd_enabled: false
 gocd_external_domain: replace_me
-gocd_skaffold_link: https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+gocd_skaffold_url: https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
 
 qa_ceph_password: replace_me
 qa_ceph_username: replace_me
