@@ -1,0 +1,30 @@
+---
+- name: add the kubernetes yum repository
+  ansible.builtin.yum_repository:
+    name: kubernetes
+    description: Kubernetes YUM repository
+    baseurl: https://pkgs.k8s.io/core:/stable:/v1.30/rpm/
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: https://pkgs.k8s.io/core:/stable:/v1.30/rpm/repodata/repomd.xml.key
+
+- name: install kubectl
+  ansible.builtin.package:
+    name: kubectl 
+    state: present
+
+- name: install skaffold
+  ansible.builtin.get_url:
+    url: "{{gocd_skaffold_url}}"
+    dest: /usr/local/bin/skaffold
+    mode: "a+x"
+
+- name: install epel-release
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+
+- name: install ansible
+  ansible.builtin.package:
+    name: ansible
+    state: present
