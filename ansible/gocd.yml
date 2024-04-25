@@ -23,3 +23,5 @@
   roles:
     - role: gocd_agent
 
+- name: transfer kubeconfig file
+  ansible.builtin.import_playbook: gocd_k3s_config.yaml

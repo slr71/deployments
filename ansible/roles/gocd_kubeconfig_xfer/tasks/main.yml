@@ -1,0 +1,7 @@
+---
+- name: copy k3s file to agent
+  ansible.builtin.copy:
+    src: "./k3s_{{ns}}.yml"
+    dest: "/var/go/k3s_{{ns}}.yml"
+    owner: go
+    mode: '0644'
