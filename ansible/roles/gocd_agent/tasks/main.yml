@@ -13,6 +13,6 @@
   ansible.builtin.lineinfile:
     path: /usr/share/go-agent/wrapper-config/wrapper-properties.conf
     regexp: '^wrapper\.app\.parameter\.101'
-    line: "wrapper.app.parameter.101={{ gocd_external_url }}"
+    line: "wrapper.app.parameter.101=https://{{ gocd_external_domain }}/go"
   notify:
     - restart go-agent
