@@ -1,8 +1,0 @@
----
-- name: systemctl daemon-reload
-  become: true
-  ansible.builtin.command: systemctl daemon-reload
-
-- name: restart concourse-web
-  become: true
-  ansible.builtin.service: name=concourse-web state=restarted
