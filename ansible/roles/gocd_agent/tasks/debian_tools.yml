@@ -60,5 +60,39 @@
     name: ansible
     state: present
 
+- name: install python3-pip
+  ansible.builtin.package:
+    name: python3-pip
 
+- name: install libpq-dev
+  ansible.builtin.package:
+    name: libpq-dev
+
+- name: install python3-dev
+  ansible.builtin.package:
+    name: python3-dev
+
+- name: install psycopg2
+  ansible.builtin.pip:
+    name: psycopg2
+
+- name: check for migrate command
+  command: which migrate
+  changed_when: false
+  register: migrate_installed
+  failed_when: migrate_installed.rc not in [0, 1]
+
+- name: init db | extract migrate tarball
+  ansible.builtin.unarchive:
+    src: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+    creates: "/usr/local/bin/migrate"
+  when: migrate_installed.rc == 1
+
+- name: init db | install migrate
+  ansible.builtin.file:
+    path: "/usr/local/bin/migrate"
+    mode: '0755'
+    state: file
 
