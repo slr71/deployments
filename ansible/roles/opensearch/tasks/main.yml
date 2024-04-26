@@ -30,11 +30,14 @@
     namespace: "{{ opensearch_ns }}"
     state: present
     definition:
-      metadata: root-ca
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: root-ca
       spec:
         isCA: true
-        commonName: "OpenSearch Root"
-        secretName:
+        commonName: "opensearch-root"
+        secretName: "opensearch-root"
         duration: "{{ opensearch_ca_duration }}"
         renewBefore: "{{ opensearch_ca_renew_before }}"
         privateKey:
