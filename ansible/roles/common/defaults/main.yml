@@ -7,7 +7,6 @@ ui_wildcard_fqdn: "*.cyverse.org"
 vice_wildcard_fqdn: "*.cyverse.run"
 vice_base_domain: cyverse.run
 k3s_install_script: "./k3s_install.sh"
-timezone: "America/Phoenix"
 uid_domain: iplantcollaborative.org
 timezone: America/Phoenix
 de_releases_repo: https://github.com/cyverse-de/de-releases
@@ -103,7 +102,6 @@ gocd_skaffold_url: https://storage.googleapis.com/skaffold/releases/latest/skaff
 
 qa_ceph_password: replace_me
 qa_ceph_username: replace_me
-qa_ceph_password: replace_me
 qa_ceph_first_name: replace_me
 qa_ceph_last_name: replace_me
 qa_ceph_local_user: docker
