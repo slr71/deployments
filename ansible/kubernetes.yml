@@ -46,6 +46,12 @@
   roles:
     - role: kubernetes_gpu_workers
 
+- name: set up k3s OpenSearch worker nodes
+  hosts: k3s_opensearch_workers
+  become: true
+  roles:
+    - role: kubernetes_opensearch_workers
+
 # This is limited to the first controller node to prevent it from
 # running multiple times, once per host. It's not actually limited
 # to the first controller node.
