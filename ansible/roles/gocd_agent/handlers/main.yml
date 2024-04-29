@@ -1,0 +1,5 @@
+---
+- name: restart go-agent
+  ansible.builtin.service:
+    name: go-agent
+    state: restarted

@@ -1,2 +1,9 @@
-# from galaxy
-- name: adfinis-sygroup.grub
+---
+collections:
+  - community.crypto
+  - community.general
+  - kubernetes.core
+
+roles:
+  - name: adfinis-sygroup.grub
+

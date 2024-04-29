@@ -1,0 +1,29 @@
+---
+- name: slurp the k3s.yaml file
+  ansible.builtin.slurp:
+    path: /etc/rancher/k3s/k3s.yaml
+  register: k3s_yaml
+  tags:
+    - read
+
+- name: parse the k3s.yaml file
+  ansible.builtin.set_fact:
+    k3s_yaml_data: "{{ k3s_yaml['content'] | b64decode | from_yaml }}"
+
+- name: update server
+  ansible.utils.update_fact:
+    updates:
+      - path: k3s_yaml_data.clusters.0.cluster.server
+        value: "https://{{ groups['k3s_api_proxy'][0] }}:5443"
+  register: updated_k3s_yaml
+
+- name: debug
+  ansible.builtin.debug:
+    msg: "{{ updated_k3s_yaml | to_nice_yaml }}"
+
+- name: write out env yaml file locally
+  delegate_to: localhost
+  become: false
+  ansible.builtin.copy:
+    content: "{{ updated_k3s_yaml | to_nice_yaml }}"
+    dest: "./k3s_{{ns}}.yml"

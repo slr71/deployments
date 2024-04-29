@@ -1,9 +1,11 @@
 *.crt
 *.key
 *.creds
+*.key.pub
 values.yml
 values.yaml
 cyverse.*
 cert-manager.custom.yaml
 de-releases/
 rendered-configs/
+k3s_*.yml

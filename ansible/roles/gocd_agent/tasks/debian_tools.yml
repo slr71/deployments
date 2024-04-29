@@ -1,0 +1,98 @@
+---
+- name: install apt-transport-https
+  ansible.builtin.package:
+    name: apt-transport-https
+    state: present
+
+- name: install ca-certificates
+  ansible.builtin.package:
+    name: ca-certificates
+    state: latest
+
+- name: install curl
+  ansible.builtin.package:
+    name: curl
+    state: present
+
+- name: install software-properties-common
+  ansible.builtin.package:
+    name: software-properties-common
+    state: present
+
+- name: set up kubernetes apt repo
+  block:
+    - name: get the gpg key
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+        dest: /usr/share/keyrings/kubernetes.key
+        mode: '0644'
+        force: true
+
+    - name: de-armor the gpg-key
+      command: gpg -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg --dearmor /usr/share/keyrings/kubernetes.key
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: add the repo
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+        state: present
+        update_cache: true
+
+- name: install kubectl
+  ansible.builtin.package:
+    name: kubectl
+    state: present
+
+- name: install skaffold
+  ansible.builtin.get_url:
+    url: "{{gocd_skaffold_url}}"
+    dest: /usr/local/bin/skaffold
+    mode: "a+x"
+
+- name: add the ansible repository
+  ansible.builtin.apt_repository:
+    repo: ppa:ansible/ansible
+    update_cache: true
+
+- name: install ansible
+  ansible.builtin.package:
+    name: ansible
+    state: present
+
+- name: install python3-pip
+  ansible.builtin.package:
+    name: python3-pip
+
+- name: install libpq-dev
+  ansible.builtin.package:
+    name: libpq-dev
+
+- name: install python3-dev
+  ansible.builtin.package:
+    name: python3-dev
+
+- name: install psycopg2
+  ansible.builtin.pip:
+    name: psycopg2
+
+- name: check for migrate command
+  command: which migrate
+  changed_when: false
+  register: migrate_installed
+  failed_when: migrate_installed.rc not in [0, 1]
+
+- name: init db | extract migrate tarball
+  ansible.builtin.unarchive:
+    src: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
+    dest: "/usr/local/bin/"
+    remote_src: yes
+    creates: "/usr/local/bin/migrate"
+  when: migrate_installed.rc == 1
+
+- name: init db | install migrate
+  ansible.builtin.file:
+    path: "/usr/local/bin/migrate"
+    mode: '0755'
+    state: file
+

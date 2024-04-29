@@ -1,0 +1,11 @@
+---
+- name: install on ubuntu/deb
+  ansible.builtin.include_tasks:
+    file: debian_install.yml
+  when: ansible_os_family == 'Debian'
+
+- name: install on Red Hat systems
+  ansible.builtin.include_tasks:
+    file: redhat_install.yml
+  when: ansible_os_family == 'RedHat'
+
