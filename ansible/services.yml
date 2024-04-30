@@ -26,6 +26,10 @@
           when: projects is defined
 
         - ansible.builtin.debug:
+            msg: "{{ projects }}"
+          when: projects is defined
+
+        - ansible.builtin.debug:
             msg: "{{ project_names }}"
 
         - ansible.builtin.include_role: 
