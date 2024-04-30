@@ -45,6 +45,10 @@
   ansible.builtin.pip:
     name: psycopg2
 
+- name: install kubernetes lib
+  ansible.builtin.pip:
+    name: kubernetes
+
 - name: check for migrate command
   command: which migrate
   changed_when: false
