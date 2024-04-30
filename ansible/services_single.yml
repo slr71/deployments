@@ -1,0 +1,17 @@
+---
+- hosts: k3s_controllers[0]
+  gather_facts: false
+  roles:
+    - role: service_configurations
+      tags:
+        - configs
+  tasks:
+    - name: deploy services
+      block:
+        - ansible.builtin.include_role: 
+            name: services
+          vars:
+            project_name: "{{ service }}"
+      delegate_to: localhost
+      tags:
+        - deploy
