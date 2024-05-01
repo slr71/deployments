@@ -25,5 +25,5 @@
   delegate_to: localhost
   become: false
   ansible.builtin.copy:
-    content: "{{ updated_k3s_yaml | to_nice_yaml }}"
+    content: "{{ updated_k3s_yaml.k3s_yaml_data | to_nice_yaml }}"
     dest: "./k3s_{{ns}}.yml"
