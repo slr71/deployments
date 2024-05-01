@@ -5,7 +5,11 @@ Environment.
 
 ## Playbooks
 
-### install_k3s.yml
+### kubernetes_setup_haproxy.yml
+
+Installs and configures haproxy on the node that will act as the reverse proxy for k3s clients like kubectl.
+
+### kubernetes.yml
 
 Prepares nodes for running the k3s distribution of kubernetes:
 
@@ -18,19 +22,28 @@ Prepares nodes for running the k3s distribution of kubernetes:
 - Installs the IRODS CSI driver.
 - Sets up namespaces, service accounts, roles, role bindings, and cluster role bindings.
 
-### install_csi_driver.yml
+### kubernetes_de_reqs.yml
+
+Installs stuff into the k3s cluster that is required for the Discovery Environment to function.
+
+* Sets up namespaces for VICE and the DE services.
+* Sets up the network policies needed for VICE.
+* Adds ServiceAccounts.
+* Adds Roles.
+* Adds RoleBindings.
+* Installs longhorn.
+* Configures ingresses.
+
+### kubernetes_install_csi_driver.yml
+
 
 Installs the CSI driver into the k3s cluster. Also runs as part of the `install_k3s.yml` playbook.
 
-### setup_haproxy.yml
-
-Sets up the HAProxy in front of the K3s controllers. Runs as part of the `install_k3s.yml` playbook. Shouldn't need to be run manually, but it's here just in case.
-
-### uninstall_k8s.yml
+### kubernetes_uninstall_k8s.yml
 
 Uninstalls the current k8s cluster. Be very careful with this one, likely won't need to be run more than once internally and never for external deployments. Will probably be removed at some point in the future.
 
-### update.yml
+### kubernetes_update_nodes.yml
 
 Runs updates on the k3s/k8s nodes. Likely will be moved elsewhere in the future.
 
@@ -154,8 +167,13 @@ Substitute the IRODS zone for wherever `example` is referenced. The JSON string 
 
 Here are some examples to help get started.
 
-### Prepare to Create the Cluster
-
+### Set up the cluster
 ```
-$ ansible-playbook -i /path/to/inventory -K install_k3s.yml
+ansible-playbook -i /path/to/inventory -K kubernetes.yml
+```
+
+### Configure the cluster for DE use
+```
+ansible-playbook -i /path/to/inventory kubernetes_de_reqs.yml
+ansible-playbook -i /path/to/inventory kubernetes_install_csi_driver.yml
 ```

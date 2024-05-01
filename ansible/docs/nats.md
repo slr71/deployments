@@ -5,7 +5,7 @@ To install NATS within the cluster using default values, run the following, subs
 ```bash
 export KUBECONFIG=~/.kube/admin.conf
 
-ansible-playbook install.yml
+ansible-playbook -i /path/to/inventory nats.yml
 ```
 
 # Dowwnloading certa and creds
