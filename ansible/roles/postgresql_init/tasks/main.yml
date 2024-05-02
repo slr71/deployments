@@ -47,18 +47,6 @@
     password: "{{ harbor_database_password }}"
   when: create_user is defined and create_user
 
-- name: init db | create the concourse database user
-  delegate_to: localhost
-  community.postgresql.postgresql_user:
-    login_host: "{{ groups['dbms_primary'][0] }}"
-    port: "{{ pg_listen_port }}"
-    login_user: "{{ pg_login_user }}"
-    login_password: "{{ pg_login_password }}"
-    db: "{{ pg_db }}"
-    name: "{{ concourse_database_user }}"
-    password: "{{ concourse_database_password }}"
-  when: create_user is defined and create_user and use_concourse is defined and use_concourse
-
 - name: init db  | create de database
   delegate_to: localhost
   community.postgresql.postgresql_db:
@@ -374,21 +362,6 @@
     lc_ctype: "{{ lc_ctype }}"
     template: "{{ template }}"
   when: create_dbs is defined and create_dbs
-
-- name: init db  | create concourse database
-  delegate_to: localhost
-  community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
-    port: "{{ pg_listen_port }}"
-    login_user: "{{ pg_login_user }}"
-    login_password: "{{ pg_login_password }}"
-    name: "{{ concourse_db }}"
-    owner: "{{ concourse_database_user }}"
-    encoding: "{{ encoding }}"
-    lc_collate: "{{ lc_collate }}"
-    lc_ctype: "{{ lc_ctype }}"
-    template: "{{ template }}"
-  when: create_dbs is defined and create_dbs and use_concourse is defined and use_concourse
 
 - name: init db | create staging directory
   delegate_to: localhost
