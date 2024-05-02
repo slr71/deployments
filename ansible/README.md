@@ -8,18 +8,19 @@
 
 ## Database Initialization
 
-The following databases are created by the `postgresql/init.yml` playbook:
+The following databases are created by the `postgresql_init.yml` playbook:
 
-| Database      | Owner   |
-| ------------- | ------- |
-| de            | de      |
-| notifications | de      |
-| metadata      | de      |
-| de_releases   | de      |
-| grouper       | grouper |
-| qms           | de      |
-| unleash       | de      |
-| k3s           | de      |
+| Database      | Owner    | Auto Init    | Auto Migrate |
+| ------------- | -------- | ------------ | ------------ |
+| de            | de       | no           | no           |
+| notifications | de       | no           | no           |
+| metadata      | de       | no           | no           |
+| de_releases   | de       | no           | no           |
+| grouper       | grouper  | yes          | ?            |
+| qms           | de       | configurable | configurable |
+| unleash       | de       | yes          | ?            |
+| k3s           | de       | yes          | ?            |
+| keycloak      | keycloak | yes          | ?            |
 
 The owner users are configurable through the `dbms_connection_user` and `grouper_connection_user` group_vars.
 
@@ -80,3 +81,37 @@ with 5 nodes. You should be able to connect to any node to communicate with othe
 | Playbook | Description   | Example                                    |
 | -------- | ------------- | ------------------------------------------ |
 | nats.yml | Installs NATS | `ansible-playbook -i <inventory> nats.yml` |
+
+## GoCD
+
+We use GoCD for continuous deployment. It's deployed outside of a kubernetes cluster to simplify the automation of cluster maintainance.
+
+| Playbook            | Description                               | Example                                         |
+| ------------------- | ----------------------------------------- | ----------------------------------------------- |
+| gocd.yml            | Installs GoCD cluster                     | `ansible-playbook -i <inventory> -K gocd.yml`   |
+| gocd_k3s_config.yml | Installs kubeconfig onto GoCD agent nodes | `ansible -i <inventory> -K gocd_k3s_config.yml` |
+
+## Grouper
+
+Grouper is installed inside the same cluster as the Discovery Environment, but the process is different enough from the rest of the services that it needs its own playbook and roles.
+
+| Playbook    | Description                           | Example                                       |
+| ----------- | ------------------------------------- | --------------------------------------------- |
+| grouper.yml | Installs Grouper into the k3s cluster | `ansible-playbook -i <inventory> grouper.yml` |
+
+## Keycloak
+
+Keycloak is used for authentication/authorization and is installed inside the same cluster as the Discovery Environment.
+
+| Playbook     | Description                            | Example                                        |
+| ------------ | -------------------------------------- | ---------------------------------------------- |
+| keycloak.yml | Installs keycloak into the k3s cluster | `ansible-playbook -i <inventory> keycloak.yml` |
+
+## Services
+
+The services playbook is used to install and upgrade the Discovery Environment services.
+
+| Playbook            | Description             | Example                                                                        |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------ |
+| services_single.yml | Deploy a single service | `ansible-playbook -i <inventory> -e service=<service_name> single_service.yml` |
+| services.yml        | Deploy all the services | `ansible-playbook -i <inventory> single.yml`                                   |
