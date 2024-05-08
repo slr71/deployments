@@ -38,5 +38,5 @@ if __name__ == "__main__":
 
     t = []
     for app in results["apps"]:
-        t.append([app["id"], app["name"]])
-    print(tabulate(t, headers=["ID", "Name"]))
+        t.append([app["id"], app["system_id"], app["name"]])
+    print(tabulate(t, headers=["ID", "System ID", "Name"]))
