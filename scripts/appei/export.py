@@ -24,18 +24,30 @@ if __name__ == "__main__":
         print("No token data was found, please run login.py")
         exit(1)
 
-    export_url = "https://{}/terrain/apps/{}/{}".format(args.server, args.system_id, args.id)
+    export_url = "https://{}/terrain/admin/apps/{}/{}/details".format(args.server, args.system_id, args.id)
     res = requests.get(export_url, headers={"Authorization" : "Bearer {}".format(token_data["access_token"])})
     if res.status_code > 299 or res.status_code < 200:
         print("Status code {}: {}".format(res.status_code, res.text))
         exit(1)
-    results = res.json()
+    app = res.json()
+
+    output_map = {"app" : app, "tools" : []}
+
+    tool_ids = [t["id"] for t in app["tools"]]
+    tool_url_template = "https://{}/terrain/admin/tools/{}"
+    for t in tool_ids:
+        tool_url = tool_url_template.format(args.server, t)
+        tool_response = requests.get(tool_url, headers={"Authorization": "Bearer {}".format(token_data["access_token"])})
+        if res.status_code > 299 or res.status_code < 200:
+            print("Status code {}: {}".format(tool_response.status_code, tool_response.text))
+            exit(1)
+        output_map["tools"].append(tool_response.json())
 
     if args.output != None:
         output_path = os.path.expanduser(args.output)
         output_path = os.path.expandvars(output_path)
         output_path = pathlib.Path(output_path)
         with open(output_path, "w") as output_file:
-            json.dump(results, output_file, sort_keys=True, indent=2)
+            json.dump(output_map, output_file, sort_keys=True, indent=2)
     else:
-        print(json.dumps(results, sort_keys=True, indent=2))
+        print(json.dumps(output_map, sort_keys=True, indent=2))
