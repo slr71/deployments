@@ -52,7 +52,7 @@ if __name__ == "__main__":
     token_data = None
     with open(token_filepath, "r") as token_file:
         token_data = json.load(token_file)
-    
+
     if token_data is None:
         print("No token data was found, please run login.py")
         exit(1)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # Read the import data from the input file.
     import_data = None
     with open(args.input, "r") as infile:
-        import_data = json.dump(infile)
+        import_data = json.load(infile)
 
     if import_data is None:
         print("No import data read from {}".format(args.input))
@@ -74,12 +74,13 @@ if __name__ == "__main__":
     # First, import the tools and get the IDs for them.
     tool_import_url = "https://{}/terrain/admin/tools".format(args.server)
     for t in import_data["tools"]:
-        print("Importing tool {}".format(t["name"]))
-        
         # Don't bother re-importing a tool if it's already in the DE.
         if tool_in_listing(t, tool_listing):
+            print("Skipping import of {}".format(t["name"]))
             continue
-        
+
+        print("Importing tool {}".format(t["name"]))
+
         # Do the import
         tool_res = requests.post(
             tool_import_url,
