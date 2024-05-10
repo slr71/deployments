@@ -6,6 +6,6 @@ values.yml
 values.yaml
 cyverse.*
 cert-manager.custom.yaml
-de-releases/
+de-releases
 rendered-configs/
 k3s_*.yml
