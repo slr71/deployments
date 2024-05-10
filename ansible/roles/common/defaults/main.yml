@@ -181,7 +181,7 @@ email_support_dest: example@example.example
 qms_enabled: true
 
 # Jaeger settings
-jaeger_enabled: true
+jaeger_enabled: false
 jaeger_endpoint: http://jaeger-collector.jaeger.svc.cluster.local:14250
 jaeger_http_endpoint: http://jaeger-collector.jaeger.svc.cluster.local:14268/api/traces
 jaeger_namespace: jaeger
