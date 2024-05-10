@@ -40,7 +40,7 @@
         name: service-configs
         namespace: "{{ ns }}"
       data: "{{ config_data }}"
-  
+
 - name: remove the locally rendered files
   delegate_to: localhost
   run_once: True
@@ -48,3 +48,90 @@
     path: "{{ rendered_configs_dir }}"
     state: absent
 
+- name: create the configs secret
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: configs
+        namespace: "{{ ns }}"
+      type: Opaque
+      stringData:
+        DE_ENV: "{{ ns }}"
+        USER_SUFFIX: "{{ uid_domain }}"
+        QMS_DATABASE_URI: "postgresql://{{ dbms_connection_user }}:{{ dbms_connection_pass | urlencode }}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/{{ qms_db_name }}?sslmode=disable"
+        DE_DATABASE_URI: "postgresql://{{ dbms_connection_user }}:{{ dbms_connection_pass | urlencode }}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/{{ de_db_name }}?sslmode=disable"
+        NOTIFICATIONS_DATABASE_URI: "postgresql://{{ dbms_connection_user }}:{{ dbms_connection_pass | urlencode }}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/{{ notifications_db_name }}?sslmode=disable"
+        METADATA_DATABASE_URI: "postgresql://{{ dbms_connection_user }}:{{ dbms_connection_pass | urlencode }}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/{{ metadata_db_name }}?sslmode=disable"
+        QMS_DATABASE_REINIT: "{{ qms_reinitialize | string}}"
+        QMS_DATABASE_MIGRATE: "{{ qms_automigrate | string}}"
+        USERNAME_SUFFIX: "@{{ uid_domain }}"
+        OTEL_TRACES_EXPORTER: "{% if jaeger_enabled %}jaeger{% else %}none{% endif %}"
+        OTEL_EXPORTER_JAEGER_ENDPOINT: "{{ jaeger_endpoint }}"
+        OTEL_EXPORTER_JAEGER_HTTP_ENDPOINT: "{{ jaeger_http_endpoint }}"
+        NATS_URLS: "{{ nats_urls }}"
+        NATS_TLS_CERT: "/etc/nats/tls/tls.crt"
+        NATS_TLS_KEY: "/etc/nats/tls/tls.key"
+        NATS_TLS_CA_CERT: "/etc/nats/tls/ca.crt"
+        NATS_CREDS_PATH: "/etc/nats/creds/services.creds"
+        NATS_RECONNECTS_MAX: "10"
+        NATS_RECONNECTS_WAIT: "1"
+
+- name: create the unleash secret
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: unleash-secret
+        namespace: "{{ ns }}"
+      type: Opaque
+      stringData:
+        database_host: "{{ groups['dbms_primary'][0] }}"
+        database_username: "{{ unleash_db_user }}"
+        database_password: "{{ unleash_db_password }}"
+
+- name: create the timezone configmap
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: timezone
+        namespace: "{{ ns }}"
+      data:
+        timezone: "{{ timezone }}"
+
+- name: create the java tool options configmap
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: java-tool-options
+        namespace: "{{ ns }}"
+      data:
+        low: "{{ jvm_opts_low }}"
+        high: "{{ jvm_opts_high }}"
+        ui: "{{ jvm_opts_ui }}"

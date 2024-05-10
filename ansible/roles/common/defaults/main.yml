@@ -412,6 +412,7 @@ analytics_id: g-id
 # NATS Variables
 ca_duration: 8766h # 1 year
 ca_renew_before: 240h # 10 days
+nats_urls: tls://nats
 nats_cmd_pod: nats-box
 nats_server_cert_duration: 8766h # 1 year
 nats_server_cert_renew_before: 240h # 10 days
