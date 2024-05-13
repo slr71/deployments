@@ -34,6 +34,48 @@ def is_in_listing(item: dict, listing: list[dict]) -> bool:
     return False
 
 
+def clean_tool_for_import(tool: dict):
+    if "permission" in tool:
+        del tool["permission"]
+
+    if "is_public" in tool:
+        del tool["is_public"]
+
+    if "container" in tool:
+        if "interactive_apps" in tool["container"]:
+            if "id" in tool["container"]["interactive_apps"]:
+                del tool["container"]["interactive_apps"]["id"]
+
+        if "image" in tool["container"]:
+            if "id" in tool["container"]["image"]:
+                del tool["container"]["image"]["id"]
+
+        if "container_ports" in tool["container"]:
+            for p in tool["container"]["container_ports"]:
+                if "id" in p:
+                    del p["id"]
+
+
+def import_tool(import_url: str, access_token: str, tool: dict) -> dict:
+    payload = json.dumps({"tools": [tool]})
+
+    # Do the import
+    res = requests.post(
+        import_url,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+            "Content-Type": "application/json",
+        },
+        data=payload,
+    )
+
+    if not res.ok:
+        print(res.text)
+        res.raise_for_status()
+
+    return res.json()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Import app/tool definitions into a DE instance"
@@ -93,22 +135,20 @@ if __name__ == "__main__":
             print("Skipping import of {} {}".format(t["name"], t["version"]))
             continue
 
-        print("Importing tool {} {}".format(t["name"], t["version"]))
+        print("Importing tool {} {}...".format(t["name"], t["version"]))
 
-        # Do the import
-        tool_res = requests.post(
-            tool_import_url,
-            headers={"Authorization": "Bearer {}".format(token_data["access_token"])},
-            data=t,
-        )
-        tool_res.raise_for_status()
-        tool_res_data = tool_res.json()
+        clean_tool_for_import(t)
+        tool_res_data = import_tool(tool_import_url, token_data["access_token"], t)
         tool_id = tool_res_data["tool_ids"][0]
+
+        print("Imported tool {} {} as ID {}".format(t["name"], t["version"], tool_id))
+
         t["id"] = tool_id
 
     app_import_url = "https://{}/terrain/apps/{}".format(
         args.server, import_data["system_id"]
     )
+
     if not is_in_listing(import_data, app_listing):
         print("Importing app {} {}".format(import_data["name"], import_data["version"]))
         import_url = "https://{}/terrain/apps/{}".format(import_data["system_id"])
