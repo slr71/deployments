@@ -34,6 +34,13 @@ def is_in_listing(item: dict, listing: list[dict]) -> bool:
     return False
 
 
+def id_from_listing(item: dict, listing: list[dict]) -> bool:
+    for listed in listing:
+        if listed["name"] == item["name"] and listed["version"] == item["version"]:
+            return listed["id"]
+    return ""
+
+
 def clean_tool_for_import(tool: dict):
     if "permission" in tool:
         del tool["permission"]
@@ -54,6 +61,65 @@ def clean_tool_for_import(tool: dict):
             for p in tool["container"]["container_ports"]:
                 if "id" in p:
                     del p["id"]
+
+
+def clean_app_for_import(app: dict):
+    delete_keys = [
+        "requirements",
+        "deleted",
+        "pipeline_eligibility",
+        "is_favorite",
+        "integrator_name",
+        "beta",
+        "permission",
+        "isBlessed",
+        "can_favor",
+        "disabled",
+        "can_rate",
+        "suggested_categories",
+        "hierarchies",
+        "limitChecks",
+        "overall_job_type",
+        "documentation",
+        "categories",
+        "is_public",
+        "label",
+        "step_count",
+        "can_run",
+        "job_stats",
+        "integrator_email",
+        "app_type",
+        "versions",
+        "rating",
+    ]
+    for d in delete_keys:
+        if d in app:
+            del app[d]
+
+    if "tools" in app:
+        for t in app["tools"]:
+            if "implementation" in t:
+                if "test" in t["implementation"]:
+                    del t["implementation"]["test"]
+            if "container" in t:
+                if "interactive_apps" in t["container"]:
+                    del t["container"]["interactive_apps"]
+                if "container_ports" in t["container"]:
+                    del t["container"]["container_ports"]
+                if "id" in t["container"]:
+                    del t["container"]["id"]
+                if "image" in t["container"]:
+                    if "id" in t["container"]["image"]:
+                        del t["container"]["image"]["id"]
+
+    if "groups" in app:
+        for g in app["groups"]:
+            if "parameters" in g:
+                for p in g["parameters"]:
+                    if "id" in p:
+                        del p["id"]
+            if "step_number" in g:
+                del g["step_number"]
 
 
 def import_tool(import_url: str, access_token: str, tool: dict) -> dict:
@@ -133,6 +199,9 @@ if __name__ == "__main__":
         # Don't bother re-importing a tool if it's already in the DE.
         if is_in_listing(t, tool_listing):
             print("Skipping import of {} {}".format(t["name"], t["version"]))
+            new_id = id_from_listing(t, tool_listing)
+            if new_id != "":
+                t["id"] = new_id
             continue
 
         print("Importing tool {} {}...".format(t["name"], t["version"]))
@@ -151,13 +220,23 @@ if __name__ == "__main__":
 
     if not is_in_listing(import_data, app_listing):
         print("Importing app {} {}".format(import_data["name"], import_data["version"]))
-        import_url = "https://{}/terrain/apps/{}".format(import_data["system_id"])
+
+        clean_app_for_import(import_data)
+
         import_res = requests.post(
-            import_url,
-            headers={"Authorization": "Bearer {}".format(token_data["access_token"])},
-            data=import_data,
+            app_import_url,
+            headers={
+                "Authorization": "Bearer {}".format(token_data["access_token"]),
+                "Content-Type": "application/json",
+            },
+            data=json.dumps(import_data),
         )
+
+        if not import_res.ok:
+            print(import_res.text)
+
         import_res.raise_for_status()
+
         print(
             "Done importing app {} {}".format(
                 import_data["name"], import_data["version"]
