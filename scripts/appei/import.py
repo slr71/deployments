@@ -118,6 +118,59 @@ def clean_app_for_import(app: dict):
                 for p in g["parameters"]:
                     if "id" in p:
                         del p["id"]
+
+                    # This should really be done in the API, but since it's not
+                    # it has to be included here. Adapted from similar code in Sonora.
+                    match p["type"]:
+                        case "Flag":
+                            if "defaultValue" not in p:
+                                p["defaultValue"] = False
+                            if "name" not in p:
+                                p["name"] = {
+                                    "checked": {"option": "", "value": ""},
+                                    "unchecked": {"option": "", "value": ""},
+                                }
+
+                        case "TextSelection":
+                            if "arguments" not in p:
+                                p["arguments"] = []
+                            if "defaultValue" not in p:
+                                p["defaultValue"] = ""
+                            if "required" not in p:
+                                p["required"] = False
+                            if "omit_if_blank" not in p:
+                                p["omit_if_blank"] = False
+
+                        case (
+                            "MultiFileOutput"
+                            | "FileInput"
+                            | "FolderInput"
+                            | "FileOutput"
+                            | "FolderOutput"
+                        ):
+                            p["defaultValue"] = ""
+                            p["required"] = False
+                            p["omit_if_blank"] = False
+                            p["file_parameters"] = {
+                                "is_implicit": False,
+                                "data_source": "file",
+                                "format": "Unspecified",
+                                "file_info_type": "File",
+                            }
+                        case "MultiFileSelector":
+                            p["defaultValue"] = []
+                            p["required"] = False
+                            p["omit_if_blank"] = False
+                            p["file_parameters"] = {
+                                "data_source": "file",
+                                "file_info_type": "File",
+                                "format": "Unspecified",
+                                "is_implicit": False,
+                                "repeat_option_flag": False,
+                            }
+                        case _:
+                            if "file_parameters" in p:
+                                del p["file_parameters"]
             if "step_number" in g:
                 del g["step_number"]
 
