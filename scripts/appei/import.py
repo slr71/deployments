@@ -34,11 +34,100 @@ def is_in_listing(item: dict, listing: list[dict]) -> bool:
     return False
 
 
+def list_private_apps(server: str, access_token: str, name: str) -> dict:
+    u = "https://{}/terrain/apps".format(server)
+    res = requests.get(
+        u,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        params={"search": name},
+    )
+    if not res.ok:
+        print(res.text)
+    res.raise_for_status()
+    return res.json()["apps"]
+
+
 def id_from_listing(item: dict, listing: list[dict]) -> bool:
     for listed in listing:
         if listed["name"] == item["name"] and listed["version"] == item["version"]:
             return listed["id"]
     return ""
+
+
+def create_app_submission(app: dict) -> dict:
+    submission = {
+        "avus": [],
+    }
+    top_level = [
+        "integration_date",
+        "description",
+        "version_id",
+        "name",
+        "system_id",
+        "references",
+        "id",
+        "edited_date",
+    ]
+    for t in top_level:
+        submission[t] = app[t]
+
+    submission["documentation"] = app["documentation"]["documentation"]
+
+    return submission
+
+
+def publish_app(
+    server: str, access_token: str, system_id: str, submission: dict
+) -> dict:
+    u = "https://{}/terrain/apps/{}/{}/publish".format(
+        server, system_id, submission["id"]
+    )
+    res = requests.post(
+        u,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+            "Content-Type": "application/json",
+        },
+        data=json.dumps(submission),
+    )
+    if not res.ok:
+        print(res.text)
+    res.raise_for_status()
+
+
+def bless_app(server: str, access_token: str, system_id: str, app_id: str):
+    u = "https://{}/terrain/admin/apps/{}/{}/blessing".format(server, system_id, app_id)
+
+    res = requests.post(
+        u,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+            "Content-Type": "application/json",
+        },
+    )
+
+    if not res.ok:
+        print(res.text)
+
+    res.raise_for_status()
+
+
+def import_app(server: str, access_token: str, system_id: str, import_data: dict):
+    app_import_url = "https://{}/terrain/apps/{}".format(server, system_id)
+
+    import_res = requests.post(
+        app_import_url,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+            "Content-Type": "application/json",
+        },
+        data=json.dumps(import_data),
+    )
+
+    if not import_res.ok:
+        print(import_res.text)
+
+    import_res.raise_for_status()
 
 
 def clean_tool_for_import(tool: dict):
@@ -240,11 +329,15 @@ if __name__ == "__main__":
         print("No import data read from {}".format(args.input))
         exit(1)
 
+    access_token = token_data["access_token"]
+    system_id = import_data["system_id"]
+    app_name = import_data["name"]
+    app_version = import_data["version"]
+
     # Get a listing of the tools already in the DE.
-    tool_listing = list_tools(args.server, token_data["access_token"])
-    app_listing = list_apps(
-        args.server, token_data["access_token"], import_data["name"]
-    )
+    tool_listing = list_tools(args.server, access_token)
+    app_listing = list_apps(args.server, access_token, app_name)
+    private_listing = list_private_apps(args.server, access_token, app_name)
 
     # First, import the tools and get the IDs for them.
     tool_import_url = "https://{}/terrain/admin/tools".format(args.server)
@@ -260,44 +353,31 @@ if __name__ == "__main__":
         print("Importing tool {} {}...".format(t["name"], t["version"]))
 
         clean_tool_for_import(t)
-        tool_res_data = import_tool(tool_import_url, token_data["access_token"], t)
+        tool_res_data = import_tool(tool_import_url, access_token, t)
         tool_id = tool_res_data["tool_ids"][0]
 
         print("Imported tool {} {} as ID {}".format(t["name"], t["version"], tool_id))
 
         t["id"] = tool_id
 
-    app_import_url = "https://{}/terrain/apps/{}".format(
-        args.server, import_data["system_id"]
-    )
-
     if not is_in_listing(import_data, app_listing):
-        print("Importing app {} {}".format(import_data["name"], import_data["version"]))
+        print("Importing app {} {}".format(app_name, app_version))
 
+        submission = create_app_submission(import_data)
         clean_app_for_import(import_data)
 
-        import_res = requests.post(
-            app_import_url,
-            headers={
-                "Authorization": "Bearer {}".format(token_data["access_token"]),
-                "Content-Type": "application/json",
-            },
-            data=json.dumps(import_data),
+        if not is_in_listing(import_data, private_listing):
+            import_app(args.server, access_token, system_id, import_data)
+
+        publish_app(
+            args.server,
+            access_token,
+            system_id,
+            submission,
         )
 
-        if not import_res.ok:
-            print(import_res.text)
+        bless_app(args.server, access_token, system_id, submission["id"])
 
-        import_res.raise_for_status()
-
-        print(
-            "Done importing app {} {}".format(
-                import_data["name"], import_data["version"]
-            )
-        )
+        print("Done importing app {} {}".format(app_name, app_version))
     else:
-        print(
-            "Skipping import of {} {}".format(
-                import_data["name"], import_data["version"]
-            )
-        )
+        print("Skipping import of {} {}".format(app_name, app_version))
