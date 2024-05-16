@@ -5,6 +5,7 @@ import json
 import requests
 import pathlib
 import os.path
+from collections import Counter
 
 
 def list_tools(server: str, access_token: str) -> dict:
@@ -128,6 +129,7 @@ def import_app(server: str, access_token: str, system_id: str, import_data: dict
         print(import_res.text)
 
     import_res.raise_for_status()
+    return import_res.json()
 
 
 def clean_tool_for_import(tool: dict):
@@ -152,7 +154,8 @@ def clean_tool_for_import(tool: dict):
                     del p["id"]
 
 
-def clean_app_for_import(app: dict):
+def clean_app_for_import(app: dict) -> dict:
+    cleaned = app.copy()
     delete_keys = [
         "requirements",
         "deleted",
@@ -182,11 +185,11 @@ def clean_app_for_import(app: dict):
         "rating",
     ]
     for d in delete_keys:
-        if d in app:
-            del app[d]
+        if d in cleaned:
+            del cleaned[d]
 
-    if "tools" in app:
-        for t in app["tools"]:
+    if "tools" in cleaned:
+        for t in cleaned["tools"]:
             if "implementation" in t:
                 if "test" in t["implementation"]:
                     del t["implementation"]["test"]
@@ -201,8 +204,8 @@ def clean_app_for_import(app: dict):
                     if "id" in t["container"]["image"]:
                         del t["container"]["image"]["id"]
 
-    if "groups" in app:
-        for g in app["groups"]:
+    if "groups" in cleaned:
+        for g in cleaned["groups"]:
             if "parameters" in g:
                 for p in g["parameters"]:
                     if "id" in p:
@@ -279,9 +282,64 @@ def import_tool(import_url: str, access_token: str, tool: dict) -> dict:
 
     if not res.ok:
         print(res.text)
-        res.raise_for_status()
+    res.raise_for_status()
 
     return res.json()
+
+
+def app_details(
+    server: str, access_token: str, system_id: str, app_id: str
+) -> list[dict]:
+    u = "https://{}/terrain/apps/{}/{}/details".format(server, system_id, app_id)
+
+    res = requests.get(
+        u,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+            "Content-Type": "application/json",
+        },
+    )
+    if not res.ok:
+        print(res.text)
+    res.raise_for_status()
+
+    return res.json()
+
+
+def app_metadata(server: str, access_token: str, app_id: str) -> list[dict]:
+    u = "https://{}/terrain/admin/apps/{}/metadata".format(server, app_id)
+
+    res = requests.get(
+        u,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+        },
+    )
+
+    if not res.ok:
+        print(res.text)
+
+    res.raise_for_status()
+
+    return res.json()
+
+
+def set_app_metadata(server: str, access_token: str, app_id: str, avus: list[dict]):
+    u = "https://{}/terrain/admin/apps/{}/metadata".format(server, app_id)
+
+    res = requests.put(
+        u,
+        headers={
+            "Authorization": "Bearer {}".format(access_token),
+            "Content-Type": "application/json",
+        },
+        data=json.dumps({"avus": avus}),
+    )
+
+    if not res.ok:
+        print(res.text)
+
+    res.raise_for_status()
 
 
 if __name__ == "__main__":
@@ -360,15 +418,30 @@ if __name__ == "__main__":
 
         t["id"] = tool_id
 
+    app_id = None
+
+    # If the app isn't in the public listing, import it.
     if not is_in_listing(import_data, app_listing):
         print("Importing app {} {}".format(app_name, app_version))
 
         submission = create_app_submission(import_data)
-        clean_app_for_import(import_data)
+        cleaned_app = clean_app_for_import(import_data)
 
-        if not is_in_listing(import_data, private_listing):
-            import_app(args.server, access_token, system_id, import_data)
+        # If the app isn't in the user's private app listing, import it.
+        if not is_in_listing(cleaned_app, private_listing):
+            app_id = import_app(args.server, access_token, system_id, cleaned_app)
+        else:
+            # Otherwise get the id from the private listing.
+            app_id = [
+                a["id"]
+                for a in private_listing
+                if a["name"] == app_name and a["version"] == app_version
+            ][0]
 
+        # The ID for the submission needs to match the ID of the imported app.
+        submission["id"] = app_id
+
+        # Request that the app be made public.
         publish_app(
             args.server,
             access_token,
@@ -376,8 +449,36 @@ if __name__ == "__main__":
             submission,
         )
 
-        bless_app(args.server, access_token, system_id, submission["id"])
+        # Make the app public
+        bless_app(args.server, access_token, system_id, app_id)
 
         print("Done importing app {} {}".format(app_name, app_version))
+
     else:
         print("Skipping import of {} {}".format(app_name, app_version))
+
+        # If we're here then the app was in the public listing and that
+        # should have the app_id value that we need for later ops.
+        app_id = [
+            a["id"]
+            for a in app_listing
+            if a["name"] == app_name and a["version"] == app_version
+        ][0]
+
+    # Get the current list of AVUs on the app.
+    app_avus = app_metadata(args.server, access_token, app_id)["avus"]
+
+    # Remove the beta AVU.
+    new_avus = [
+        avu
+        for avu in app_avus
+        if not (avu["attr"] == "n2t.net/ark:/99152/h1459" and avu["value"] == "beta")
+    ]
+
+    # Set the new list of AVUs if it's different from the original list.
+    if len(app_avus) != len(new_avus):
+        print("Removing the beta status from the imported app...")
+        set_app_metadata(args.server, access_token, app_id, new_avus)
+        print("Done removing the beta status from the imported app.")
+    else:
+        print("Skipping removal of beta status.")
