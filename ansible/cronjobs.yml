@@ -1,0 +1,7 @@
+---
+- name: set up cronjobs
+  become: false
+  gather_facts: false
+  hosts: k3s_controllers[0]
+  roles:
+    - role: cronjobs
