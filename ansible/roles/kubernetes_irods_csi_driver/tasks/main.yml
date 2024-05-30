@@ -52,3 +52,15 @@
     wait: true
     values_files:
       - "./irods_csi_driver_values.yaml"
+
+- name: define the storage class for the iRODS CSI driver
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: StorageClass
+      apiVersion: storage.k8s.io/v1
+      metadata:
+        name: irods-sc
+      provisioner: irods.csi.cyverse.org
