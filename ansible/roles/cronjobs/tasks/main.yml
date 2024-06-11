@@ -64,7 +64,7 @@
         name: cronjob-clean-failed-pods
         namespace: "{{ ns }}"
       spec:
-        schedule: "*/15 * * * *"
+        schedule: "*/5 * * * *"
         concurrencyPolicy: Forbid
         failedJobHistoryLimit: 4
         jobTemplate:
