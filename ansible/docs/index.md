@@ -12,6 +12,14 @@ For the most part you will be directly interacting with the `deployments` and in
 
 ## Continuous Integration To QA
 
+This section describes how builds are automated and deployed to QA. You will want to have access to the following git repositories:
+
+* [cyverse-de/de-releases](https://github.com/cyverse-de/de-releases)
+* [cyverse-de/github-workflows](https://github.com/cyverse-de/github-workflows)
+* [cyverse-de/deployments](https://github.com/cyverse-de/deployments)
+
+Additionally, you will want access to our CI/CD systems at [cicd-qa.cyverse.org](https://cicd-qa.cyverse.org).
+
 ### Builds
 
 At a high-level, our build process is as follows:
@@ -47,6 +55,7 @@ jobs:
 
 As you can see from the `jobs.call-workflow-passing-data.uses` field, this workflow calls out to the `skaffold-build.yml` workflow contained in the [cyverse-de/github-workflows](https://github.com/cyverse-de/github-workflows) repository tagged with `v0.0.7`.
 
+As part of the shared `skaffold-build.yml` file contained in the `cyverse-de/github-workflows` repository, a new JSON artifact file is created in the `builds/` directory of the [cyverse-de/de-releases](https://github.com/cyverse-de/de-releases) repository. An action after that sends a webhook request to [https://cicd-qa.cyverse.org](https://cicd-qa.cyverse.org) to trigger the deployment into the QA cluster. More info on the webhook configuration is provided below.
 
 Deployment
  - GoCD
