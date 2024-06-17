@@ -66,7 +66,7 @@
                   matchLabels:
                     de-app: app-exposer
           - to:
-              - namespaceSelector:
+              - namespaceSelector: {}
                 podSelector:
                   matchLabels:
                     de-app: check-resource-access
