@@ -201,7 +201,7 @@ k3s_db_name: k3s
 k3s_token: K3sT0k3n
 k3s_version: v1.29.1+k3s1
 k3s_flannel_backend: wireguard-native
-k3s_registry_mirror: https://registry-1.docker.io
+k3s_registry_mirror: registry-1.docker.io
 k3s_registry_mirror_endpoint: https://registry-1.docker.io
 k3s_registry_mirror_token: ""
 k3s_registry_mirror_insecure_skip_verify: false
