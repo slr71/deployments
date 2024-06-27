@@ -537,4 +537,23 @@ keycloak_cpu_limit: '200m'
 keycloak_memory_limit: '2Gi'
 keycloak_ephemeral_storage_limit: '2Gi'
 
-
+vice_cache_images:
+  - harbor.cyverse.org/de/vice-proxy:qa
+  - harbor.cyverse.org/de/vice-file-transfers:qa
+  - sblsdsc/mmtf-pyspark-vice-0.3.6:16
+  - sblsdsc/mmtf-genomics-vice-0.3.6:8
+  - harbor.cyverse.org/legacy/jupyter-lab:1.0
+  - harbor.cyverse.org/legacy/shiny:1.0.0
+  - harbor.cyverse.org/legacy/rstudio-nginx:3.5.0
+  - cyverse/jupyterlab-nanodj:latest
+  - harbor.cyverse.org/legacy/jupyterlab-qiime2:2019.10
+  - harbor.cyverse.org/legacy/genomicseducationalliance-jupyterlab-rnaseq-qc:dev_2.1
+  - harbor.cyverse.org/legacy/quaternionclassifier:latest
+  - harbor.cyverse.org/legacy/powerstateclassifier:latest
+  - harbor.cyverse.org/legacy/behaviorclassifier:latest
+  - harbor.cyverse.org/legacy/turboprop:latest
+  - genomicseducationalliance/rna-seq-leptin:dev_0.2
+  - cyversevice/rstudio-geospatial:terraref-3.6.0
+  - harbor.cyverse.org/legacy/guacamole:latest
+  - reetututeja/rstudio-snapatac:latest
+  - cyverse/sequenceserver:2.0
