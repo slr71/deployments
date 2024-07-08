@@ -1,0 +1,10 @@
+---
+- name: prime the vice image cache
+  delegate_to: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.include_role:
+        name: vice-cache
+      vars:
+        image_name: "{{ item }}"
+      loop: "{{ vice_cache_images }}"

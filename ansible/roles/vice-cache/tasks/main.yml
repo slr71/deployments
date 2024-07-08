@@ -1,0 +1,42 @@
+---
+- name: add vice-cache deployment
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: cache-{{ image_name }}
+      spec:
+        selector:
+          matchLabels:
+            name: cache-{{ image_name }}
+        template:
+          metadata:
+            labels:
+              name: cache-{{ image_name }}
+          spec:
+            tolerations:
+            - key: "vice"
+              operator: "Equal"
+              value: "only"
+              effect: "NoSchedule"
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                  - matchExpressions:
+                    - key: vice
+                      operator: In
+                      values:
+                      - "true"
+            initContainers:
+            - name: cache
+              image: harbor.cyverse.org/hub/library/docker
+              command: ["docker", "pull", ""]
+            containers:
+            - name: pause
+              image: gcr.io/google_containers/pause
