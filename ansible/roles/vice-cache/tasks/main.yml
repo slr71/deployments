@@ -33,10 +33,7 @@
                       operator: In
                       values:
                       - "true"
-            initContainers:
-            - name: cache
-              image: harbor.cyverse.org/hub/library/docker
-              command: ["docker", "pull", ""]
             containers:
-            - name: pause
-              image: gcr.io/google_containers/pause
+            - name: cached-image-container
+              image: "{{ image_name }}"
+              command: ["true"]
