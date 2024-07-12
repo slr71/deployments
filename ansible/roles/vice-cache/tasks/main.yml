@@ -6,18 +6,13 @@
   kubernetes.core.k8s:
     state: present
     definition:
-      apiVersion: apps/v1
-      kind: DaemonSet
+      apiVersion: batch/v1
+      kind: Job
       metadata:
-        name: cache-{{ image_name }}
+        name: cache-{{ item | regex_replace("[^A-Za-z0-9]", "") }}
+        namespace: "{{ vice_ns }}"
       spec:
-        selector:
-          matchLabels:
-            name: cache-{{ image_name }}
         template:
-          metadata:
-            labels:
-              name: cache-{{ image_name }}
           spec:
             tolerations:
             - key: "vice"
@@ -35,5 +30,9 @@
                       - "true"
             containers:
             - name: cached-image-container
-              image: "{{ image_name }}"
+              image: "{{ item }}"
               command: ["true"]
+            restartPolicy: Never
+  loop: "{{ vice_cache_images }}"
+  loop_control:
+    label: "{{ item }}"

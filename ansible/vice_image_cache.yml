@@ -1,10 +1,6 @@
 ---
 - name: prime the vice image cache
-  delegate_to: localhost
+  hosts: k3s_controllers[0]
   gather_facts: false
-  tasks:
-    - ansible.builtin.include_role:
-        name: vice-cache
-      vars:
-        image_name: "{{ item }}"
-      loop: "{{ vice_cache_images }}"
+  roles:
+    - role: vice-cache
