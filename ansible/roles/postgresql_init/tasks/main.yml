@@ -28,8 +28,8 @@
   community.postgresql.postgresql_user:
     login_host: "{{ groups['keycloak_dbms'][0] }}"
     port: "{{ pg_listen_port }}"
-    login_user: "{{ pg_login_user }}"
-    login_password: "{{ pg_login_password }}"
+    login_user: "{{ keycloak_login_user }}"
+    login_password: "{{ keycloak_login_password }}"
     db: "{{ pg_db }}"
     name: "{{ keycloak_db_username }}"
     password: "{{ keycloak_db_password }}"
@@ -264,8 +264,8 @@
   community.postgresql.postgresql_db:
     login_host: "{{ groups['keycloak_dbms'][0] }}"
     port: "{{ pg_listen_port }}"
-    login_user: "{{ pg_login_user }}"
-    login_password: "{{ pg_login_password }}"
+    login_user: "{{ keycloak_login_user }}"
+    login_password: "{{ keycloak_login_password }}"
     name: "{{ keycloak_db_name }}"
     owner: "{{ keycloak_db_username }}"
     encoding: "{{ encoding }}"
