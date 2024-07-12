@@ -488,6 +488,8 @@ keycloak_db_password: Ch@ng3M3
 keycloak_db_vendor: postgres
 keycloak_db_port: '5432'
 keycloak_db_name: keycloak
+keycloak_login_username: keycloak
+keycloak_login_password: Ch@ng3M3
 keycloak_namespace: keycloak
 keycloak_realm_name: CyVerseTest
 keycloak_client_id: replace_me
