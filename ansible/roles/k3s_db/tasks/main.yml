@@ -1,0 +1,28 @@
+---
+- delegate_to: localhost
+  block:
+    - debug:
+        msg: "{{ dbms_connection_user }}"
+
+    - name: init db | create connection user
+      community.postgresql.postgresql_user:
+        login_host: "{{ groups['dbms_primary'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ pg_db }}"
+        name: "{{ dbms_connection_user }}"
+        password: "{{ dbms_connection_pass }}"
+
+    - name: init db | create k3s database
+      community.postgresql.postgresql_db:
+        login_host: "{{ groups['dbms_primary'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        name: "{{ k3s_db_name }}"
+        owner: "{{ dbms_connection_user }}"
+        encoding: "{{ encoding }}"
+        lc_collate: "{{ lc_collate }}"
+        lc_ctype: "{{ lc_ctype }}"
+        template: "{{ template }}"
