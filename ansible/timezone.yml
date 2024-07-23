@@ -1,0 +1,7 @@
+---
+- name: set up timezone settings.
+  hosts: k3s_de_workers
+  become: true
+  gather_facts: true
+  roles:
+    - role: timezone
