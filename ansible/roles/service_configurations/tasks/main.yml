@@ -23,7 +23,7 @@
 
 - name: load configmap data
   set_fact:
-    config_data: "{{ config_data | default({}) | combine({ item | basename : lookup('file', item) | b64encode }) }}"
+    config_data: "{{ config_data | default({}) | combine({ item | basename : lookup('file', item) }) }}"
   with_fileglob: "{{ rendered_configs_dir }}/*"
 
 - name: load the configurations into the cluster
@@ -35,8 +35,7 @@
     state: present
     definition:
       apiVersion: v1
-      kind: Secret
-      type: Opaque
+      kind: ConfigMap
       metadata:
         name: service-configs
         namespace: "{{ ns }}"
