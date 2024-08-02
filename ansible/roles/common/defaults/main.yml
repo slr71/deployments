@@ -21,6 +21,12 @@ vice_base_domain: cyverse.run
 ## The path to the install script.
 k3s_install_script: "./k3s_install.sh"
 
+## The path to the k3s storage mount on large nodes
+k3s_storage_mount: "/mnt/kubelet"
+
+## Whether we need to use the storage mount
+k3s_use_storage_mount: False
+
 ## The iRODS UID domain.
 uid_domain: iplantcollaborative.org
 

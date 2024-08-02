@@ -1,4 +1,16 @@
 ---
+- name: install elrepo-release
+  ansible.builtin.package:
+    name: elrepo-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: install epel-release
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
 - name: Check for nfs 4.1 support in the kernel
   lineinfile:
     name: /boot/config-{{ ansible_kernel }}
@@ -129,6 +141,15 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: copy the storage_fix.sh file
+  ansible.builtin.template:
+    src: storage_fix.sh.j2
+    dest: "/root/storage_fix.sh"
+    owner: root
+    group: root
+    mode: "0744"
+  when: k3s_use_storage_mount
 
 - name: reboot nodes
   ansible.builtin.reboot:
