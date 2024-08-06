@@ -8,6 +8,20 @@
   ansible.builtin.debug:
     var: h
 
+- name: Open the HTTPS Port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+
+- name: Open the API Port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: 5443
+    proto: tcp
+
 - name: install | install haproxy
   ansible.builtin.package:
     name: haproxy
