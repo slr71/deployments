@@ -193,7 +193,7 @@
         name: system:persistent-volume-provisioner
         apiGroup: rbac.authorization.k8s.io
 
-- name: creat the app-exposer cluster role binding
+- name: create the app-exposer cluster role binding
   delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
@@ -212,3 +212,83 @@
         kind: ClusterRole
         name: admin
         apiGroup: rbac.authorization.k8s.io
+
+- name: create the exim-sender deployment
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: local-exim
+        namespace: "{{ ns }}"
+      spec:
+        replicas: 2
+        selector:
+          matchLabels:
+            de-app: local-exim
+        template:
+          metadata:
+            labels:
+              de-app: local-exim
+          spec:
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                    - key: de-app
+                      operator: In
+                      values:
+                      - local-exim
+                  topologyKey: kubernetes.io/hostname
+            restartPolicy: Always
+            volumes:
+              - name: localtime
+                hostPath:
+                  path: /etc/localtime
+              - name: timezone
+                configMap:
+                  name: timezone
+                  items:
+                    - key: timezone
+                      path: timezone
+            containers:
+            - name: local-exim
+              image: "discoenv/exim-sender@sha256:af3543b26caba4407a3c6255721ca1cc02da63cd0886025262a6d8d11f6a1d96"
+              volumeMounts:
+                - name: localtime
+                  mountPath: /etc/localtime
+                  readOnly: true
+                - name: timezone
+                  mountPath: /etc/timezone
+                  subPath: timezone
+              resources:
+                requests:
+                  cpu: "5m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "100m"
+                  memory: "256Mi"
+              env:
+                - name: DE_ENV
+                  value: "{{ ns }}"
+                - name: PRIMARY_HOST
+                  value: cyverse.org
+                - name: ALLOWED_HOSTS
+                  value: "*"
+                - name: SERVICE_25_NAME
+                  value: exim-sender
+                - name: SERVICE_25_TAGS
+                  value: "{{ ns }}"
+                - name: SERVICE_25_CHECK_TCP
+                  value: "true"
+                - name: SERVICE_25_CHECK_INTERVAL
+                  value: 10s
+              ports:
+                - name: listen-port
+                  containerPort: 25
+
