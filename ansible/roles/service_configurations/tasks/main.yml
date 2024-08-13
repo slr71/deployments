@@ -83,25 +83,6 @@
         NATS_RECONNECTS_MAX: "10"
         NATS_RECONNECTS_WAIT: "1"
 
-- name: create the unleash secret
-  delegate_to: localhost
-  run_once: True
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: unleash-secret
-        namespace: "{{ ns }}"
-      type: Opaque
-      stringData:
-        database_host: "{{ groups['dbms_primary'][0] }}"
-        database_username: "{{ unleash_db_user }}"
-        database_password: "{{ unleash_db_password }}"
-
 - name: create the timezone configmap
   delegate_to: localhost
   run_once: True

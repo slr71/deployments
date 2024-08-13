@@ -292,3 +292,159 @@
                 - name: listen-port
                   containerPort: 25
 
+- name: create exim-sender service
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: local-exim
+        namespace: "{{ ns }}"
+      spec:
+        selector:
+          de-app: local-exim
+        ports:
+          - protocol: TCP
+            port: 25
+            targetPort: listen-port
+
+
+- name: create the unleash secret
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: unleash-secret
+        namespace: "{{ ns }}"
+      type: Opaque
+      stringData:
+        database_host: "{{ groups['dbms_primary'][0] }}"
+        database_username: "{{ unleash_db_user }}"
+        database_password: "{{ unleash_db_password }}"
+
+- name: create the unleash deployment
+  delegate_to: localhost
+  run_once: True
+  environment: 
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: unleash
+        namespace: "{{ ns }}"
+      spec:
+        replicas: 2
+        selector:
+          matchLabels:
+            app: unleash
+        template:
+          metadata:
+            labels:
+              app: unleash
+          spec:
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                    - key: de-app
+                      operator: In
+                      values:
+                      - unleash
+                  topologyKey: kubernetes.io/hostname
+            restartPolicy: Always
+            volumes:
+              - name: localtime
+                hostPath:
+                  path: /etc/localtime
+              - name: timezone
+                configMap:
+                  name: timezone
+                  items:
+                    - key: timezone
+                      path: timezone
+            containers:
+            - name: unleash
+              image: unleashorg/unleash-server:4.0.5
+              volumeMounts:
+                - name: localtime
+                  mountPath: /etc/localtime
+                  readOnly: true
+
+                - name: timezone
+                  mountPath: /etc/timezone
+                  subPath: timezone
+              env:
+                - name: DATABASE_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: unleash-secret
+                      key: database_host
+                - name: DATABASE_SSL
+                  value: "false"
+                - name: DATABASE_NAME
+                  value: "unleash"
+                - name: DATABASE_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: unleash-secret
+                      key: database_username
+                - name: DATABASE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: unleash-secret
+                      key: database_password
+              ports:
+                - name: listen-port
+                  containerPort: 4242
+              livenessProbe:
+                httpGet:
+                  path: /
+                  port: 4242
+                timeoutSeconds: 5
+                initialDelaySeconds: 30
+                periodSeconds: 20
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 4242
+                timeoutSeconds: 5
+                initialDelaySeconds: 30
+                periodSeconds: 20
+
+- name: create the unleash secret
+  delegate_to: localhost
+  run_once: True
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: unleash
+        namespace: "{{ ns }}"
+      spec:
+        selector:
+          app: unleash
+        ports:
+          - protocol: TCP
+            port: 4242
+            targetPort: listen-port
+
+
