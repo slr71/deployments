@@ -1,4 +1,13 @@
 ---
+- name: install the node-feature-discovery helm repo
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ localhost('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm_repository:
+    name: nfd
+    repo_url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+    state: present
+
 - name: install the nVidia helm repo
   delegate_to: localhost
   environment:
@@ -7,6 +16,16 @@
     name: nvdp
     repo_url: https://nvidia.github.io/k8s-device-plugin
     state: present
+
+- name: install the node-feature-discovery chart
+  delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ localhost('env', 'KUBECONFIG') }}"
+  kubernetes.core.helm:
+    name: node-feature-discovery
+    chart_ref: nfd/node-feature-discovery
+    namespace: kube-system
+    wait: true
 
 - name: install the nVidia device plugin chart
   delegate_to: localhost
