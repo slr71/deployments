@@ -2,7 +2,7 @@
 - name: install the node-feature-discovery helm repo
   delegate_to: localhost
   environment:
-    KUBECONFIG: "{{ localhost('env', 'KUBECONFIG') }}"
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm_repository:
     name: nfd
     repo_url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
@@ -11,7 +11,7 @@
 - name: install the nVidia helm repo
   delegate_to: localhost
   environment:
-    KUBECONFIG: "{{ localhost('env', 'KUBECONFIG') }}"
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm_repository:
     name: nvdp
     repo_url: https://nvidia.github.io/k8s-device-plugin
@@ -20,7 +20,7 @@
 - name: install the node-feature-discovery chart
   delegate_to: localhost
   environment:
-    KUBECONFIG: "{{ localhost('env', 'KUBECONFIG') }}"
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm:
     name: node-feature-discovery
     chart_ref: nfd/node-feature-discovery
@@ -30,7 +30,7 @@
 - name: install the nVidia device plugin chart
   delegate_to: localhost
   environment:
-    KUBECONFIG: "{{ localhost('env', 'KUBECONFIG') }}"
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm:
     name: nvidia-device-plugin
     chart_ref: nvdp/nvidia-device-plugin
