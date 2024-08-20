@@ -1,0 +1,8 @@
+---
+- name: install node feature discovery plugins
+  hosts: k3s_controllers[0]
+  connection: local
+  gather_facts: false
+  roles:
+    - role: kubernetes_node_feature_discovery
+
