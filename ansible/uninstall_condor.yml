@@ -1,0 +1,14 @@
+---
+
+- name: remove the condor package
+  hosts: condor
+  become: true
+  tasks:
+    - ansible.builtin.apt:
+        name: condor
+        state: absent
+        autoremove: true
+        purge: true
+    - ansible.builtin.file:
+        path: /etc/condor
+        state: absent
