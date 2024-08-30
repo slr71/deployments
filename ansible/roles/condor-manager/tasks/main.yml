@@ -1,6 +1,0 @@
----
-- name: enable the central manager role
-  become: true
-  ansible.builtin.template:
-    dest: "/etc/condor/config.d/01-central-manager.config"
-    src: "01-central-manager.config.j2"

@@ -1,4 +1,0 @@
----
-condor_version: "10.x"
-condor_uid_domain: "cyverse.org"
-condor_pool_password: ""
