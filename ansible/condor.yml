@@ -38,8 +38,6 @@
   become: true
   hosts: condor_manager
   tasks:
-    - debug:
-        msg: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --central-manager "{{ groups['condor_manager'][0] }}"
     - ansible.builtin.shell:
         cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --central-manager "{{ groups['condor_manager'][0] }}"
         chdir: '/root/'
