@@ -6,6 +6,9 @@
   - package:
       name: "python3-pip"
       state: "present"
+  - package:
+      name: curl
+      state: present
   - pip:
       name: "docker"
       state: present
@@ -22,37 +25,48 @@
   roles:
   - role: cyverse-ansible.docker
 
-- name: install and add preliminary configuration for condor
+- name: download condor install script
   become: true
   hosts: condor
-  roles:
-  - condor
+  tasks:
+    - ansible.builtin.get_url:
+        url: https://get.htcondor.org
+        dest: /root/condor_install.sh
+        mode: '0755'
 
-- name: add configuration for the condor manager node
+- name: install the central manager
   become: true
   hosts: condor_manager
-  roles:
-  - condor-manager
+  tasks:
+    - debug:
+        msg: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --central-manager "{{ groups['condor_manager'][0] }}"
+    - ansible.builtin.shell:
+        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --central-manager "{{ groups['condor_manager'][0] }}"
+        chdir: '/root/'
+        creates: '/usr/sbin/condor_master'
 
-- name: add configuration for the condor submit nodes
+- name: install the submit node
   become: true
   hosts: condor_submit
+  tasks:
+    - ansible.builtin.shell:
+        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --submit "{{ groups['condor_manager'][0] }}"
+        chdir: '/root/'
+        creates: '/usr/sbin/condor_master'
   roles:
-  - condor-submit
-  - de-road-runner
+    - de-road-runner
 
-- name: add configuration for the condor worker nodes
+- name: install the worker nodes
   become: true
   hosts: condor_worker
+  tasks:
+    - ansible.builtin.shell:
+        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --submit "{{ groups['condor_manager'][0] }}"
+        chdir: '/root/'
+        creates: '/usr/sbin/condor_master'
   roles:
-  - condor-worker
-  - de-docker-logging-plugin
-  - de-image-janitor
-  - de-network-pruner
-
-- name: log into required docker registries
-  hosts: condor_worker
-  become: true
-  roles:
-    - role: condor-worker-docker-registries
+    - de-docker-logging-plugin
+    - de-image-janitor
+    - de-network-pruner
+    - condor-worker-docker-registries
 
