@@ -1,0 +1,263 @@
+---
+- name: install elrepo-release
+  ansible.builtin.package:
+    name: elrepo-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: install epel-release
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Check for nfs 4.1 support in the kernel
+  lineinfile:
+    name: /boot/config-{{ ansible_kernel }}
+    line: "CONFIG_NFS_V4_1=y"
+    state: present
+  check_mode: yes
+  register: nfs_v4_1
+  failed_when: (nfs_v4_1 is changed) or (nfs_v4_1 is failed)
+
+- name: Check for nfs 4.2 support in the kernel
+  lineinfile:
+    name: /boot/config-{{ ansible_kernel }}
+    line: "CONFIG_NFS_V4_2=y"
+    state: present
+  check_mode: yes
+  register: nfs_v4_2
+  failed_when: (nfs_v4_2 is changed) or (nfs_v4_2 is failed)
+
+- name: install nfsv4 client on red hat systems
+  ansible.builtin.package:
+    name: nfs-utils
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: install required command-line utils
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - socat
+    - conntrack
+    - bash
+    - curl
+    - util-linux
+    - grep
+    - gawk
+
+- name: install open-iscsi when on debian systems
+  ansible.builtin.package:
+    name: open-iscsi
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: install iscsi-initiator-utils when on red hat systems
+  ansible.builtin.package:
+    name: iscsi-initiator-utils
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: set iscsi initiator name on red hat systems
+  ansible.builtin.shell:
+    cmd: echo "InitiatorName=$(/sbin/iscsi-iname)" > /etc/iscsi/initiatorname.iscsi
+    creates: /etc/iscsi/initiatorname.iscsi
+
+- name: enable iscsid on red hat systems
+  ansible.builtin.service:
+    name: iscsid
+    state: started
+    enabled: true
+  when: ansible_os_family == "RedHat"
+
+- name: Add the iscsi_tcp module
+  community.general.modprobe:
+    name: iscsi_tcp
+    state: present
+
+- name: add br_netfilter module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+
+- name: turn off swap for current session
+  ansible.builtin.shell: swapoff -a
+
+- name: disable swap permanently
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+
+- name: set up docker repo
+  block:
+    - ansible.builtin.shell:
+        cmd: |
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc \
+          && chmod a+r /etc/apt/keyrings/docker.asc \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - ansible.builtin.apt:
+        name: containerd.io
+        state: present
+        update_cache: yes
+
+    - name: set default containerd config
+      ansible.builtin.copy:
+        src: containerd.toml
+        dest: /etc/containerd/config.toml
+
+    - name: enable ip forwarding
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_set: true
+        reload: true
+
+    - ansible.builtin.systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+- name: install crictl
+  ansible.builtin.shell:
+    cmd: |
+      wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz \
+      && tar zxvf crictl-$VERSION-linux-amd64.tar.gz -C /usr/local/bin \
+      && rm -f crictl-$VERSION-linux-amd64.tar.gz
+  environment:
+    VERSION: "{{ old_crictl_version }}"
+
+- name: set up nvidia repo
+  ansible.builtin.shell:
+    cmd: |
+      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+      && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+      sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    creates: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+- name: install nvidia-container-toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+    update_cache: yes
+
+- name: configure containerd for the nvidia-container-toolkit
+  ansible.builtin.shell: nvidia-ctk runtime configure --runtime=containerd
+
+- name: restart containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+
+- community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - port: 6443 # required for k8s api
+      proto: tcp
+    - port: 10250 # kubelet metrics
+      proto: tcp
+    #- port: 5001 # embedded registry
+    #  proto: tcp
+    #- port: 51820:51821 # wireguard
+    #  proto: udp
+    - port: 30000:32767 # nodePorts
+      proto: tcp
+    - port: 12022:12023 # irods csi driver metrics
+      proto: tcp
+    - port: 6783 # weavenet tcp
+      proto: tcp
+    - port: 6783:6784 # weavenet udp
+      proto: udp
+  when: do_open_ports is undefined or do_open_ports | bool
+
+- community.general.ufw:
+    rule: allow
+    src: "{{ item }}"
+  loop:
+    - 10.42.0.0/16 # k3s pods
+    - 10.43.0.0/16 # k3s services
+  when: do_open_ports is undefined or do_open_ports | bool
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: /tmp/kubernetes-server
+    state: directory
+    mode: '0755'
+
+- ansible.builtin.unarchive:
+    src: https://dl.k8s.io/{{old_version}}/kubernetes-server-linux-amd64.tar.gz
+    dest: /tmp/kubernetes-server
+    remote_src: yes
+
+- ansible.builtin.shell:
+    chdir: /tmp/kubernetes-server/kubernetes/server/bin/
+    cmd: 'find . -type f -executable -exec mv {} /usr/bin/ \;'
+    creates: /usr/bin/kubelet
+
+- ansible.builtin.file:
+    path: /etc/systemd/system/kubelet.service.d/
+    state: directory
+    mode: '0755'
+
+- ansible.builtin.copy:
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    content: |
+      # Note: This dropin only works with kubeadm and kubelet v1.11+
+      [Service]
+      Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
+      Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
+      # This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
+      EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
+      # This is a file that the user can use for overrides of the kubelet args as a last resort. Preferably, the user should use
+      # the .NodeRegistration.KubeletExtraArgs object in the configuration files instead. KUBELET_EXTRA_ARGS should be sourced from this file.
+      EnvironmentFile=-/etc/default/kubelet
+      ExecStart=
+      ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
+
+- ansible.builtin.copy:
+    dest: /usr/lib/systemd/system/kubelet.service
+    content: |
+      [Unit]
+      Description=kubelet: The Kubernetes Node Agent
+      Documentation=https://kubernetes.io/docs/home/
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      ExecStart=/usr/bin/kubelet
+      Restart=always
+      StartLimitInterval=0
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: /opt/cni/bin/
+    state: directory
+    mode: '0755'
+
+- ansible.builtin.unarchive:
+    src: https://github.com/containernetworking/plugins/releases/download/{{ old_cni_version }}/cni-plugins-linux-amd64-{{old_cni_version}}.tgz
+    dest: /opt/cni/bin/
+    remote_src: yes
+
+- ansible.builtin.systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+##- ansible.builtin.shell:
+##    cmd: kubeadm init --kubernetes-version={{ old_version }} --pod-network-cidr={{ old_cidr_network }}
+
