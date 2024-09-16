@@ -2,10 +2,6 @@
 ---
 - hosts: k3s_controllers[0]
   gather_facts: false
-  roles:
-    - role: service_configurations
-      tags:
-        - configs
   tasks:
     - name: deploy services
       block:
