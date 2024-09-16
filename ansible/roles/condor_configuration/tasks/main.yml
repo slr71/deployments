@@ -1,0 +1,6 @@
+---
+- name: template the condor_config.local file
+  ansible.builtin.template:
+    src: condor_config.local.j2
+    dest: /etc/condor/condor_config.local
+    mode: '0644'

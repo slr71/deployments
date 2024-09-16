@@ -1,0 +1,79 @@
+## Which machine is your central manager?
+
+CONDOR_HOST = {{ groups["condor_manager"][0]}}
+
+## Pool's short description
+
+COLLECTOR_NAME = Condor Pool at $(FULL_HOSTNAME)
+
+##  When is this machine willing to start a job?
+
+START = TRUE && (NodeDisabled =!= true)
+
+IS_OWNER = FALSE
+
+##  When to suspend a job?
+
+SUSPEND = FALSE
+
+
+##  When to nicely stop a job?
+##  (as opposed to killing it instantaneously)
+
+PREEMPT = FALSE
+
+
+##  When to instantaneously kill a preempting job
+##  (e.g. if a job is in the pre-empting stage for too long)
+
+KILL = FALSE
+
+##  This macro determines what daemons the condor_master will start and keep its watchful eyes on.
+##  The list is a comma or space separated list of subsystem names
+
+DAEMON_LIST = MASTER, STARTD
+
+##  Sets how often the condor_negotiator starts a negotiation cycle.
+##  It is defined in seconds and defaults to 60 (1 minute).
+
+NEGOTIATOR_INTERVAL = 20
+
+##  Disable UID_DOMAIN check when submit a job
+
+TRUST_UID_DOMAIN = TRUE
+#################################
+## Added for iPlant Collaborative
+#################################
+CONDOR_ADMIN        = grid@cyverse.org
+UID_DOMAIN          = cyverse.org
+FILESYSTEM_DOMAIN   = cyverse.org
+COLLECTOR_NAME      = cyverse-{{ ns }}
+ALLOW_READ          = *.cyverse.org,*.iplantcollaborative.org,128.196.172.128/25,150.135.78.*,10.140.65.0/24,128.196.38.0/25,150.135.93.128/25,128.196.254.0/23,149.165.156.0/23,149.165.168.0/21,129.114.104.0/24,129.114.19.0/24,129.114.18.0/24,129.114.17.0/24,129.114.16.0/24
+ALLOW_WRITE         = *.cyverse.org,*.iplantcollaborative.org,128.196.172.128/25,150.135.78.*,10.140.65.0/24,128.196.38.0/25,150.135.93.128/25,128.196.254.0/23,149.165.156.0/23,149.165.168.0/21,129.114.104.0/24,129.114.19.0/24,129.114.18.0/24,129.114.17.0/24,129.114.16.0/24
+HIGHPORT            = 65535
+LOWPORT             = 61440
+ASSIGN_CPU_AFFINITY = True
+
+SEC_PASSWORD_FILE = $(LOCAL_DIR)/lib/condor/pool_password
+SEC_DAEMON_AUTHENTICATION = PREFERRED
+SEC_DAEMON_INTEGRITY = PREFERRED
+SEC_DAEMON_AUTHENTICATION_METHODS = PASSWORD
+SEC_DAEMON_ENCRYPTION = PREFERRED
+SEC_NEGOTIATOR_AUTHENTICATION = PREFERRED
+SEC_NEGOTIATOR_INTEGRITY = PREFERRED
+SEC_NEGOTIATOR_AUTHENTICATION_METHODS = PASSWORD
+SEC_CLIENT_AUTHENTICATION_METHODS = FS, PASSWORD
+
+NUM_SLOTS = 1
+NUM_SLOTS_TYPE_1 = 1
+SLOT_TYPE_1 = cpus=100%
+SLOT_TYPE_1_PARTITIONABLE = true
+
+SLOT_WEIGHT = 1
+
+IplantSpeedIndex = 5
+STARTD_ATTRS = $(STARTD_ATTRS) IplantSpeedIndex
+
+HAS_CYVERSE_ROAD_RUNNER = True
+STARTD_ATTRS = $(STARTD_ATTRS) HAS_CYVERSE_ROAD_RUNNER
+MaxVacateTime = 60 * $(MINUTE)

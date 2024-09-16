@@ -64,6 +64,7 @@
         chdir: '/root/'
         creates: '/usr/sbin/condor_master'
   roles:
+    - condor_configuration
     - de-docker-logging-plugin
     - de-image-janitor
     - de-network-pruner
