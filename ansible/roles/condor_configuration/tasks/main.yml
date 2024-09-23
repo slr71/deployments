@@ -1,6 +1,12 @@
 ---
-- name: template the condor_config.local file
+# - name: template the condor_config.local file
+#   ansible.builtin.template:
+#     src: condor_config.local.j2
+#     dest: /etc/condor/condor_config.local
+#     mode: '0644'
+
+- name: template the 20-road-runner.config file
   ansible.builtin.template:
-    src: condor_config.local.j2
-    dest: /etc/condor/condor_config.local
+    src: "20-road-runner.config.j2"
+    dest: "/etc/condor/config.d/20-road-runner.config"
     mode: '0644'

@@ -74,3 +74,20 @@
     - de-network-pruner
     - condor-worker-docker-registries
 
+- name: fix ownership issues on the worker nodes
+  become: true
+  hosts: condor_worker
+  gather_facts: false
+  tasks:
+    - ansible.builtin.file:
+        path: /opt/image-janitor
+        state: directory
+        owner: clauncher
+        recurse: yes
+
+    - ansible.builtin.systemd:
+        name: condor
+        state: restarted
+        enabled: yes
+        
+
