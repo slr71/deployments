@@ -37,6 +37,8 @@
     - ansible.builtin.user:
         user: clauncher
         create_home: yes
+        append: true
+        groups: docker
 
 - name: install the central manager
   become: true
