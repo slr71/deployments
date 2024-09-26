@@ -1,0 +1,6 @@
+---
+- name: set up k3s DE worker nodes
+  hosts: k3s_de_workers
+  become: true
+  roles:
+    - role: kubernetes_service_workers
