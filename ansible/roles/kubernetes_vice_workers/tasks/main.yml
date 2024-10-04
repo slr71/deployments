@@ -13,7 +13,7 @@
     INSTALL_K3S_EXEC: "agent"
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
     K3S_TOKEN: "{{ k3s_token }}"
-    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5444"
+    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:{{ k3s_api_port }}"
   ansible.builtin.shell: /usr/local/bin/k3s_install.sh --node-label=vice=true --node-taint=vice=only:NoSchedule
   when: (not k3s_installed_vice.stat.exists or force_reinstall | bool) and not k3s_use_storage_mount
 
@@ -25,7 +25,7 @@
     INSTALL_K3S_EXEC: "agent"
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
     K3S_TOKEN: "{{ k3s_token }}"
-    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5444"
+    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:{{ k3s_api_port }}"
   ansible.builtin.shell: /usr/local/bin/k3s_install.sh --kubelet-arg=root-dir={{k3s_storage_mount}}/kubelet-storage --node-label=vice=true --node-taint=vice=only:NoSchedule
   when: (not k3s_installed_vice.stat.exists or force_reinstall | bool) and k3s_use_storage_mount
 

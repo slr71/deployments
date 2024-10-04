@@ -102,7 +102,7 @@ backend harbor
     {% endfor %}
 
 listen kube-apiservers
-    bind :5443
+    bind :{{ k3s_api_port }}
 
     mode tcp
     option tcplog

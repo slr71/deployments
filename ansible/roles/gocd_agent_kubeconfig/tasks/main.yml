@@ -14,7 +14,7 @@
   ansible.utils.update_fact:
     updates:
       - path: k3s_yaml_data.clusters.0.cluster.server
-        value: "https://{{ groups['k3s_api_proxy'][0] }}:5443"
+        value: "https://{{ groups['k3s_api_proxy'][0] }}:{{ k3s_api_port }}"
   register: updated_k3s_yaml
 
 - name: debug

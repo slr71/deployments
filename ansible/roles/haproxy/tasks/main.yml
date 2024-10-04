@@ -19,7 +19,7 @@
   become: true
   community.general.ufw:
     rule: allow
-    port: 5443
+    port: "{{ k3s_api_port }}"
     proto: tcp
 
 - name: install | install haproxy

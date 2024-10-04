@@ -7,7 +7,7 @@
     INSTALL_K3S_EXEC: "agent"
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
     K3S_TOKEN: "{{ k3s_token }}"
-    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:5444"
+    K3S_URL: "https://{{ groups['k3s_api_proxy'][0] }}:{{ k3s_api_port }}"
     INSTALL_K3S_SKIP_START: "true"
   ansible.builtin.shell: /usr/local/bin/k3s_install.sh
   when: not k3s_installed_workers.stat.exists or force_reinstall | bool
