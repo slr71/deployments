@@ -1,0 +1,29 @@
+---
+- name: create k3s zone
+  ansible.posix.firewalld:
+    zone: k3s
+    state: present
+    permanent: true
+
+- name: add the sources to the k3s zone
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    zone: k3s
+    state: enabled
+    source: "{{ item }}"
+  loop: "{{ k3s_zone_sources }}"
+
+- name: open the ports
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    zone: k3s
+    state: enabled
+    port: "{{ item }}"
+  loop:
+    - "6443/tcp" # k3s api
+    - "6444/tcp" # k3s api
+    - "10250/tcp" # kubelet metrics
+    - "5001/tcp" # embedded container image registry
+    - "51280-51281/udp" # flannel wireguard
