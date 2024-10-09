@@ -4,6 +4,13 @@
     zone: k3s
     state: present
     permanent: true
+  register: k3s_zone_created
+
+- name: reload firewalld service
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+  when: k3s_zone_created.changed
 
 - name: add the sources to the k3s zone
   ansible.posix.firewalld:
@@ -13,6 +20,7 @@
     state: enabled
     source: "{{ item }}"
   loop: "{{ k3s_zone_sources }}"
+  notify: reload firewalld
 
 - name: open the ports
   ansible.posix.firewalld:
@@ -27,3 +35,4 @@
     - "10250/tcp" # kubelet metrics
     - "5001/tcp" # embedded container image registry
     - "51280-51281/udp" # flannel wireguard
+  notify: reload firewalld

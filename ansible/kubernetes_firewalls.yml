@@ -5,3 +5,9 @@
   roles:
     - role: k3s_api_firewall_zone
     - role: k3s_firewall_zone
+
+- name: setup k3s worker firewalls
+  hosts: k3s_workers
+  become: true
+  roles:
+    - role: k3s_firewall_zone

@@ -9,6 +9,13 @@
     zone: k3s-api
     state: present
     permanent: true
+  register: k3s_api_zone_created
+
+- name: reload firewall
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+  when: k3s_api_zone_created.changed
 
 - name: add the reverse proxy to the k3s-api zone
   ansible.posix.firewalld:
