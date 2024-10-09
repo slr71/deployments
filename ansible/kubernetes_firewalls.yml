@@ -1,0 +1,31 @@
+---
+- name: setup firewall rules
+  hosts: k3s_controllers
+  become: true
+  tasks:
+    - name: gather facts about the proxy
+      ansible.builtin.setup:
+      delegate_to: "{{ groups['k3s_api_proxy'][0] }}"
+      delegate_facts: true
+
+    - name: create the k3s-api zone
+      ansible.posix.firewalld:
+        zone: k3s-api
+        state: present
+        permanent: true
+
+    - name: add the reverse proxy to the k3s-api zone
+      ansible.posix.firewalld:
+        permanent: true
+        immediate: true
+        zone: k3s-api
+        state: enabled
+        source: "{{ hostvars[groups['k3s_api_proxy'][0]]['ansible_default_ipv4']['address'] }}"
+    
+    - name: open the k3s api port in the k3s-api zone
+      ansible.posix.firewalld:
+        permanent: true
+        immediate: true
+        zone: k3s-api
+        state: enabled
+        port: "6443/tcp"
