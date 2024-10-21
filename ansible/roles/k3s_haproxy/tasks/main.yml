@@ -12,7 +12,7 @@
   ansible.posix.firewalld:
     permanent: true
     immediate: true
-    zone: trusted
+    zone: public
     state: enabled
     port: "{{ k3s_api_port }}/tcp"
   notify: reload firewalld
