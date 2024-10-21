@@ -5,6 +5,18 @@
     rule: allow
     port: "{{ k3s_api_port }}"
     proto: tcp
+  when: ansible_os_family == 'Debian'
+
+- name: Open the API port
+  become: true
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    zone: trusted
+    state: enabled
+    port: "{{ k3s_api_port }}/tcp"
+  notify: reload firewalld
+  when: ansible_os_family == 'RedHat'
 
 - name: Install HAProxy
   become: true
