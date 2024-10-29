@@ -1,4 +1,10 @@
 ---
+- name: open ports with firewalld
+  hosts: k3s_nodes
+  become: true
+  roles:
+    - role: k3s_firewall_zone
+
 - name: prepare k3s nodes
   hosts: k3s_nodes
   become: true

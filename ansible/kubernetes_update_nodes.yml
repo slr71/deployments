@@ -1,6 +1,6 @@
 ---
 - name: system updates
-  hosts: k3s_workers
+  hosts: k8s-worker
   become: true
   serial: 5
   tasks:
@@ -58,7 +58,7 @@
 
 
 - name: system updates
-  hosts: k3s_controllers
+  hosts: k8s-control-plane
   become: true
   serial: 1
   tasks:

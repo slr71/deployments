@@ -110,27 +110,6 @@
       proto: tcp
   when: (do_open_ports is undefined or do_open_ports) and (ansible_os_family == "Debian") | bool
 
-- name: open tcp ports
-  ansible.builtin.iptables:
-    chain: INPUT
-    jump: ACCEPT
-    protocol: tcp
-    destination_ports:
-      - "6443" # k3s api
-      - "10250" # kubelet metrics
-      - "5001" # "embedded registry"
-      - "30000:32767" # nodePorts
-  when: (do_open_ports is undefined or do_open_ports) and (ansible_os_family == "RedHat") | bool
-
-- name: open udp ports
-  ansible.builtin.iptables:
-    chain: INPUT
-    jump: ACCEPT
-    protocol: udp
-    destination_ports:
-      - "51820:51821" # wireguard
-  when: (do_open_ports is undefined or do_open_ports) and (ansible_os_family == "RedHat") | bool
-
 - community.general.ufw:
     rule: allow
     src: "{{ item }}"

@@ -1,22 +1,10 @@
 ---
-- name: create k3s zone
-  ansible.posix.firewalld:
-    zone: k3s
-    state: present
-    permanent: true
-  register: k3s_zone_created
 
-- name: reload firewalld service
-  ansible.builtin.service:
-    name: firewalld
-    state: reloaded
-  when: k3s_zone_created.changed
-
-- name: add the sources to the k3s zone
+- name: add the pods and services sources to the trusted zone
   ansible.posix.firewalld:
     permanent: true
     immediate: true
-    zone: k3s
+    zone: trusted
     state: enabled
     source: "{{ item }}"
   loop: "{{ k3s_zone_sources }}"
@@ -26,7 +14,6 @@
   ansible.posix.firewalld:
     permanent: true
     immediate: true
-    zone: k3s
     state: enabled
     port: "{{ item }}"
   loop:
@@ -36,3 +23,4 @@
     - "5001/tcp" # embedded container image registry
     - "51280-51281/udp" # flannel wireguard
   notify: reload firewalld
+

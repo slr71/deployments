@@ -3,7 +3,6 @@
   hosts: k3s_controllers
   become: true
   roles:
-    - role: k3s_api_firewall_zone
     - role: k3s_firewall_zone
 
 - name: setup k3s worker firewalls
