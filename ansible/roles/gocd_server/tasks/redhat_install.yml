@@ -5,22 +5,27 @@
     url: https://download.gocd.org/gocd.repo
     dest: /etc/yum.repos.d/gocd.repo
 
-- name: install the go-server package
-  ansible.builtin.package:
+- name: install go-server
+  ansible.builtin.dnf:
     name: go-server
     state: present
+    disable_gpg_check: true
 
 - name: start and enable go-server
-  ansible.builin.service:
+  ansible.builtin.service:
     name: go-server
     state: started
     enabled: true
 
 - name: open port 8153
   ansible.posix.firewalld:
-    port: "8153/tcp"
     state: enabled
     permanent: true
-    immediate: true
-    source: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+    zone: public
+    rich_rule: |
+      rule family="ipv4" 
+      source address="{{ hostvars[item]['ansible_default_ipv4']['address'] }}" 
+      port protocol="tcp" 
+      port="8153" 
+      accept
   with_items: "{{ groups['de_proxy'] }}"

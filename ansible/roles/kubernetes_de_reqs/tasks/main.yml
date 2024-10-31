@@ -329,7 +329,7 @@
         namespace: "{{ ns }}"
       type: Opaque
       stringData:
-        database_host: "{{ groups['dbms_primary'][0] }}"
+        database_host: "{{ groups['dbms'][0] }}"
         database_username: "{{ unleash_db_user }}"
         database_password: "{{ unleash_db_password }}"
 

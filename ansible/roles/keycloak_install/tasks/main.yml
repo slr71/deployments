@@ -147,7 +147,7 @@
         KEYCLOAK_LOGLEVEL: '"{{ keycloak_log_level }}"'
         KEYCLOAK_PROXY: "{{ keycloak_proxy }}"
         DB_VENDOR: "{{ keycloak_db_vendor }}"
-        DB_ADDR: "{{ groups['dbms_primary'][0] }}"
+        DB_ADDR: "{{ groups['dbms'][0] }}"
         DB_PORT: "{{ keycloak_db_port }}"
         DB_NAME: "{{ keycloak_db_name }}"
         JDBC_PARAMS: "{{ keycloak_jdbc_params }}"
@@ -280,7 +280,7 @@
                   - name: DB_VENDOR
                     value: "{{ keycloak_db_vendor }}"
                   - name: DB_ADDR
-                    value: "{{ groups['dbms_primary'][0] }}"
+                    value: "{{ groups['dbms'][0] }}"
                   - name: DB_PORT
                     value: "{{ keycloak_db_port }}"
                   - name: DB_NAME

@@ -37,17 +37,25 @@
   ansible.builtin.package:
     name: libpq-devel
 
-- name: install python3-devel
-  ansible.builtin.package:
-    name: python3-devel
+# - name: install python-devel
+#   ansible.builtin.package:
+#     name: python-devel
 
 - name: install psycopg2
-  ansible.builtin.pip:
-    name: psycopg2
+  ansible.builtin.package:
+    name: python-psycopg2
 
 - name: install kubernetes lib
-  ansible.builtin.pip:
-    name: kubernetes
+  ansible.builtin.package:
+    name: python-kubernetes
+
+- name: install unzip
+  ansible.builtin.package:
+    name: unzip
+
+- name: install tar
+  ansible.builtin.package:
+    name: tar
 
 - name: check for migrate command
   command: which migrate

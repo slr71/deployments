@@ -61,7 +61,7 @@
       database:
         type: external
         external:
-          host: "{{ groups['dbms_primary'][0] }}"
+          host: "{{ groups['dbms'][0] }}"
           port: "{{ pg_listen_port }}"
           username: "{{ harbor_database_user }}"
           password: "{{ harbor_database_password }}"
