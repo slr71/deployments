@@ -36,17 +36,12 @@
   ansible.builtin.service:
     name: postgresql
     state: started
-
-- name: Check if the postgres user's password is set
-  become: true
-  become_user: postgres
-  ansible.builtin.shell: "psql -d postgres -c 'select 1'"
-  register: postgres_user_password
   
 - name: Set password for postgres user
+  become: true
+  become_user: postgres
   community.postgresql.postgresql_user:
     name: postgres
     password: "{{ pg_login_password }}"
     encrypted: yes
-  when: postgres_user_password.rc != 0
   

@@ -41,6 +41,7 @@
       with_items:
         - "postgresql-server-{{dbms_postgresql_version}}"
         - "postgresql-{{dbms_postgresql_version}}"
+        - "postgresql-contrib"
         - "python-psycopg2"
 
     - name: red hat | run initdb

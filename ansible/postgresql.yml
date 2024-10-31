@@ -5,4 +5,11 @@
   roles:
     - role: postgresql
     - role: postgresql_access
-    #- role: postgresql_init
+
+- name: initialize dbs
+  hosts: dbms
+  become: false
+  connection: local
+  roles:
+    - role: postgresql_init
+    - role: k3s_db
