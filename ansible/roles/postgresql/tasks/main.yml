@@ -1,11 +1,53 @@
 ---
-- include_tasks: variables.yml
+- name: Install on Debian family systems
+  block:
+    - name: open port 5432
+      community.general.ufw:
+        rule: allow
+        port: 5432
+        proto: tcp
 
-- include_tasks: install.yml
+    - apt:
+        update_cache: true
+        pkg:
+          - "postgresql-{{dbms_postgresql_version}}"
+          - "postgresql-client-{{dbms_postgresql_version}}"
+          - "python3-psycopg2"
+        state: present
 
-- include_tasks: configure.yml
+    - name: configure | ensure postgres user owns home dir
+      file:
+        path: /var/lib/postgresql
+        state: directory
+        owner: postgres
+        group: postgres
+        recurse: true
+  when: ansible_os_family == "Debian"
 
-- name: main | ensure postgresql is running
-  meta: flush_handlers
+- name: install postgresql and postgresql-server
+  block:
+    - name: open port 5432
+      ansible.posix.firewalld:
+        permanent: true
+        zone: public
+        state: enabled
+        port: "5432/tcp"
+      when: ansible_os_family == "RedHat"
+      notify: reload firewalld
 
-- include_tasks: replication.yml
+    - ansible.builtin.package:
+        state: present
+        name: "{{ item }}"
+      with_items:
+        - "postgresql-server-{{dbms_postgresql_version}}"
+        - "postgresql-{{dbms_postgresql_version}}"
+        - "python-psycopg2"
+
+    - name: red hat | run initdb
+      ansible.builtin.command: 
+        cmd: /usr/bin/postgresql-setup --initdb
+        creates: "/var/lib/pgsql/data"
+      notify:
+        - restart postgres
+  when: ansible_os_family == "RedHat"
+

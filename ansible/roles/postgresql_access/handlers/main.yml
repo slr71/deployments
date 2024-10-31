@@ -8,8 +8,3 @@
   ansible.builtin.service:
     name: postgresql
     state: reloaded
-
-- name: reload firewalld
-  ansible.builtin.service:
-    name: firewalld
-    state: reloaded
