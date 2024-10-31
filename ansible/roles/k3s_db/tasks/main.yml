@@ -6,7 +6,7 @@
 
     - name: init db | create connection user
       community.postgresql.postgresql_user:
-        login_host: "{{ groups['dbms_primary'][0] }}"
+        login_host: "{{ groups['dbms'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"
@@ -16,7 +16,7 @@
 
     - name: init db | create k3s database
       community.postgresql.postgresql_db:
-        login_host: "{{ groups['dbms_primary'][0] }}"
+        login_host: "{{ groups['dbms'][0] }}"
         port: "{{ pg_listen_port }}"
         login_user: "{{ pg_login_user }}"
         login_password: "{{ pg_login_password }}"

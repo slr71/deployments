@@ -1,39 +1,47 @@
 ---
+- debug:
+    msg: "{{pg_conf_path}}"
+
 - name: Add local access to pg_hba.conf
   community.postgresql.postgresql_pg_hba:
-    dest: /etc/postgresql/{{ dbms_postgresql_version }}/main/pg_hba.conf
+    dest: "{{pg_conf_path}}/pg_hba.conf"
     contype: host
     databases: all
     users: all
     address: "{{ item }}"
     method: md5
   loop: "{{ dbms_allowed_local_addresses }}"
+  notify: restart postgres
 
 - name: Add remote access to pg_hba.conf
   community.postgresql.postgresql_pg_hba:
-    dest: /etc/postgresql/{{ dbms_postgresql_version }}/main/pg_hba.conf
+    dest: "{{ pg_conf_path}}/pg_hba.conf"
     contype: host
     databases: all
     users: all
     address: "{{ item }}"
     method: md5
   loop: "{{ dbms_allowed_remote_addresses }}"
+  notify: restart postgres
 
-- name: Restart postgresql
-  ansible.builtin.service:
-    name: postgresql
-    state: restarted
-
-- name: Check if the postgres user's password is set
+- name: listen on all ip addresses
   become: true
   become_user: postgres
-  ansible.builtin.shell: "psql -d postgres -c 'select 1'"
-  register: postgres_user_password
+  community.postgresql.postgresql_set:
+    name: listen_addresses
+    value: "*"
+  notify: restart postgres
+
+- name: start postgresql if not already running
+  ansible.builtin.service:
+    name: postgresql
+    state: started
   
 - name: Set password for postgres user
+  become: true
+  become_user: postgres
   community.postgresql.postgresql_user:
     name: postgres
     password: "{{ pg_login_password }}"
     encrypted: yes
-  when: postgres_user_password.rc != 0
   

@@ -2,7 +2,7 @@
 - name: init db | create connection user
   delegate_to: localhost
   community.postgresql.postgresql_user:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -14,7 +14,7 @@
 - name: init db | create the grouper user
   delegate_to: localhost
   community.postgresql.postgresql_user:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -28,8 +28,8 @@
   community.postgresql.postgresql_user:
     login_host: "{{ groups['keycloak_dbms'][0] }}"
     port: "{{ pg_listen_port }}"
-    login_user: "{{ keycloak_login_username }}"
-    login_password: "{{ keycloak_login_password }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
     db: "{{ pg_db }}"
     name: "{{ keycloak_db_username }}"
     password: "{{ keycloak_db_password }}"
@@ -38,7 +38,7 @@
 - name: init db | create the harbor database user
   delegate_to: localhost
   community.postgresql.postgresql_user:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -50,7 +50,7 @@
 - name: init db  | create de database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -65,7 +65,7 @@
 - name: init db | install uuid-ossp for de database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -76,7 +76,7 @@
 - name: init db | install moddatetime for de database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -87,7 +87,7 @@
 - name: init db | install btree_gist for de database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -98,7 +98,7 @@
 - name: init db  | create notifications database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -113,7 +113,7 @@
 - name: init db | install uuid-ossp for notifications database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -124,7 +124,7 @@
 - name: init db  | create metadata database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -139,7 +139,7 @@
 - name: init db | install uuid-ossp for metdata database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -150,7 +150,7 @@
 - name: init db | create the de_releases database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -165,7 +165,7 @@
 - name: init db | install uuid-ossp for the de_releases database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -176,7 +176,7 @@
 - name: init db | install moddatetime for the de_releases database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -187,7 +187,7 @@
 - name: init db | create the harbor core database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -202,7 +202,7 @@
 - name: init db | create the harbor clair database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -217,7 +217,7 @@
 - name: init db | create the harbor notary server database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -232,7 +232,7 @@
 - name: init db | create the harbor notary signer database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -247,7 +247,7 @@
 - name: init db  | create grouper database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -264,8 +264,8 @@
   community.postgresql.postgresql_db:
     login_host: "{{ groups['keycloak_dbms'][0] }}"
     port: "{{ pg_listen_port }}"
-    login_user: "{{ keycloak_login_username }}"
-    login_password: "{{ keycloak_login_password }}"
+    login_user: "{{ pg_login_user }}"
+    login_password: "{{ pg_login_password }}"
     name: "{{ keycloak_db_name }}"
     owner: "{{ keycloak_db_username }}"
     encoding: "{{ encoding }}"
@@ -277,7 +277,7 @@
 - name: init db  | create qms database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -292,7 +292,7 @@
 - name: init db | install uuid-ossp for qms database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -303,7 +303,7 @@
 - name: init db | install moddatetime for qms database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -314,7 +314,7 @@
 - name: init db | install btree_gist for qms database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -325,7 +325,7 @@
 - name: init_db | install insert_username for qms database
   delegate_to: localhost
   community.postgresql.postgresql_ext:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -336,7 +336,7 @@
 - name: init db  | create unleash database
   delegate_to: localhost
   community.postgresql.postgresql_db:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
@@ -434,37 +434,37 @@
 - name: init db | run de database migrations
   delegate_to: localhost
   ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user }}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" up
+    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user }}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run metadata db migrations
   delegate_to: localhost
   ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "{{ dbs_dir.path }}/metadata-db/migrations" up
+    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "{{ dbs_dir.path }}/metadata-db/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run notifications db migrations
   delegate_to: localhost
   ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "{{ dbs_dir.path }}/notifications-db/migrations" up
+    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "{{ dbs_dir.path }}/notifications-db/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run mgmt db migrations
   delegate_to: localhost
   ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ dbs_dir.path }}/mgmt/db/migrations" up
+    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ dbs_dir.path }}/mgmt/db/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | run qms repo for its migrations
   delegate_to: localhost
   ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms_primary'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable" -path "{{ dbs_dir.path }}/qms/migrations" up
+    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable" -path "{{ dbs_dir.path }}/qms/migrations" up
   when: migrate is defined and migrate
 
 - name: init db | add default instant launch mapping to the de db
   delegate_to: localhost
   community.postgresql.postgresql_query:
-    login_host: "{{ groups['dbms_primary'][0] }}"
+    login_host: "{{ groups['dbms'][0] }}"
     port: "{{ pg_listen_port }}"
     login_user: "{{ pg_login_user }}"
     login_password: "{{ pg_login_password }}"
