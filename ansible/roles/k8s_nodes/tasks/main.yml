@@ -1,0 +1,270 @@
+---
+- name: install required command-line utils
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - bash
+    - curl
+    - util-linux
+    - grep
+    - gawk
+
+- name: Check for nfs 4.1 support in the kernel
+  lineinfile:
+    name: /boot/config-{{ ansible_kernel }}
+    line: "CONFIG_NFS_V4_1=y"
+    state: present
+  check_mode: yes
+  register: nfs_v4_1
+  failed_when: (nfs_v4_1 is changed) or (nfs_v4_1 is failed)
+
+- name: Check for nfs 4.2 support in the kernel
+  lineinfile:
+    name: /boot/config-{{ ansible_kernel }}
+    line: "CONFIG_NFS_V4_2=y"
+    state: present
+  check_mode: yes
+  register: nfs_v4_2
+  failed_when: (nfs_v4_2 is changed) or (nfs_v4_2 is failed)
+
+- name: install runc
+  ansible.builtin.package:
+    name: runc
+    state: present
+
+# See https://www.reddit.com/r/linuxadmin/comments/flzx5r/ansible_how_to_disable_swap/
+- name: swapoff -a
+  become: true
+  ansible.builtin.command: swapoff -a
+
+- name: comment out swap mounts in fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: true
+  notify: reboot host
+
+- name: red hat family configuration
+  block:
+    - name: install elrepo-release
+      ansible.builtin.package:
+        name: elrepo-release
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: install epel-release
+      ansible.builtin.package:
+        name: epel-release
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: install wireguard
+      ansible.builtin.package:
+        name: wireguard-tools
+        state: present
+      when: (do_wireguard is undefined or do_wireguard) and (ansible_os_family == "RedHat") | bool
+
+    - name: install nfsv4 client on red hat systems
+      ansible.builtin.package:
+        name: nfs-utils
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: install iscsi-initiator-utils when on red hat systems
+      ansible.builtin.package:
+        name: iscsi-initiator-utils
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: set iscsi initiator name on red hat systems
+      ansible.builtin.shell:
+        cmd: echo "InitiatorName=$(/sbin/iscsi-iname)" > /etc/iscsi/initiatorname.iscsi
+        creates: /etc/iscsi/initiatorname.iscsi
+
+    - name: enable iscsid on red hat systems
+      ansible.builtin.service:
+        name: iscsid
+        state: started
+        enabled: true
+      when: ansible_os_family == "RedHat"
+
+    - name: add the docker-ce repo for containerd
+      ansible.builtin.yum_repository:
+        name: docker-ce-stable
+        description: docker-ce repo has containerd
+        enabled: true
+        gpgcheck: true
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+
+    - name: install containerd
+      ansible.builtin.package:
+        name: containerd.io
+        state: present
+
+    - name: setenforce 0
+      become: true
+      ansible.builtin.shell: setenforce 0
+      ignore_errors: true
+      notify: reboot host
+
+    - name: set permissive mode for SELinux
+      become: true
+      ansible.builtin.shell: sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+      ignore_errors: true
+      notify: reboot host
+
+    - name: add the kubernetes yum repository
+      ansible.builtin.yum_repository:
+        name: kubernetes
+        description: it's for kubernetes
+        enabled: true
+        gpgcheck: true
+        gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/rpm/repodata/repomd.xml.key"
+        baseurl: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/rpm/"
+  when: ansible_os_family == "RedHat"
+
+- name: debian family configuration
+  block:
+    - name: install wireguard
+      ansible.builtin.package:
+        name: wireguard
+        state: present
+      when: (do_wireguard is undefined or do_wireguard) and (ansible_os_family == "Debian") | bool
+
+    - name: install open-iscsi when on debian systems
+      ansible.builtin.package:
+        name: open-iscsi
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: install nfsv4 client on debian systems
+      ansible.builtin.package:
+        name: nfs-common
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: create the /etc/apt/keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: install required packages
+      ansible.builtin.package:
+        name: "{{item}}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gpg
+
+    - name: install gpg key
+      become: true
+      ansible.builtin.shell:
+        cmd: "curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: install helm repo gpg key
+      become: true
+      ansible.builtin.shell:
+        cmd: "curl -fsSL https://baltocdn.com/helm/signing.asc | gpg --dearmor -o /etc/apt/keyrings/helm.gpg"
+        creates: /etc/apt/keyrings/helm.gpg
+
+    - name: add the kubernetes apt repo
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/ /"
+        state: present
+
+    - name: install containerd
+      ansible.builtin.package:
+        name: containerd
+        state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add the iscsi_tcp module
+  community.general.modprobe:
+    name: iscsi_tcp
+    state: present
+    persistent: present
+
+- name: load the overlay kernel module
+  community.general.modprobe:
+    name: overlay
+    state: present
+    persistent: present
+
+- name: load the br_netfilter kernel module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present
+    persistent: present
+
+- name: install kubeadm, kubelet, and kubectl, cri-tools, and kubernetes-cni
+  ansible.builtin.package:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+    - cri-tools
+    - kubernetes-cni
+
+- name: download helm tarball
+  ansible.builtin.get_url:
+    url: "https://get.helm.sh/helm-v{{helm_version}}-linux-amd64.tar.gz"
+    dest: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
+
+- name: unarchive helm tarball
+  ansible.builtin.unarchive:
+    src: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
+    dest: "/tmp"
+    remote_src: yes
+
+- name: install helm
+  ansible.builtin.copy:
+    src: "/tmp/linux-amd64/helm"
+    dest: "/usr/bin/helm"
+    remote_src: yes
+
+- name: remove helm temp dir
+  ansible.builtin.file:
+    path: "/tmp/linux-amd64"
+    state: absent
+
+- name: remove helm tarball
+  ansible.builtin.file:
+    path: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
+
+- name: containerd is started
+  ansible.builtin.service:
+    name: containerd
+    state: restarted
+    enabled: true
+
+- name: apt-mark hold kubelet kubeadm kubectl helm
+  become: true
+  ansible.builtin.shell:
+    cmd: apt-mark hold kubelet kubeadm kubectl helm
+  ignore_errors: true
+  when: ansible_os_family == "Debian"
+
+- name: install calicoctl
+  ansible.builtin.get_url:
+    dest: /usr/bin/calicoctl
+    mode: "0755"
+    owner: root
+    url: "https://github.com/projectcalico/calico/releases/download/v{{calico_version}}/calicoctl-linux-amd64"
+
+- name: copy the storage_fix.sh file
+  ansible.builtin.template:
+    src: storage_fix.sh.j2
+    dest: "/root/storage_fix.sh"
+    owner: root
+    group: root
+    mode: "0744"
+  when: k8s_use_storage_mount is defined and k8s_use_storage_mount

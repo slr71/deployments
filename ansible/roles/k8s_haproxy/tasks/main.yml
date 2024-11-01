@@ -3,7 +3,7 @@
   become: true
   community.general.ufw:
     rule: allow
-    port: "{{ k3s_api_port }}"
+    port: "{{ k8s_api_port }}"
     proto: tcp
   when: ansible_os_family == 'Debian'
 
@@ -14,7 +14,7 @@
     immediate: true
     zone: public
     state: enabled
-    port: "{{ k3s_api_port }}/tcp"
+    port: "{{ k8s_api_port }}/tcp"
   notify: reload firewalld
   when: ansible_os_family == 'RedHat'
 

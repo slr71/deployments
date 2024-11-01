@@ -1,0 +1,57 @@
+---
+- name: add the pods and services sources to the trusted zone
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    zone: trusted
+    state: enabled
+    source: "{{ item }}"
+  loop: "{{ k3s_zone_sources }}"
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+
+- name: open the ports
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    state: enabled
+    port: "{{ item }}"
+  loop:
+    - "6443/tcp" # k8s api
+    - "10250/tcp" # kubelet api
+    - "10257/tcp" # kube-controller-manager
+    - "10259/tcp" # kube-scheduler
+    - "51280-51281/udp" # calico wireguard
+    - "30000:32767/tcp" # nodeports
+    - "30000:32767/udp" # nodeports
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+
+- community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - port: 6443 # required for k3s api
+      proto: tcp
+    - port: 10250 # kubelet metrics
+      proto: tcp
+    - port: 10257 # kube-controller-manager
+      proto: tcp
+    - port: 10259 # kube-scheduler
+      proto: tcp
+    - port: 51820:51821 # wireguard
+      proto: udp
+    - port: 30000:32767 # nodePorts
+      proto: tcp
+    - port: 30000:32767 # nodePorts
+      proto: tcp
+  when: ansible_os_family == "Debian"
+
+- community.general.ufw:
+    rule: allow
+    src: "{{ item }}"
+  loop:
+    - 10.42.0.0/16 # k3s pods
+    - 10.43.0.0/16 # k3s services
+  when: ansible_os_family == "Debian"
