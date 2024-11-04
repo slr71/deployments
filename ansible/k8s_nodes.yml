@@ -1,6 +1,30 @@
 ---
-- name: prepare k3s nodes
+- name: prepare the nodes
   hosts: k8s_nodes
   become: true
-  roles:
-    - role: k8s_nodes
+  tasks:
+    - ansible.builtin.include_role:
+        name: k8s_nodes
+      tags:
+        - install
+
+- name: create the first controller node
+  hosts: k8s_controllers[0]
+  become: true
+  tasks:
+    - ansible.builtin.include_role:
+        name: k8s_nodes
+        tasks_from: controllers.yml
+      tags:
+        - controller_init
+
+- name: join the remaining controller nodes
+  hosts: k8s_controllers[1:]
+  become: true
+  tasks:
+    - name: join the remaining nodes
+      ansible.builtin.include_role:
+        name: k8s_nodes
+        tasks_from: controllers.yml
+      tags:
+        - controller_join

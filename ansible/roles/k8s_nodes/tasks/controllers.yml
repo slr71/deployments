@@ -1,0 +1,126 @@
+# Sets up control nodes in a k8s cluster with kubeadm.
+#
+# Vars:
+#   - control_plane_endpoint: The endpoint on the reverse proxy.
+#   - k8s_pod_network_cidr: The network cidr for pods.
+#   - k8s_service_cidr: The service cidr.
+#   - k8s_token: The initialization and join token.
+---
+- name: setup controller
+  become: true
+  tags:
+    - controller_init
+  block:
+    - name: create the /etc/kubernetes/ directory
+      ansible.builtin.file:
+        path: /etc/kubernetes
+        state: directory
+
+    - ansible.builtin.stat:
+        path: /etc/kubernetes/join_command
+      register: join_command_file
+
+    - name: init the controller
+      ansible.builtin.shell:
+        cmd: |
+          kubeadm init \
+          --control-plane-endpoint "{{k8s_control_plane_endpoint}}" \
+          --node-name "{{inventory_hostname}}" \
+          --pod-network-cidr "{{k8s_pods_cidr}}" \
+          --service-cidr "{{k8s_services_cidr}}" \
+          --upload-certs
+      when: not join_command_file.stat.exists
+
+    - name: get the join command
+      ansible.builtin.shell:
+        cmd: kubeadm token create --print-join-command
+      register: k8s_join_command
+      when: not join_command_file.stat.exists
+
+    - name: write out the join_command file on the host
+      ansible.builtin.copy:
+        content: "{{k8s_join_command.stdout[0]}}"
+        dest: /etc/kubernetes/join_command
+        mode: "0755"
+      when: k8s_join_command is success
+
+    - name: copy the join command locally
+      ansible.builtin.fetch:
+        src: /etc/kubernetes/join_command
+        dest: /tmp/k8s_join_command
+
+- name: set up remaining controllers
+  become: true
+  tags:
+    - controller_join
+  block:
+    - name: create the /etc/kubernetes/ directory
+      ansible.builtin.file:
+        path: /etc/kubernetes
+        state: directory
+
+    - ansible.builtin.stat:
+        path: /etc/kubernetes/join_result
+      register: join_result_stat
+
+    - name: copy command to the remote machine
+      ansible.builtin.copy:
+        src: /tmp/k8s_join_command
+        dest: /etc/kubernetes/k8s_join_command
+        mode: 0777
+      when: join_result_stat.exists is defined and not join_result_stat.exists
+
+    - name: read command into var
+      ansible.builtin.set_fact:
+        join_command: "{{ lookup('ansible.builtin.file', '/etc/kubernetes/k8s_join_command') }}"
+      when: join_result_stat.exists is defined and not join_result_stat.exists
+
+    - name: join the remaining controllers
+      ansible.builtin.shell:
+        cmd: "{{join_command}} --control-plane"
+      register: join_result
+      when: join_result_stat.exists is defined and not join_result_stat.exists
+
+    - name: write out joined_result
+      ansible.builtin.copy:
+        content: "{{join_result.stdout}}"
+        dest: "/etc/kubernetes/join_result"
+      when: join_result is success
+
+- name: set up worker nodes
+  become: true
+  tags:
+    - worker_join
+  block:
+    - name: create the /etc/kubernetes/ directory
+      ansible.builtin.file:
+        path: /etc/kubernetes
+        state: directory
+
+    - ansible.builtin.stat:
+        path: /etc/kubernetes/join_result
+      register: join_result_stat
+
+    - name: copy command to the remote machine
+      ansible.builtin.copy:
+        src: /tmp/k8s_join_command
+        dest: /tmp/k8s_join_command
+        mode: 0777
+      when: not join_result_stat.exists
+
+    - name: read command into var
+      ansible.builtin.set_fact:
+        join_command: "{{ lookup('ansible.builtin.file', '/tmp/k8s_join_command') }}"
+      when: not join_result_stat.exists
+
+    - name: join the worker nodes
+      ansible.builtin.shell:
+        cmd: "{{join_command}}"
+      when: not join_result_stat.exists
+      register: join_result
+
+    - name: write out the join_result file
+      ansible.builtin.copy:
+        content: "{{join_result.stdout}}"
+        dest: /etc/kubernetes/join_result
+      when: join_result is success

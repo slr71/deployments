@@ -192,23 +192,11 @@ job_status_listener_nodeport: 31342
 agave_cb_nodeport: 31343
 harbor_nodeport: 30002
 
-# K3s Default Variables
-force_reinstall: false
-k3s_db_name: k3s_de
-k3s_token: K3sT0k3n
-k3s_version: v1.29.1+k3s1
-k3s_flannel_backend: wireguard-native
-k3s_registry_mirror: registry-1.docker.io
-k3s_registry_mirror_endpoint: https://registry-1.docker.io
-k3s_registry_mirror_token: ""
-k3s_registry_mirror_insecure_skip_verify: false
-k3s_datastore_endpoint: http://replace_me
-k3s_kubeconfig_output: "/etc/rancher/k3s/k3s.yaml"
-k3s_kubeconfig_mode: "644"
+# K8s Default Variables
+k8s_control_plane_endpoint: replace_me
 k8s_api_port: "6443"
-k8s_zone_sources:
-  - "10.43.0.0/16" # k3s services
-  - "10.42.0.0/16" # k3s pods
+k8s_pods_cidr: "10.42.0.0/16"
+k8s_services_cidr: "10.43.0.0/16"
 
 # Harbor installation variables
 harbor_url: harbor.cyverse.org
