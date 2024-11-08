@@ -74,11 +74,11 @@
             state: present
           when: ansible_os_family == "RedHat"
 
-        - name: install wireguard
-          ansible.builtin.package:
-            name: wireguard-tools
-            state: present
-          when: (do_wireguard is undefined or do_wireguard) and (ansible_os_family == "RedHat") | bool
+        # - name: install wireguard
+        #   ansible.builtin.package:
+        #     name: wireguard-tools
+        #     state: present
+        #   when: (do_wireguard is undefined or do_wireguard) and (ansible_os_family == "RedHat") | bool
 
         - name: install tc
           ansible.builtin.package:
@@ -137,23 +137,23 @@
           ignore_errors: true
           notify: reboot host
 
-        - name: add the kubernetes yum repository
-          ansible.builtin.yum_repository:
-            name: kubernetes
-            description: it's for kubernetes
-            enabled: true
-            gpgcheck: true
-            gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/rpm/repodata/repomd.xml.key"
-            baseurl: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/rpm/"
+        # - name: add the kubernetes yum repository
+        #   ansible.builtin.yum_repository:
+        #     name: kubernetes
+        #     description: it's for kubernetes
+        #     enabled: true
+        #     gpgcheck: true
+        #     gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/rpm/repodata/repomd.xml.key"
+        #     baseurl: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/rpm/"
       when: ansible_os_family == "RedHat"
 
     - name: debian family configuration
       block:
-        - name: install wireguard
-          ansible.builtin.package:
-            name: wireguard
-            state: present
-          when: (do_wireguard is undefined or do_wireguard) and (ansible_os_family == "Debian") | bool
+        # - name: install wireguard
+        #   ansible.builtin.package:
+        #     name: wireguard
+        #     state: present
+        #   when: (do_wireguard is undefined or do_wireguard) and (ansible_os_family == "Debian") | bool
 
         - name: install open-iscsi when on debian systems
           ansible.builtin.package:
@@ -189,16 +189,16 @@
             cmd: "curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg"
             creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-        - name: install helm repo gpg key
-          become: true
-          ansible.builtin.shell:
-            cmd: "curl -fsSL https://baltocdn.com/helm/signing.asc | gpg --dearmor -o /etc/apt/keyrings/helm.gpg"
-            creates: /etc/apt/keyrings/helm.gpg
+        # - name: install helm repo gpg key
+        #   become: true
+        #   ansible.builtin.shell:
+        #     cmd: "curl -fsSL https://baltocdn.com/helm/signing.asc | gpg --dearmor -o /etc/apt/keyrings/helm.gpg"
+        #     creates: /etc/apt/keyrings/helm.gpg
 
-        - name: add the kubernetes apt repo
-          ansible.builtin.apt_repository:
-            repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/ /"
-            state: present
+        # - name: add the kubernetes apt repo
+        #   ansible.builtin.apt_repository:
+        #     repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/ /"
+        #     state: present
 
         - name: install containerd
           ansible.builtin.package:
@@ -224,42 +224,42 @@
         state: present
         persistent: present
 
-    - name: install kubeadm, kubelet, and kubectl, cri-tools, and kubernetes-cni
-      ansible.builtin.package:
-        name: "{{item}}"
-        state: present
-      with_items:
-        - kubelet
-        - kubeadm
-        - kubectl
-        - cri-tools
-        - kubernetes-cni
+    # - name: install kubeadm, kubelet, and kubectl, cri-tools, and kubernetes-cni
+    #   ansible.builtin.package:
+    #     name: "{{item}}"
+    #     state: present
+    #   with_items:
+    #     - kubelet
+    #     - kubeadm
+    #     - kubectl
+    #     - cri-tools
+    #     - kubernetes-cni
 
-    - name: download helm tarball
-      ansible.builtin.get_url:
-        url: "https://get.helm.sh/helm-v{{helm_version}}-linux-amd64.tar.gz"
-        dest: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
+    # - name: download helm tarball
+    #   ansible.builtin.get_url:
+    #     url: "https://get.helm.sh/helm-v{{helm_version}}-linux-amd64.tar.gz"
+    #     dest: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
 
-    - name: unarchive helm tarball
-      ansible.builtin.unarchive:
-        src: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
-        dest: "/tmp"
-        remote_src: yes
+    # - name: unarchive helm tarball
+    #   ansible.builtin.unarchive:
+    #     src: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
+    #     dest: "/tmp"
+    #     remote_src: yes
 
-    - name: install helm
-      ansible.builtin.copy:
-        src: "/tmp/linux-amd64/helm"
-        dest: "/usr/bin/helm"
-        remote_src: yes
+    # - name: install helm
+    #   ansible.builtin.copy:
+    #     src: "/tmp/linux-amd64/helm"
+    #     dest: "/usr/bin/helm"
+    #     remote_src: yes
 
-    - name: remove helm temp dir
-      ansible.builtin.file:
-        path: "/tmp/linux-amd64"
-        state: absent
+    # - name: remove helm temp dir
+    #   ansible.builtin.file:
+    #     path: "/tmp/linux-amd64"
+    #     state: absent
 
-    - name: remove helm tarball
-      ansible.builtin.file:
-        path: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
+    # - name: remove helm tarball
+    #   ansible.builtin.file:
+    #     path: "/tmp/helm-v{{helm_version}}-linux-amd64.tar.gz"
 
     - name: containerd is started
       ansible.builtin.service:
@@ -267,24 +267,36 @@
         state: restarted
         enabled: true
 
-    - name: kubelet is enabled
-      ansible.builtin.service:
-        name: kubelet
-        enabled: true
+    # - name: kubelet is enabled
+    #   ansible.builtin.service:
+    #     name: kubelet
+    #     enabled: true
 
-    - name: apt-mark hold kubelet kubeadm kubectl helm
-      become: true
-      ansible.builtin.shell:
-        cmd: apt-mark hold kubelet kubeadm kubectl helm
-      ignore_errors: true
-      when: ansible_os_family == "Debian"
+    # - name: apt-mark hold kubelet kubeadm kubectl helm
+    #   become: true
+    #   ansible.builtin.shell:
+    #     cmd: apt-mark hold kubelet kubeadm kubectl helm
+    #   ignore_errors: true
+    #   when: ansible_os_family == "Debian"
 
-    - name: install calicoctl
-      ansible.builtin.get_url:
-        dest: /usr/bin/calicoctl
-        mode: "0755"
-        owner: root
-        url: "https://github.com/projectcalico/calico/releases/download/v{{calico_version}}/calicoctl-linux-amd64"
+    # - name: install calicoctl
+    #   ansible.builtin.get_url:
+    #     dest: /usr/bin/calicoctl
+    #     mode: "0755"
+    #     owner: root
+    #     url: "https://github.com/projectcalico/calico/releases/download/v{{calico_version}}/calicoctl-linux-amd64"
+
+    - name: add the k0s group
+      ansible.builtin.group:
+        name: k0s
+        state: present
+
+    - name: set up passwordless sudo for the k0s group
+      community.general.sudoers:
+        group: k0s
+        name: k0s
+        commands: ALL
+        state: present
 
     - name: copy the storage_fix.sh file
       ansible.builtin.template:
@@ -295,4 +307,3 @@
         mode: "0744"
       when: k8s_use_storage_mount is defined and k8s_use_storage_mount
 
-- ansible.builtin.include_tasks: controllers.yml

@@ -3,8 +3,12 @@
   become: true
   community.general.ufw:
     rule: allow
-    port: "{{ k8s_api_port }}"
+    port: "{{ item }}"
     proto: tcp
+  with_items:
+    - "{{ k8s_api_port }}" # k0s api
+    - "9443" # join api
+    - "8132" # konnectivity
   when: ansible_os_family == 'Debian'
 
 - name: Open the API port
@@ -14,8 +18,12 @@
     immediate: true
     zone: public
     state: enabled
-    port: "{{ k8s_api_port }}/tcp"
+    port: "{{ item }}"
   notify: reload firewalld
+  with_items:
+    - "{{ k8s_api_port }}/tcp" # k0s api port
+    - "9443/tcp" # join api port
+    - "8132/tcp" # konnectivity server
   when: ansible_os_family == 'RedHat'
 
 - name: Install HAProxy

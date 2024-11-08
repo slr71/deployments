@@ -1,0 +1,7 @@
+---
+- name: prepare the nodes
+  hosts: k8s_nodes
+  become: true
+  roles:
+    - role: k8s_firewalld
+    - role: k8s_nodes

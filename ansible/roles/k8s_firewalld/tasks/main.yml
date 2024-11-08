@@ -1,15 +1,4 @@
 ---
-- name: add the pods and services sources to the trusted zone
-  ansible.posix.firewalld:
-    permanent: true
-    immediate: true
-    zone: trusted
-    state: enabled
-    source: "{{ item }}"
-  loop: "{{ k3s_zone_sources }}"
-  notify: reload firewalld
-  when: ansible_os_family == "RedHat"
-
 - name: open the ports
   ansible.posix.firewalld:
     permanent: true
@@ -18,12 +7,13 @@
     port: "{{ item }}"
   loop:
     - "6443/tcp" # k8s api
-    - "10250/tcp" # kubelet api
-    - "10257/tcp" # kube-controller-manager
-    - "10259/tcp" # kube-scheduler
-    - "51280-51281/udp" # calico wireguard
-    - "30000:32767/tcp" # nodeports
-    - "30000:32767/udp" # nodeports
+    - "2380/tcp" # etcd
+    - "10250/tcp" # kubelet
+    - "9443/tcp" # join api
+    - "8472/udp" # flannel
+    - "8285/udp" # flannel
+    - "30000-32767/tcp" # nodeports
+    - "30000-32767/udp" # nodeports
   notify: reload firewalld
   when: ansible_os_family == "RedHat"
 
@@ -34,13 +24,15 @@
   loop:
     - port: 6443 # required for k3s api
       proto: tcp
+    - port: 2380
+      proto: tcp
     - port: 10250 # kubelet metrics
       proto: tcp
-    - port: 10257 # kube-controller-manager
+    - port: 9443
       proto: tcp
-    - port: 10259 # kube-scheduler
-      proto: tcp
-    - port: 51820:51821 # wireguard
+    - port: 8472
+      proto: udp
+    - port: 8285
       proto: udp
     - port: 30000:32767 # nodePorts
       proto: tcp

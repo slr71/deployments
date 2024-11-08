@@ -1,10 +1,4 @@
 ---
-- name: open ports with firewalld
-  hosts: k8s_nodes
-  become: true
-  roles:
-    - role: k8s_firewalld
-
 # so they can register through the load-balancer, otherwise
 # they won't be able to use it.
 - name: set the HAProxy load balancer
@@ -12,6 +6,13 @@
   become: true
   roles:
     - role: k8s_haproxy
+
+- name: prepare the nodes
+  hosts: k8s_nodes
+  become: true
+  roles:
+    - role: k8s_firewalld
+    - role: k8s_nodes
 
 - name: prepare k8s nodes
   hosts: k8s_nodes
