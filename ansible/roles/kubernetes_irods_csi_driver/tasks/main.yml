@@ -1,12 +1,12 @@
 ---
-- name: install the irods CSI driver helm repo
-  delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.helm_repository:
-    name: irods-csi-driver-repo
-    repo_url: "{{ irods_csi_driver_repo }}"
-    state: present
+# - name: install the irods CSI driver helm repo
+#   delegate_to: localhost
+#   environment:
+#     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+#   kubernetes.core.helm_repository:
+#     name: irods-csi-driver-repo
+#     repo_url: "{{ irods_csi_driver_repo }}"
+#     state: present
 
 - name: Create installation namespace
   delegate_to: localhost
@@ -42,16 +42,70 @@
             - --data_root={{ irods_csi_driver_data_root }}
     dest: "./irods_csi_driver_values.yaml"
 
-- name: Install irods-csi-driver helm chart
+- name: create the kustomization file
+  delegate_to: localhost
+  ansible.builtin.copy:
+    dest: "./kustomization.yaml"
+    content: |
+      apiVersion: kustomize.config.k8s.io/v1beta1
+      kind: Kustomization
+
+      helmCharts:
+      - name: irods-csi-driver
+        repo: "{{ irods_csi_driver_repo }}"
+        releaseName: irods-csi-driver
+        namespace: "{{ irods_csi_driver_namespace }}"
+        valuesFile: "./irods_csi_driver_values.yaml"
+
+      patches:
+        - target:
+            kind: Deployment
+            group: apps
+            version: v1
+            name: irods-csi-driver-controller
+          patch: |-
+            - op: replace
+              path: /spec/template/spec/volumes/2/hostPath/path
+              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/storage
+
+        - target:
+            kind: DaemonSet
+            group: apps
+            version: v1
+            name: irods-csi-driver-node
+          patch: |-
+            - op: replace
+              path: /spec/template/spec/containers/0/volumeMounts/0/mountPath
+              value: /var/lib/k0s/kubelet
+            - op: replace
+              path: /spec/template/spec/containers/0/volumeMounts/1/mountPath
+              value: /var/lib/k0s/kubelet/plugins
+            - op: replace
+              path: /spec/template/spec/containers/2/env/1/value
+              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/csi.sock
+            - op: replace
+              path: /spec/template/spec/volumes/0/hostPath/path
+              value: /var/lib/k0s/kubelet/pods
+            - op: replace
+              path: /spec/template/spec/volumes/1/hostPath/path
+              value: /var/lib/k0s/kubelet/plugins
+            - op: replace
+              path: /spec/template/spec/volumes/2/hostPath/path
+              value: /var/lib/k0s/kubelet/plugins_registry
+            - op: replace
+              path: /spec/template/spec/volumes/3/hostPath/path
+              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org
+            - op: replace
+              path: /spec/template/spec/volumes/5/hostPath/path
+              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/storage
+
+- name: install irods-csi-driver
+  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.helm:
-    name: irods-csi-driver
-    chart_ref: irods-csi-driver-repo/irods-csi-driver
-    release_namespace: "{{ irods_csi_driver_namespace }}"
-    wait: true
-    values_files:
-      - "./irods_csi_driver_values.yaml"
+  ansible.builtin.shell:
+    cmd: kubectl kustomize --enable-helm | kubectl create -f -
+  ignore_errors: true
 
 - name: define the storage class for the iRODS CSI driver
   environment:
