@@ -12,4 +12,3 @@
   connection: local
   roles:
     - role: postgresql_init
-    - role: k3s_db

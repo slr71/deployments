@@ -1,42 +1,55 @@
 ---
-- hosts: k3s_controllers[0]
+- hosts: k8s_controllers[0]
+  connection: local
   gather_facts: false
-  roles:
-    - role: service_configurations
-      tags:
-        - configs
   tasks:
-    - name: deploy services
-      block:
-        - name: list of build files
-          ansible.builtin.find:
-            paths: "{{ de_releases_dir}}/builds"
-            patterns: "*.json"
-            file_type: file
-          register: build_json_files
-
-        - name: list of project names
-          ansible.builtin.set_fact:
-            project_names: "{{ project_names|default([]) + [item.path|basename|splitext|first] }}"
-          loop: "{{ build_json_files.files }}"
-
-        - name: filter project names
-          ansible.builtin.set_fact:
-            project_names: "{{ project_names | intersect(projects)}}"
-          when: projects is defined
-
-        - ansible.builtin.debug:
-            msg: "{{ projects }}"
-          when: projects is defined
-
-        - ansible.builtin.debug:
-            msg: "{{ project_names }}"
-
-        - ansible.builtin.include_role: 
-            name: services
-          vars:
-            project_name: "{{ item }}"
-          loop: "{{ project_names }}"
-      delegate_to: localhost
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ item }}"
       tags:
         - deploy
+      with_items:
+        - analyses
+        - app-exposer
+        - apply-labels
+        - apps
+        - async-tasks
+        - bulk-typer
+        - check-resource-access
+        - clockwork
+        - data-info
+        - de-mailer
+        - de-webhooks
+        - dewey
+        - discoenv-analyses
+        - discoenv-users
+        - email-requests
+        - event-recorder
+        - get-analysis-id
+        - info-typer
+        - infosquito2
+        - iplant-groups
+        - jex-adapter
+        - job-status-listener
+        - job-status-recorder
+        - job-status-to-apps-adapter
+        - kifshare
+        - metadata
+        - notifications
+        - permissions
+        - qms
+        - qms-adapter
+        - requests
+        - resource-usage-api
+        - data-usage-api
+        - subscriptions
+        - timelord
+        - user-info
+        - vice-default-backend
+        - vice-status-listener
+        - search
+        - dashboard-aggregator
+        - terrain
+        - sonora
