@@ -75,12 +75,6 @@
             name: irods-csi-driver-node
           patch: |-
             - op: replace
-              path: /spec/template/spec/containers/0/volumeMounts/0/mountPath
-              value: /var/lib/k0s/kubelet
-            - op: replace
-              path: /spec/template/spec/containers/0/volumeMounts/1/mountPath
-              value: /var/lib/k0s/kubelet/plugins
-            - op: replace
               path: /spec/template/spec/containers/2/env/1/value
               value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/csi.sock
             - op: replace

@@ -1,7 +1,19 @@
 ---
+- name: create the plugin directory
+  hosts: k8s_workers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: create the plugin directory
+      ansible.builtin.file:
+        state: directory
+        path: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/
+        recurse: true
+
 - name: install iRODS CSI driver
   hosts: k8s_controllers[0]
   connection: local
   gather_facts: false
+  become: false
   roles:
     - role: kubernetes_irods_csi_driver
