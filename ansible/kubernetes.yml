@@ -1,4 +1,22 @@
 ---
+- name: Prepare for PostgreSQL
+  hosts: dbms
+  become: true
+  roles:
+    - role: postgresql
+    - role: postgresql_access
+  tags:
+    - install-postgres
+
+- name: initialize dbs
+  hosts: dbms
+  become: false
+  connection: local
+  roles:
+    - role: postgresql_init
+  tags:
+    - setup-databases
+
 # so they can register through the load-balancer, otherwise
 # they won't be able to use it.
 - name: set the HAProxy load balancer
