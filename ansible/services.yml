@@ -2,6 +2,31 @@
 - hosts: k8s_controllers[0]
   connection: local
   gather_facts: false
+  tags:
+    - configure-services
+  roles:
+    - role: service_configurations
+
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  tags:
+    - deploy-single-service
+  tasks:
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ project }}"
+      tags:
+        - deploy
+      when: "'deploy-single-service' in ansible_run_tags"
+
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  tags:
+    - deploy-all-services
   tasks:
     - ansible.builtin.include_role:
         name: services

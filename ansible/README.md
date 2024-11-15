@@ -19,30 +19,17 @@ The following databases are created by the `postgresql_init.yml` playbook:
 | grouper       | grouper  | yes          | ?            |
 | qms           | de       | configurable | configurable |
 | unleash       | de       | yes          | ?            |
-| k3s           | de       | yes          | ?            |
 | keycloak      | keycloak | yes          | ?            |
 
 The owner users are configurable through the `dbms_connection_user` and `grouper_connection_user` group_vars.
 
-Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `k3s` database is initialized by the installation process for the k3s cluster and the `grouper` database is handled by its own playbook since it's fairly complicated. The `qms`
+Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `grouper` database is handled by its own playbook since it's fairly complicated. The `qms`
 database is created here, but populated by the `qms` service. `unleash` is not yet initialized by this playbook.
-
-| Playbook            | Description                                    | Example                                               |
-| ------------------- | ---------------------------------------------- | ----------------------------------------------------- |
-| postgresql_init.yml | Creates the databases and runs some migrations | `ansible-playbook -i <inventory> postgresql_init.yml` |
 
 ## Kubernetes
 
-The [Kubernetes playbooks](kubernetes) can be used to prepare nodes for inclusion in a new or existing Kubernetes
-cluster.
-
-| Playbook                          | Description                        | Example                                                             |
-| --------------------------------- | ---------------------------------- | ------------------------------------------------------------------- |
-| kubernetes_uninstall_k8s.yml      | Uninstalls an existing k8s cluster | `ansible-playbook -i <inventory> -K kubernetes_uninstall_k8s.yml`   |
-| kubernetes_setup_haproxy.yml      | Installs k3s reverse proxy         | `ansible-playbook -i <inventory> -K kubernetes_setup_haproxy.yml`   |
-| kubernetes_install_k3s.yml        | Installs k3s                       | `ansible-playbook -i <inventory> -K kubernetes.yml`                 |
-| kubernetes_de_reqs.yml            | Installs DE requirements           | `ansible-playbook -i <inventory> kubernetes_de_reqs.yml`            |
-| kubernetes_install_csi_driver.yml | Installs the IRODS CSI driver      | `ansible-playbook -i <inventory> kubernetes_install_csi_driver.yml` |
+The k0s distribution of Kubernetes is used by the DE, with the `k0sctl` tool providing the ability to bring up and
+tear down clusters according to a YAML configuration file. We're using stacked control nodes, which means that each control node also acts as a etcd member node. Control nodes do not run workloads and do not show up in the `kubectl get nodes` command output.
 
 ## OpenLDAP
 
@@ -64,11 +51,7 @@ the recommended approach is to create a new HTCondor cluster that is dedicated t
 
 ## Cert-Manager
 
-The DE uses cert-manager to generate and rotate self-signed TLS certs for use with NATS. The following playbooks are available:
-
-| Playbook         | Description           | Example                                            |
-| ---------------- | --------------------- | -------------------------------------------------- |
-| cert-manager.yml | Installs cert-manager | `ansible-playbook -i <inventory> cert_manager.yml` |
+The DE uses cert-manager to generate and rotate self-signed TLS certs for use with NATS.
 
 ## NATS
 
@@ -77,10 +60,6 @@ with 5 nodes. You should be able to connect to any node to communicate with othe
 [NATS playbooks](nats) will install `helm` inside the cluster and use it to set up and run NATS.
 
 **NOTE** Make sure the `KUBECONFIG` environment variable is set to the correct value in your local shell.
-
-| Playbook | Description   | Example                                    |
-| -------- | ------------- | ------------------------------------------ |
-| nats.yml | Installs NATS | `ansible-playbook -i <inventory> nats.yml` |
 
 ## GoCD
 
@@ -111,7 +90,26 @@ Keycloak is used for authentication/authorization and is installed inside the sa
 
 The services playbook is used to install and upgrade the Discovery Environment services.
 
-| Playbook            | Description             | Example                                                                        |
-| ------------------- | ----------------------- | ------------------------------------------------------------------------------ |
-| services_single.yml | Deploy a single service | `ansible-playbook -i <inventory> -e service=<service_name> single_service.yml` |
-| services.yml        | Deploy all the services | `ansible-playbook -i <inventory> single.yml`                                   |
+Deploying all of the configurations and all of the services:
+
+```bash
+ansible-playbook -i <inventory> services.yml
+```
+
+Deploying just the service configurations:
+
+```bash
+ansible-playbook -i <inventory> --tags configure services.yml
+```
+
+Deploying a single service, without the configurations:
+
+```bash
+ansible-playbook -i <inventory> --tags deploy-single services.yml
+```
+
+Deploying all of the services, without the configurations:
+
+```bash
+ansible-playbook -i <inventory> --tags deploy-all services.yml
+```
