@@ -1,8 +1,0 @@
----
-- name: Add nats helm support
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  roles:
-    - role: nats
-

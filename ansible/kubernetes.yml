@@ -6,36 +6,188 @@
   become: true
   roles:
     - role: k8s_haproxy
+  tags:
+    - haproxy
 
 - name: prepare the nodes
   hosts: k8s_nodes
   become: true
   roles:
-    - role: k8s_firewalld
     - role: k8s_nodes
+  tags:
+    - prep-nodes
 
-- name: set up k8s GPU worker nodes
-  hosts: k8s_gpu_workers
-  become: true
+# Add a playbook/role to call 'k0sctl apply --config <path>'
+
+# Add a playbook/role to import docker-iplant-data
+
+# Include service-configuration here, filter tasks by configuration
+- name: configure the services
+  hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
   roles:
-    - role: kubernetes_gpu_workers
+    - role: service_configurations
+  tags:
+    - configure-services
 
-# This is limited to the first controller node to prevent it from
-# running multiple times, once per host. It's not actually limited
-# to the first controller node.
+- name: set up kubernetes requirements for the DE
+  hosts: k8s_controllers[0]
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - role: k8s_de_reqs
+  tags:
+    - de-reqs
+
+- name: set up ingresses
+  hosts: k8s_controllers[0]
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - role: kubernetes_ingresses
+  tags:
+    - ingresses
+
+- name: set up nodeports
+  hosts: k8s_controllers[0]
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - role: kubernetes_networking
+  tags:
+    - networking
+    - nodeports
+
+- name: install cert-manager
+  hosts: k8s_controllers[0]
+  connection: local
+  become: false
+  gather_facts: false
+  roles:
+    - role: cert-manager
+  tags:
+    - cert-manager
+
+- name: Add nats helm support
+  hosts: k8s_controllers[0]
+  connection: local
+  become: false
+  roles:
+    - role: nats
+  tags:
+    - nats
+
+- name: create the irods-csi-driver plugin directory
+  hosts: k8s_workers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: create the plugin directory
+      ansible.builtin.file:
+        state: directory
+        path: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/
+        recurse: true
+  tags:
+    - irods-csi-driver
+
 - name: set up irods-csi-driver
   hosts: k8s_controllers[0]
   connection: local
   become: false
   roles:
     - role: kubernetes_irods_csi_driver
+  tags:
+    - irods-csi-driver
 
-# This is limited to the first controller node to prevent it from
-# running multiple times, once per host. It's not actually limited
-# to the first controller node.
-- name: set up kubernetes requirements for the DE
+- name: install node feature discovery plugins
   hosts: k8s_controllers[0]
   connection: local
-  become: false
+  gather_facts: false
   roles:
-    - role: kubernetes_de_reqs
+    - role: kubernetes_node_feature_discovery
+  tags:
+    - feature-discovery
+
+- name: Initialize grouper
+  hosts: k8s_de_workers
+  gather_facts: false
+  roles:
+    - role: grouper_init
+  tags:
+    - grouper
+
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  tasks:
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ project }}"
+      tags:
+        - deploy
+      when: "'deploy-single-service' in ansible_run_tags"
+  tags:
+    - deploy-single-service
+
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  tags:
+    - deploy-all-services
+  tasks:
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ item }}"
+      tags:
+        - deploy
+      with_items:
+        - analyses
+        - app-exposer
+        - apply-labels
+        - apps
+        - async-tasks
+        - bulk-typer
+        - check-resource-access
+        - clockwork
+        - data-info
+        - de-mailer
+        - de-webhooks
+        - dewey
+        - discoenv-analyses
+        - discoenv-users
+        - email-requests
+        - event-recorder
+        - get-analysis-id
+        - info-typer
+        - infosquito2
+        - iplant-groups
+        - jex-adapter
+        - job-status-listener
+        - job-status-recorder
+        - job-status-to-apps-adapter
+        - kifshare
+        - metadata
+        - notifications
+        - permissions
+        - qms
+        - qms-adapter
+        - requests
+        - resource-usage-api
+        - data-usage-api
+        - subscriptions
+        - timelord
+        - user-info
+        - vice-default-backend
+        - vice-status-listener
+        - search
+        - dashboard-aggregator
+        - terrain
+        - sonora

@@ -5,6 +5,8 @@
   roles:
     - role: postgresql
     - role: postgresql_access
+  tags:
+    - install-postgres
 
 - name: initialize dbs
   hosts: dbms
@@ -12,3 +14,5 @@
   connection: local
   roles:
     - role: postgresql_init
+  tags:
+    - setup-databases
