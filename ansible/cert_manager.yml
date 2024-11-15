@@ -1,8 +1,0 @@
----
-- name: install cert-manager
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
-    - role: cert-manager
