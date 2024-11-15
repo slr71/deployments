@@ -191,3 +191,12 @@
         - dashboard-aggregator
         - terrain
         - sonora
+
+- name: set up cronjobs
+  become: false
+  gather_facts: false
+  hosts: k8s_controllers[0]
+  roles:
+    - role: cronjobs
+  tags:
+    - cronjobs
