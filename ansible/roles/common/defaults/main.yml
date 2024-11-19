@@ -491,6 +491,18 @@ keycloak_memory_limit: "2Gi"
 keycloak_ephemeral_storage_limit: "2Gi"
 
 secrets_loader_base_dir: "secrets" # The directory in the repo containing the inventory
+secrets_loader_ui_secret: "ui-nginx-tls"
+secrets_loader_load_ui_secret: true
+secrets_loader_gpg_secret: "gpg-keys"
+secrets_loader_load_gpg_secret: true
+secrets_loader_pgpass_secret: "test-pgpass"
+secrets_loader_load_pgpass_secret: true
+secrets_loader_signing_keys_secret: "test-signing-keys"
+secrets_loader_load_signing_keys_secret: true
+secrets_loader_accepted_keys_secret: "test-accepted-keys"
+secrets_loader_load_accepted_keys_secret: true
+secrets_loader_ssl_secret: "test-ssl"
+secrets_loader_load_ssl_secret: true
 secrets_loader_ui_tls_key_filepath: "" # The TLS key for the UI ingress.
 secrets_loader_ui_tls_cert_filepath: "" # The TLS cert for the UI ingress.
 secrets_loader_gpg_filepaths: []
