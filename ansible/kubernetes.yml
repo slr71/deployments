@@ -50,6 +50,14 @@
 # Add a playbook/role to call 'k0sctl apply --config <path>'
 
 # Add a playbook/role to import docker-iplant-data
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  roles:
+    - role: secret_loader
+  tags:
+    - configure-services
+    - secrets
 
 # Include service-configuration here, filter tasks by configuration
 - name: configure the services

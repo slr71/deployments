@@ -1,0 +1,26 @@
+---
+- environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  block:
+    - ansible.builtin.set_fact:
+        repo_dir: "{{ inventory_dir | dirname }}"
+    - ansible.builtin.set_fact:
+        secrets_dir: "{{ [repo_dir, secrets_loader_base_dir] | path_join }}/"
+    - debug:
+        msg: "repo dir: '{{ repo_dir }}', secrets_dir: '{{ secrets_dir }}'"
+    - name: create secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: ui-nginx-tls
+            namespace: "{{ ns }}"
+          type: kubernetes.io/tls
+          data:
+            tls.crt: "{{ lookup('file', secrets_dir + secrets_loader_ui_tls_cert_filepath ) | b64encode }}"
+            tls.key: "{{ lookup('file', secrets_dir + secrets_loader_ui_tls_key_filepath) | b64encode }}"
+  tags:
+    - ui
+    - tls

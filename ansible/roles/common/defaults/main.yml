@@ -490,6 +490,15 @@ keycloak_cpu_limit: "200m"
 keycloak_memory_limit: "2Gi"
 keycloak_ephemeral_storage_limit: "2Gi"
 
+secrets_loader_base_dir: "secrets" # The directory in the repo containing the inventory
+secrets_loader_ui_tls_key_filepath: "" # The TLS key for the UI ingress.
+secrets_loader_ui_tls_cert_filepath: "" # The TLS cert for the UI ingress.
+secrets_loader_gpg_filepaths: []
+secrets_loader_pgpass_filepaths: []
+secrets_loader_signing_keys_filepaths: []
+secrets_loader_accepted_keys_filepaths: []
+secrets_loader_ssl_filepaths: []
+
 vice_cache_images:
   - harbor.cyverse.org/de/vice-proxy:qa
   - harbor.cyverse.org/de/vice-file-transfers:qa
