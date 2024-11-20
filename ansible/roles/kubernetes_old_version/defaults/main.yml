@@ -1,5 +1,0 @@
----
-old_version: v1.22.17
-old_cidr_network: "10.244.0.0/16"
-old_cni_version: v1.1.1
-old_crictl_version: v1.31.1
