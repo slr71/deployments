@@ -48,6 +48,15 @@
     - prep-nodes
 
 # Add a playbook/role to call 'k0sctl apply --config <path>'
+- name: deploy the cluster
+  hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  become: false
+  roles:
+    - role: k8s_cluster
+  tags:
+    - create-cluster
 
 # Add a playbook/role to import docker-iplant-data
 - hosts: k8s_controllers[0]

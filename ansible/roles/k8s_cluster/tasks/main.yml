@@ -1,0 +1,13 @@
+---
+- environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+    SSH_KNOWN_HOSTS: /dev/null # Needed for some reason due to how we configure our connection to the hosts.
+  block:
+    # - ansible.builtin.set_fact:
+    #     repo_path: "{{ inventory_dir | dirname }}"
+    - ansible.builtin.set_fact:
+        yaml_path: "{{ [inventory_dir | dirname, 'k0sctl.yaml'] | path_join }}"
+    - debug:
+        msg: "path to k0sctl.yaml: {{ yaml_path }}"
+    - ansible.builtin.shell:
+        cmd: "k0sctl {{ k0scmd | default('apply') }} --config {{ yaml_path }}"
