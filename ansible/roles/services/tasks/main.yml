@@ -8,14 +8,13 @@
     - name: image tag
       delegate_to: localhost
       ansible.builtin.debug:
-        msg: "{{ build_json}}"
+        msg: "{{ build_json.builds[0].tag }}"
 
-    # - name: run skaffold deploy
-    #   delegate_to: localhost
-    #   run_once: true
-    #   ansible.builtin.command:
-    #     chdir: "{{ de_releases_dir }}/services/{{ project_name }}"
-    #     cmd: skaffold deploy --namespace "{{ ns }}" --build-artifacts "../../builds/{{ project_name }}.json" --force
-    #   when: deploy is true
+    - name: run skaffold deploy
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.command:
+        chdir: "{{ de_releases_dir }}/services/{{ project_name }}"
+        cmd: skaffold deploy --namespace "{{ ns }}" --build-artifacts "../../builds/{{ project_name }}.json" --force --kubeconfig "{{ lookup('env', 'KUBECONFIG') }}"
   tags:
     - deploy
