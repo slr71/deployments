@@ -299,7 +299,7 @@
       base64 -d | \
       openssl pkcs8 -topk8 -inform pem -outform pem -nocrypt > tls.pkcs8 && \
       kubectl -n {{ ns }} create secret generic nats-client-tls-pkcs8 --from-file=tls.pkcs8
-  when: "{{ pkcs8_result.resources | length | int }} == 0"
+  when: (pkcs8_result.resources | length | int) == 0
 
 - name: remove local tls.pkcs8 file
   delegate_to: localhost

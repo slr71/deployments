@@ -48,85 +48,44 @@
     - prep-nodes
 
 # Add a playbook/role to call 'k0sctl apply --config <path>'
-- name: deploy the cluster
-  hosts: k8s_controllers[0]
+- hosts: k8s_controllers[0]
   connection: local
   gather_facts: false
   become: false
   roles:
     - role: k8s_cluster
-  tags:
-    - create-cluster
+      tags: create-cluster
 
-# Add a playbook/role to import docker-iplant-data
-- hosts: k8s_controllers[0]
-  connection: local
-  gather_facts: false
-  roles:
-    - role: secret_loader
-  tags:
-    - configure-services
-    - secrets
-
-# Include service-configuration here, filter tasks by configuration
-- name: configure the services
-  hosts: k8s_controllers[0]
-  connection: local
-  gather_facts: false
-  roles:
-    - role: service_configurations
-  tags:
-    - configure-services
-
-- name: set up kubernetes requirements for the DE
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
     - role: k8s_de_reqs
-  tags:
-    - de-reqs
+      tags: de-reqs
 
-- name: set up ingresses
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
+    - role: service_configurations
+      tags: configure-services
+
+    - role: secret_loader
+      tags:
+        - configure-services
+        - secrets
+
     - role: kubernetes_ingresses
-  tags:
-    - ingresses
+      tags: ingresses
 
-- name: set up nodeports
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
     - role: kubernetes_networking
-  tags:
-    - networking
-    - nodeports
+      tags:
+        - networking
+        - nodeports
 
-- name: install cert-manager
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
     - role: cert-manager
-  tags:
-    - cert-manager
+      tags: cert-manager
 
-- name: Add nats helm support
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  roles:
     - role: nats
-  tags:
-    - nats
+      tags: nats
+
+    - role: kubernetes_node_feature_discovery
+      tags: feature-discovery
+
+    - role: grouper_init
+      tags: grouper
 
 - name: create the irods-csi-driver plugin directory
   hosts: k8s_workers
@@ -150,26 +109,13 @@
   tags:
     - irods-csi-driver
 
-- name: install node feature discovery plugins
-  hosts: k8s_controllers[0]
-  connection: local
-  gather_facts: false
-  roles:
-    - role: kubernetes_node_feature_discovery
-  tags:
-    - feature-discovery
-
-- name: Initialize grouper
-  hosts: k8s_de_workers
-  gather_facts: false
-  roles:
-    - role: grouper_init
-  tags:
-    - grouper
-
 - hosts: k8s_controllers[0]
   connection: local
   gather_facts: false
+  become: false
+  tags:
+    - deploy-single-service
+    - deploy-all-services
   tasks:
     - ansible.builtin.include_role:
         name: services
@@ -179,15 +125,7 @@
       tags:
         - deploy
       when: "'deploy-single-service' in ansible_run_tags"
-  tags:
-    - deploy-single-service
 
-- hosts: k8s_controllers[0]
-  connection: local
-  gather_facts: false
-  tags:
-    - deploy-all-services
-  tasks:
     - ansible.builtin.include_role:
         name: services
         tasks_from: main
@@ -195,6 +133,7 @@
         project_name: "{{ item }}"
       tags:
         - deploy
+      when: "not 'deploy-single-service' in ansible_run_tags"
       with_items:
         - analyses
         - app-exposer
@@ -243,39 +182,19 @@
   become: false
   gather_facts: false
   hosts: k8s_controllers[0]
+  connection: local
   roles:
     - role: cronjobs
-  tags:
-    - cronjobs
+      tags: cronjobs
 
-- name: install keycloak into the cluster
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
     - role: keycloak_install
+      tags: keycloak
       when: "'keycloak' in ansible_run_tags"
-  tags:
-    - keycloak
 
-- name: install harbor
-  hosts: k8s_controllers[0]
-  connection: local
-  become: false
-  gather_facts: false
-  roles:
     - role: harbor
+      tags: harbor
       when: "'harbor' in ansible_run_tags"
-  tags:
-    - harbor
 
-- name: set up jaeger
-  hosts: k8s_controllers[0]
-  connection: local
-  gather_facts: no
-  roles:
     - role: jaeger
+      tags: jaeger
       when: "'jaeger' in ansible_run_tags"
-  tags:
-    - jaeger
