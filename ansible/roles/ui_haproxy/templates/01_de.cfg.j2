@@ -1,0 +1,66 @@
+frontend localhost
+    bind *:80
+    redirect scheme https
+
+frontend http2-ssl
+    option http-use-htx
+    bind *:443 ssl crt /etc/ssl/cyverse.combined alpn h2,http/1.1 crt /etc/ssl/cyverse.combined
+
+{% if harbor_enabled %}
+    acl harbor hdr(host) -i {{ harbor_external_domain }}
+{% endif %}
+{% if gocd_enabled %}
+    acl gocd hdr(host) -i {{ gocd_external_domain }}
+{% endif %}
+    acl de hdr(host) -i {{ de_hostname }}
+
+    # HSTS (63072000 seconds)
+    http-response set-header Strict-Transport-Security max-age=63072000
+{% if gocd_enabled %}
+    use_backend gocd if gocd
+{% endif %}
+{% if harbor_enabled %}
+    use_backend harbor if harbor
+{% endif %}
+    use_backend discoenv if de
+    default_backend discoenv
+
+{% if gocd_enabled %}
+backend gocd
+    option http-use-htx
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+{% for svr in groups['gocd_server'] %}
+    server {{ svr }} {{ svr }}:8153 verify none check inter 5000
+{% endfor %}
+{% endif %}
+
+{% if harbor_enabled %}
+backend harbor
+    option http-use-htx
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+{% for svr in groups['k8s_de_workers'] %}
+    server {{ svr }} {{ svr }}:{{ harbor_nodeport }} check inter 5000
+{% endfor %}
+{% endif %}
+
+backend discoenv
+    option http-use-htx
+    option log-health-checks
+    option forwardfor
+
+    http-request add-header X-Forwarded-Proto https
+
+    balance roundrobin
+{% for svr in groups['k8s_de_workers'] %}
+    server {{ svr }} {{ svr }}:31344 ssl verify none check inter 5000
+{% endfor %}

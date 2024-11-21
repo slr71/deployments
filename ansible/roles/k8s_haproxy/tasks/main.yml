@@ -26,24 +26,23 @@
     - "8132/tcp" # konnectivity server
   when: ansible_os_family == 'RedHat'
 
-- name: Install HAProxy
-  become: true
-  ansible.builtin.package:
-    name: haproxy
-    state: present
+# - name: configure k8s haproxy settings
+#   become: true
+#   ansible.builtin.template:
+#     src: 00_k8s.cfg.j2
+#     dest: /etc/haproxy/conf.d/00_k8s.cfg.j2
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - restart haproxy
 
-- name: Configure HAProxy
+- name: configure k8s haproxy settings
   become: true
-  ansible.builtin.template:
-    src: haproxy.cfg.j2
+  ansible.builtin.blockinfile:
     dest: /etc/haproxy/haproxy.cfg
-    owner: root
-    group: root
-    mode: 0644
-
-- name: Restart HAProxy
-  become: true
-  ansible.builtin.systemd_service:
-    name: haproxy
-    enabled: true
-    state: restarted
+    append_newline: true
+    prepend_newline: true
+    marker: "# {mark} K8S HAProxy Settings"
+    block: "{{ lookup('template', '00_k8s.cfg.j2') }}"
+  notify: restart haproxy

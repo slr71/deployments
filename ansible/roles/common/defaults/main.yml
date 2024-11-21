@@ -199,6 +199,7 @@ k8s_pods_cidr: "10.42.0.0/16"
 k8s_services_cidr: "10.43.0.0/16"
 
 # Harbor installation variables
+harbor_enabled: false
 harbor_url: harbor.cyverse.org
 harbor_repo: https://helm.goharbor.io
 harbor_namespace: harbor

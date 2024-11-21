@@ -25,6 +25,7 @@
   hosts: k8s_api_proxy
   become: true
   roles:
+    - role: haproxy
     - role: k8s_haproxy
   tags:
     - haproxy
@@ -177,6 +178,15 @@
         - dashboard-aggregator
         - terrain
         - sonora
+
+- name: set up UI haproxy
+  become: true
+  hosts: de_haproxy
+  roles:
+    - role: ui_haproxy
+      tags:
+        - haproxy
+        - ui-haproxy
 
 - name: set up cronjobs
   become: false
