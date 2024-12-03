@@ -20,6 +20,7 @@
           ignore_daemonsets: true
           terminate_grace_period: 0
       delegate_to: 127.0.0.1
+      ignore_errors: true
 
     - name: update packages
       ansible.builtin.shell: yum update -y --disablerepo=kubernetes
