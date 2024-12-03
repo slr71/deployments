@@ -1,5 +1,4 @@
 ---
-
 - name: add the repository
   ansible.builtin.get_url:
     url: https://download.gocd.org/gocd.repo
@@ -22,10 +21,5 @@
     state: enabled
     permanent: true
     zone: public
-    rich_rule: |
-      rule family="ipv4" 
-      source address="{{ hostvars[item]['ansible_default_ipv4']['address'] }}" 
-      port protocol="tcp" 
-      port="8153" 
-      accept
-  with_items: "{{ groups['de_proxy'] }}"
+    port: "8153/tcp"
+  notify: reload firewalld

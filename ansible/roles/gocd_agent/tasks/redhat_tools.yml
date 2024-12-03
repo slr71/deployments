@@ -1,4 +1,9 @@
 ---
+- name: install git
+  ansible.builtin.package:
+    name: git
+    state: present
+
 - name: add the kubernetes yum repository
   ansible.builtin.yum_repository:
     name: kubernetes
