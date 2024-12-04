@@ -12,7 +12,6 @@
         name: "discoenv"
         namespace: "{{ ns }}"
         annotations:
-          traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Origin: *"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Max-Age: 86400"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Credentials: true"
@@ -20,7 +19,7 @@
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Headers: DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Expose-Headers: DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
       spec:
-        ingressClass: traefik
+        ingressClassName: nginx
         rules:
           - host: "{{ de_hostname }}"
             http:
@@ -60,7 +59,7 @@
                       name: sonora
                       port:
                         number: 80
-                        
+
 - name: Add agave-callback ingress
   delegate_to: localhost
   environment:
@@ -74,10 +73,10 @@
         name: agave-callback
         namespace: "{{ ns }}"
         annotations:
-          traefik.ingress.kubernetes.io/router.entrypoints: web
-          traefik.ingress.kubernetes.io/rewrite-target: /callbacks/agave-job
+          # traefik.ingress.kubernetes.io/router.entrypoints: web
+          nginx.ingress.kubernetes.io/rewrite-target: /callbacks/agave-job
       spec:
-        ingressClass: traefik
+        ingressClassName: nginx
         rules:
           - host: "{{ de_hostname }}"
             http:
@@ -89,6 +88,3 @@
                       name: apps
                       port:
                         number: 80
-
-
-

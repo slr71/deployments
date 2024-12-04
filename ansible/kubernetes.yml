@@ -1,73 +1,210 @@
 ---
-- name: open ports with firewalld
-  hosts: k3s_nodes
+- name: Prepare for PostgreSQL
+  hosts: dbms
   become: true
   roles:
-    - role: k3s_firewall_zone
+    - role: postgresql
+    - role: postgresql_access
+  tags:
+    - install-postgres
+    - databases
 
-- name: prepare k3s nodes
-  hosts: k3s_nodes
-  become: true
+- name: initialize dbs
+  hosts: dbms
+  become: false
+  connection: local
   roles:
-    - role: kubernetes_nodes
+    - role: postgresql_init
+  tags:
+    - setup-databases
+    - databases
 
-- name: set up first k3s control nodes
-  hosts: k3s_controllers[0]
-  become: true
-  roles:
-    - role: kubernetes_controllers
-
-- name: set up remaining k3s control nodes
-  hosts: k3s_controllers[1:]
-  become: true
-  roles:
-    - role: kubernetes_controllers
-
-
-# This needs to be done before the worker node are set up
 # so they can register through the load-balancer, otherwise
 # they won't be able to use it.
 - name: set the HAProxy load balancer
-  hosts: k3s_api_proxy
+  hosts: k8s_api_proxy
   become: true
   roles:
-    - role: k3s_haproxy
-      when: do_haproxy is undefined or do_haproxy | bool
+    - role: haproxy
+    - role: k8s_haproxy
+  tags:
+    - haproxy
 
-- name: set up k3s DE worker nodes
-  hosts: k3s_de_workers
+- name: set up timezone settings.
+  hosts: k8s_de_workers
+  become: true
+  gather_facts: true
+  roles:
+    - role: timezone
+  tags:
+    - timezone
+    - prep-nodes
+
+- name: prepare the nodes
+  hosts: k8s_nodes
   become: true
   roles:
-    - role: kubernetes_service_workers
+    - role: k8s_nodes
+  tags:
+    - prep-nodes
 
-- name: set up k3s VICE worker nodes
-  hosts: k3s_vice_workers
-  become: true
+# Add a playbook/role to call 'k0sctl apply --config <path>'
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  become: false
   roles:
-    - role: kubernetes_vice_workers
+    - role: k8s_cluster
+      tags: create-cluster
 
-- name: set up k3s GPU worker nodes
-  hosts: k3s_gpu_workers
+    - role: k8s_de_reqs
+      tags: de-reqs
+
+    - role: service_configurations
+      tags: configure-services
+
+    - role: secret_loader
+      tags:
+        - configure-services
+        - secrets
+
+    - role: kubernetes_ingresses
+      tags: ingresses
+
+    - role: kubernetes_networking
+      tags:
+        - networking
+        - nodeports
+
+    - role: cert-manager
+      tags: cert-manager
+
+    - role: nats
+      tags: nats
+
+    - role: kubernetes_node_feature_discovery
+      tags: feature-discovery
+
+    - role: grouper_init
+      tags: grouper
+
+- name: create the irods-csi-driver plugin directory
+  hosts: k8s_workers
   become: true
-  roles:
-    - role: kubernetes_gpu_workers
+  gather_facts: false
+  tasks:
+    - name: create the plugin directory
+      ansible.builtin.file:
+        state: directory
+        path: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/
+        recurse: true
+  tags:
+    - irods-csi-driver
 
-# This is limited to the first controller node to prevent it from
-# running multiple times, once per host. It's not actually limited
-# to the first controller node.
 - name: set up irods-csi-driver
-  hosts: k3s_controllers[0]
+  hosts: k8s_controllers[0]
   connection: local
   become: false
   roles:
     - role: kubernetes_irods_csi_driver
+  tags:
+    - irods-csi-driver
 
-# This is limited to the first controller node to prevent it from
-# running multiple times, once per host. It's not actually limited
-# to the first controller node.
-- name: set up kubernetes requirements for the DE
-  hosts: k3s_controllers[0]
+- hosts: k8s_controllers[0]
   connection: local
+  gather_facts: false
   become: false
+  tags:
+    - deploy-single-service
+    - deploy-all-services
+  tasks:
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ project }}"
+      tags:
+        - deploy
+      when: "'deploy-single-service' in ansible_run_tags"
+
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ item }}"
+      tags:
+        - deploy
+      when: "not 'deploy-single-service' in ansible_run_tags"
+      with_items:
+        - analyses
+        - app-exposer
+        - apply-labels
+        - apps
+        - async-tasks
+        - bulk-typer
+        - check-resource-access
+        - clockwork
+        - data-info
+        - de-mailer
+        - de-webhooks
+        - dewey
+        - discoenv-analyses
+        - discoenv-users
+        - email-requests
+        - event-recorder
+        - get-analysis-id
+        - info-typer
+        - infosquito2
+        - iplant-groups
+        - jex-adapter
+        - job-status-listener
+        - job-status-recorder
+        - job-status-to-apps-adapter
+        - kifshare
+        - metadata
+        - notifications
+        - permissions
+        - qms
+        - qms-adapter
+        - requests
+        - resource-usage-api
+        - data-usage-api
+        - subscriptions
+        - timelord
+        - user-info
+        - vice-default-backend
+        - vice-status-listener
+        - search
+        - dashboard-aggregator
+        - terrain
+        - sonora
+
+- name: set up UI haproxy
+  become: true
+  hosts: de_haproxy
   roles:
-    - role: kubernetes_de_reqs
+    - role: ui_haproxy
+      tags:
+        - haproxy
+        - ui-haproxy
+
+- name: set up cronjobs
+  become: false
+  gather_facts: false
+  hosts: k8s_controllers[0]
+  connection: local
+  roles:
+    - role: cronjobs
+      tags: cronjobs
+
+    - role: keycloak_install
+      tags: keycloak
+      when: "'keycloak' in ansible_run_tags"
+
+    - role: harbor
+      tags: harbor
+      when: "'harbor' in ansible_run_tags"
+
+    - role: jaeger
+      tags: jaeger
+      when: "'jaeger' in ansible_run_tags"

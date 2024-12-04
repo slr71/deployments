@@ -1,6 +1,0 @@
----
-- name: Initialize grouper
-  hosts: k3s_de_workers
-  gather_facts: false
-  roles:
-    - role: grouper_init

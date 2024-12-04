@@ -24,6 +24,11 @@
   loop: "{{ dbms_allowed_remote_addresses }}"
   notify: restart postgres
 
+- name: start postgresql if not already running
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+
 - name: listen on all ip addresses
   become: true
   become_user: postgres
@@ -32,11 +37,6 @@
     value: "*"
   notify: restart postgres
 
-- name: start postgresql if not already running
-  ansible.builtin.service:
-    name: postgresql
-    state: started
-  
 - name: Set password for postgres user
   become: true
   become_user: postgres
@@ -44,4 +44,3 @@
     name: postgres
     password: "{{ pg_login_password }}"
     encrypted: yes
-  

@@ -1,7 +1,0 @@
----
-- name: Initialize databases
-  hosts: dbms
-  connection: local
-  gather_facts: false
-  roles:
-    - role: postgresql_init

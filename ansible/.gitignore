@@ -9,3 +9,10 @@ cert-manager.custom.yaml
 de-releases
 rendered-configs/
 k3s_*.yml
+values.yml
+irods_csi_driver_values.yml
+irods_csi_driver_values.yaml
+kustomization.yaml
+kustomization.yml
+charts/
+memory_usage*.log

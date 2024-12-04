@@ -1,0 +1,49 @@
+---
+- name: open the ports
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    state: enabled
+    port: "{{ item }}"
+  loop:
+    - "6443/tcp" # k8s api
+    - "2380/tcp" # etcd
+    - "10250/tcp" # kubelet
+    - "9443/tcp" # join api
+    - "8472/udp" # flannel
+    - "8285/udp" # flannel
+    - "30000-32767/tcp" # nodeports
+    - "30000-32767/udp" # nodeports
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+
+- community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - port: 6443 # required for k3s api
+      proto: tcp
+    - port: 2380
+      proto: tcp
+    - port: 10250 # kubelet metrics
+      proto: tcp
+    - port: 9443
+      proto: tcp
+    - port: 8472
+      proto: udp
+    - port: 8285
+      proto: udp
+    - port: 30000:32767 # nodePorts
+      proto: tcp
+    - port: 30000:32767 # nodePorts
+      proto: tcp
+  when: ansible_os_family == "Debian"
+
+- community.general.ufw:
+    rule: allow
+    src: "{{ item }}"
+  loop:
+    - 10.42.0.0/16 # k3s pods
+    - 10.43.0.0/16 # k3s services
+  when: ansible_os_family == "Debian"

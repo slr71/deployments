@@ -1,6 +1,0 @@
----
-- hosts: k3s_controllers[0]
-  connection: local
-  gather_facts: false
-  roles:
-    - role: service_configurations

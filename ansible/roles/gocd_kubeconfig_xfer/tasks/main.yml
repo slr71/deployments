@@ -1,7 +1,7 @@
 ---
-- name: copy k3s file to agent
+- name: copy k8s kubeconfig to agent
   ansible.builtin.copy:
-    src: "./k3s_{{ns}}.yml"
-    dest: "/var/go/k3s_{{ns}}.yml"
+    src: "./{{ns}}.kubeconfig"
+    dest: "/var/go/k8s_{{ns}}.yml"
     owner: go
-    mode: '0644'
+    mode: "0644"

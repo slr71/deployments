@@ -1,7 +1,0 @@
----
-- name: render service configuration files
-  hosts: k3s_controllers[0]
-  gather_facts: false
-  become: false
-  roles:
-    - role: service_configurations

@@ -5,7 +5,12 @@
   when: ansible_os_family == 'Debian'
 
 - name: install on Red Hat systems
-  ansible.builtin.include_tasks:
-    file: redhat_install.yml
+  block:
+    - ansible.builtin.include_tasks:
+        file: redhat_install.yml
+
+    - ansible.builtin.include_role:
+        name: gocd_agent
+        tasks_from: redhat_tools.yml
   when: ansible_os_family == 'RedHat'
 

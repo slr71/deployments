@@ -1,6 +1,0 @@
----
-- name: prepare k3s nodes
-  hosts: k3s_nodes
-  become: true
-  roles:
-    - role: kubernetes_old_version

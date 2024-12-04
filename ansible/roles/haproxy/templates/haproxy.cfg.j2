@@ -1,32 +1,23 @@
 global
-    log         127.0.0.1 local2
-
-    pidfile     /var/run/haproxy.pid
-    maxconn     4000
-
-    chroot /var/lib/haproxy
-    
-    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
-    stats timeout 30s
-    
-    user haproxy
-    group haproxy
-    
+    log             127.0.0.1 local2
+    pidfile         /var/run/haproxy.pid
+    maxconn         4000
+    chroot          /var/lib/haproxy
+    stats timeout   30s
+    user            haproxy
+    group           haproxy
     daemon
 
     # Default SSL material locations
-    ca-base /etc/ssl/certs
-    crt-base /etc/ssl/private
+    ca-base         /etc/ssl/certs
+    crt-base        /etc/ssl/private
 
-    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
-    #ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-    ssl-default-bind-options prefer-client-ciphers no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+    tune.ssl.default-dh-param 2048
+    ssl-default-bind-options no-sslv3 no-tls-tickets
+    ssl-default-bind-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
+    ssl-default-server-options no-sslv3 no-tls-tickets
+    ssl-default-server-ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
 
-    ssl-default-server-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
-    #ssl-default-server-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-    ssl-default-server-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
-
-    # curl https://ssl-config.mozilla.org/ffdhe2048.txt > /etc/ssl/dhparam
     ssl-dh-param-file /etc/ssl/dhparam
 
 defaults
@@ -38,80 +29,10 @@ defaults
     retries                 3
     timeout http-request    10s
     timeout queue           1m
-    timeout connect         50s
-    timeout client          1m
-    timeout server          1m
+    timeout connect         10s
+    timeout client          5m
+    timeout server          5m
     timeout tunnel          86400s
     timeout http-keep-alive 10s
     timeout check           10s
     maxconn                 3000
-
-frontend http2-ssl
-    bind *:443 ssl crt /etc/ssl/cyverse.combined alpn h2,http/1.1
-    redirect scheme https code 301 if !{ ssl_fc }
-
-    acl harbor hdr(host) -i {{ harbor_external_domain }}
-    {% if gocd_enabled %}
-    acl gocd hdr(host) -i {{ gocd_external_domain }}
-    {% endif %}
-    acl de hdr(host) -i {{ de_hostname }}
-
-    # HSTS (63072000 seconds)
-    http-response set-header Strict-Transport-Security max-age=63072000
-
-    {% if gocd_enabled %}
-    use_backend gocd if gocd
-    {% endif %}
-    use_backend discoenv if de
-    use_backend harbor if harbor
-    default_backend discoenv
-
-{% if gocd_enabled %}
-backend gocd
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['gocd_server'] %}
-    server {{ svr }} {{ svr }}:8153 verify none check inter 5000
-    {% endfor %}
-{% endif %}
-
-backend discoenv
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:443 ssl verify none check inter 5000
-    {% endfor %}
-
-backend harbor
-    option log-health-checks
-    option forwardfor
-
-    http-request add-header X-Forwarded-Proto https
-
-    balance roundrobin
-    {% for svr in groups['k3s_de_workers'] %}
-    server {{ svr }} {{ svr }}:{{ harbor_nodeport }} check inter 5000
-    {% endfor %}
-
-listen kube-apiservers
-    bind :{{ k3s_api_port }}
-
-    mode tcp
-    option tcplog
-    option tcp-check
-    balance roundrobin
-
-    default-server inter 10s downinter 5s rise 2 fall 2 slowstart 60s maxconn 250 maxqueue 256 weight 100
-
-    # Backend servers use self-signed certificates and are verified by the clients, so ignore the certificate verification.
-{% for host in groups['k3s_controllers'] %}
-    server {{ host | regex_replace('[.].*', '') }} {{ host }}:6443 check
-{% endfor %}

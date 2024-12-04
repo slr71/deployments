@@ -1,0 +1,64 @@
+---
+- name: Open the HTTP/S Port
+  become: true
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  with_items:
+    - port: 80
+      proto: tcp
+    - port: 443
+      proto: tcp
+  when: ansible_os_family == 'Debian'
+
+- name: Open the HTTP/S port
+  become: true
+  ansible.posix.firewalld:
+    permanent: true
+    immediate: true
+    zone: public
+    state: enabled
+    port: "{{ item }}"
+  notify: reload firewalld
+  with_items:
+    - "80/tcp" # join api port
+    - "443/tcp" # konnectivity server
+  when: ansible_os_family == 'RedHat'
+
+- ansible.builtin.set_fact:
+    repo_dir: "{{ inventory_dir | dirname }}"
+
+- ansible.builtin.set_fact:
+    secrets_dir: "{{ [repo_dir, secrets_loader_base_dir] | path_join }}"
+
+- name: copy ssl files
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/ssl/
+    src: "{{ secrets_dir }}/{{ item }}"
+    mode: 0600
+    owner: root
+    group: root
+  with_items: "{{ secrets_loader_ssl_filepaths }}"
+
+# - name: configure ui haproxy settings
+#   become: true
+#   ansible.builtin.template:
+#     src: 01_de.cfg.j2
+#     dest: /etc/haproxy/conf.d/01_de.cfg.j2
+#     owner: root
+#     group: root
+#     mode: 0644
+#   notify:
+#     - restart haproxy
+
+- name: configure ui haproxy settings
+  become: true
+  ansible.builtin.blockinfile:
+    dest: /etc/haproxy/haproxy.cfg
+    append_newline: true
+    prepend_newline: true
+    marker: "# {mark} DE UI HAProxy Settings"
+    block: "{{ lookup('template', '01_de.cfg.j2') }}"
+  notify: restart haproxy

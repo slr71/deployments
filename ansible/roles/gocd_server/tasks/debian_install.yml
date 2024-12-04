@@ -5,15 +5,15 @@
       ansible.builtin.get_url:
         url: https://download.gocd.org/GOCD-GPG-KEY.asc
         dest: /usr/share/keyrings/GOCD-GPG-KEY.asc
-        mode: '0644'
+        mode: "0644"
         force: true
 
     - name: de-armor the gpg key
-      command: gpg -o /etc/apt/keyrings/gocd.gpg --dearmor /usr/share/keyrings/GOCD-GPG-KEY.asc       
+      command: gpg -o /etc/apt/keyrings/gocd.gpg --dearmor /usr/share/keyrings/GOCD-GPG-KEY.asc
       args:
         creates: /etc/apt/keyrings/gocd.gpg
 
-    - name: add the repo 
+    - name: add the repo
       ansible.builtin.apt_repository:
         repo: "deb [signed-by=/etc/apt/keyrings/gocd.gpg] https://download.gocd.org /"
         state: present
@@ -34,8 +34,7 @@
   community.general.ufw:
     rule: allow
     direction: in
-    port: '8153'
+    port: "8153"
     proto: tcp
     src: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
-  with_items: "{{ groups['de_proxy'] }}"
-
+  with_items: "{{ groups['de_haproxy'] }}"

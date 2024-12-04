@@ -1,0 +1,10 @@
+---
+- name: reload firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+
+- name: restart haproxy
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
