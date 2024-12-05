@@ -16,3 +16,4 @@ kustomization.yaml
 kustomization.yml
 charts/
 memory_usage*.log
+harbor_login.json

@@ -19,7 +19,7 @@
     release_namespace: "{{ harbor_namespace }}"
     wait: true
     values:
-      externalURL: "https://{{ harbor_external_domain }}"
+      externalURL: "https://{{ harbor_fqdn }}"
       expose:
         type: nodePort
         tls:
@@ -70,4 +70,3 @@
           notaryServerDatabase: "{{ harbor_notary_server_db_name }}"
           notarySignerDatabase: "{{ harbor_notary_signer_db_name }}"
           sslMode: "disable"
-

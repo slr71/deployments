@@ -7,7 +7,7 @@ frontend http2-ssl
     bind *:443 ssl crt /etc/ssl/cyverse.combined alpn h2,http/1.1 crt /etc/ssl/cyverse.combined
 
 {% if harbor_enabled %}
-    acl harbor hdr(host) -i {{ harbor_external_domain }}
+    acl harbor hdr(host) -i {{ harbor_fqdn }}
 {% endif %}
 {% if gocd_enabled %}
     acl gocd hdr(host) -i {{ gocd_external_domain }}

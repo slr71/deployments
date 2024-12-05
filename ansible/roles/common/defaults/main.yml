@@ -203,7 +203,7 @@ harbor_enabled: false
 harbor_url: harbor.cyverse.org
 harbor_repo: https://helm.goharbor.io
 harbor_namespace: harbor
-harbor_external_domain: harbor-qa.example.org
+harbor_fqdn: harbor.example.org
 harbor_storage_class: "longhorn"
 harbor_replicas: 2
 harbor_http_nodeport: 30002
@@ -215,9 +215,9 @@ harbor_notary_server_db_name: harbor_notary_server
 harbor_notary_signer_db_name: harbor_notary_signer
 harbor_database_user: harbor
 harbor_database_password: "Ch@ng3M3"
-harbor_qa_image_pull_secret: qa-project-image-pull-secret
-harbor_qa_robot_name: harbor-qa-robot
-harbor_qa_robot_secret: replace_me
+harbor_image_pull_secret: vice-image-pull-secret
+harbor_robot_name: harbor-robot
+harbor_robot_secret: replace_me
 
 # IRODS CSI Driver Vars
 irods_csi_driver_repo: https://cyverse.github.io/irods-csi-driver-helm/
@@ -281,6 +281,8 @@ icat_host: replace_me
 icat_port: 5432
 icat_user: replace_me
 icat_password: replace_me
+
+image_tool: docker
 
 # Intercom settings
 intercom_enabled: true

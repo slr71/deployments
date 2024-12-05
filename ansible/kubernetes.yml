@@ -184,9 +184,9 @@
   hosts: de_haproxy
   roles:
     - role: ui_haproxy
-      tags:
-        - haproxy
-        - ui-haproxy
+  tags:
+    - haproxy
+    - ui-haproxy
 
 - name: set up cronjobs
   become: false
