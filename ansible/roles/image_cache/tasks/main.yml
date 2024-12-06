@@ -1,0 +1,65 @@
+---
+- delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  block:
+    - name: add the kube-fledged helm repo
+      kubernetes.core.helm_repository:
+        name: kubefledged-charts
+        repo_url: https://senthilrch.github.io/kubefledged-charts/
+        state: present
+
+    - name: install kube-fledged
+      kubernetes.core.helm:
+        name: image-cache
+        chart_ref: kubefledged-charts/kube-fledged
+        release_namespace: image-cache
+        create_namespace: true
+        state: present
+        wait: true
+
+    - name: create the harbor json file
+      ansible.builtin.shell:
+        cmd: |
+          {{ image_tool }} login \
+          --authfile ./harbor_login.json \
+          --username {{ harbor_robot_name }} \
+          --password {{ harbor_robot_secret }}
+        creates: harbor_login.json
+
+    - name: create the harbor image pull secret
+      ansible.builtin.shell:
+        cmd: |
+          kubectl -n image-cache \
+          create secret generic {{ vice_image_pull_secret }} \
+          --from-file=.dockerconfigjson=./harbor_login.json \
+          --type=kubernetes.io/dockerconfigjson
+      ignore_errors: true
+
+    - name: remove the tempfile for the harbor login json
+      ansible.builtin.file:
+        path: harbor_login.json
+        state: absent
+
+    - name: add the actual image cache
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: kubefledged.io/v1alpha2
+          kind: ImageCache
+          metadata:
+            name: vice-image-cache
+            namespace: image-cache
+            labels:
+              app: kubefledged
+              kubefledged: imagecache
+          spec:
+            imagePullSecrets:
+              - name: vice-image-pull-secret
+            cacheSpec:
+              - images:
+                  - harbor.cyverse.org/de/vice-file-transfers:latest
+                  - harbor.cyverse.org/de/vice-proxy:latest
+                  - harbor.cyverse.org/vice/cli/bash:latest
+                nodeSelector:
+                  vice: "true"

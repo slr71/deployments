@@ -88,6 +88,9 @@
     - role: grouper_init
       tags: grouper
 
+    - role: image_cache
+      tags: image-cache
+
 - name: create the irods-csi-driver plugin directory
   hosts: k8s_workers
   become: true
