@@ -17,3 +17,4 @@ kustomization.yml
 charts/
 memory_usage*.log
 harbor_login.json
+*_dump.sql
