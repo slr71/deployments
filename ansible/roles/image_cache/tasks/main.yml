@@ -57,9 +57,6 @@
             imagePullSecrets:
               - name: vice-image-pull-secret
             cacheSpec:
-              - images:
-                  - harbor.cyverse.org/de/vice-file-transfers:latest
-                  - harbor.cyverse.org/de/vice-proxy:latest
-                  - harbor.cyverse.org/vice/cli/bash:latest
+              - images: "{{ vice_image_cache }}"
                 nodeSelector:
                   vice: "true"
