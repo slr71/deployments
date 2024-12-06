@@ -1,0 +1,6 @@
+---
+- hosts: k8s_controllers[0]
+  connection: local
+  gather_facts: false
+  roles:
+    - role: db_copy_prod
