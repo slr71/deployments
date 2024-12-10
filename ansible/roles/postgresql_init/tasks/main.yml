@@ -360,26 +360,9 @@
   command: which migrate
   changed_when: false
   register: migrate_installed
-  failed_when: migrate_installed.rc not in [0, 1]
 
-- name: init db | extract migrate tarball
-  delegate_to: localhost
-  ansible.builtin.unarchive:
-    src: "https://github.com/golang-migrate/migrate/releases/download/{{ migrate_release_version }}/{{ migrate_tarball_name }}"
-    dest: "{{ dbs_dir.path }}"
-    remote_src: yes
-    creates: "{{ dbs_dir.path }}/migrate"
-  when: migrate_installed.rc == 1
-
-- name: init db | install migrate
-  delegate_to: localhost
-  become: true
-  become_user: root
-  ansible.builtin.copy:
-    src: "{{ dbs_dir.path }}/migrate"
-    dest: "{{ install_dir }}/migrate"
-    mode: 0755
-  when: migrate_installed.rc == 1
+- debug:
+    msg: "{{ migrate_installed }}"
 
 - name: init db | checkout de database repo
   delegate_to: localhost
@@ -433,32 +416,47 @@
 
 - name: init db | run de database migrations
   delegate_to: localhost
-  ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user }}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/de?sslmode=disable" -path "{{ dbs_dir.path }}/de-database/migrations" up
+  ansible.builtin.command: >
+    {{migrate_installed.stdout}}
+    -database "postgresql://{{dbms_connection_user }}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/de?sslmode=disable"
+    -path "{{ dbs_dir.path }}/de-database/migrations"
+    up
   when: migrate is defined and migrate
 
 - name: init db | run metadata db migrations
   delegate_to: localhost
-  ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/metadata?sslmode=disable" -path "{{ dbs_dir.path }}/metadata-db/migrations" up
+  ansible.builtin.command: >
+    {{migrate_installed.stdout}}
+    -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/metadata?sslmode=disable"
+    -path "{{ dbs_dir.path }}/metadata-db/migrations"
+    up
   when: migrate is defined and migrate
 
 - name: init db | run notifications db migrations
   delegate_to: localhost
-  ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/notifications?sslmode=disable" -path "{{ dbs_dir.path }}/notifications-db/migrations" up
+  ansible.builtin.command: >
+    {{migrate_installed.stdout}}
+    -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/notifications?sslmode=disable"
+    -path "{{ dbs_dir.path }}/notifications-db/migrations"
+    up
   when: migrate is defined and migrate
 
 - name: init db | run mgmt db migrations
   delegate_to: localhost
-  ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable" -path "{{ dbs_dir.path }}/mgmt/db/migrations" up
+  ansible.builtin.command: >
+    {{migrate_installed.stdout}}
+    -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/de_releases?sslmode=disable"
+    -path "{{ dbs_dir.path }}/mgmt/db/migrations"
+    up
   when: migrate is defined and migrate
 
 - name: init db | run qms repo for its migrations
   delegate_to: localhost
-  ansible.builtin.command: |
-    {{install_dir}}/migrate -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable" -path "{{ dbs_dir.path }}/qms/migrations" up
+  ansible.builtin.command: >
+    {{migrate_installed.stdout}}
+    -database "postgresql://{{dbms_connection_user}}:{{dbms_connection_pass}}@{{ groups['dbms'][0] }}:{{ pg_listen_port }}/qms?sslmode=disable"
+    -path "{{ dbs_dir.path }}/qms/migrations"
+    up
   when: migrate is defined and migrate
 
 - name: init db | add default instant launch mapping to the de db
