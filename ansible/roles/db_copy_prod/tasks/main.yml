@@ -1,69 +1,19 @@
 ---
-- set_fact:
-    dump_file: "./{{ de_db_name }}_dump.sql"
+- ansible.builtin.import_tasks:
+    file: de.yml
+  tags:
+    - de
 
-- delegate_to: localhost
-  block:
-    - name: check for dump
-      ansible.builtin.stat:
-        path: "{{ dump_file }}"
-      register: dump_stat
+- ansible.builtin.import_tasks:
+    file: metadata.yml
+  tags:
+    - metadata
 
-    - name: dump the prod database to a file
-      community.postgresql.postgresql_db:
-        name: "{{ de_db_name }}"
-        state: dump
-        target: "{{ dump_file }}"
-        target_opts: '-n public --exclude-table-data="jobs" --exclude-table-data="job_steps" --exclude-table-data="job_status_updates" --exclude-table-data="job_tickets" --exclude-table-data="access_tokens" --exclude-table-data="authorization_requests" --exclude-table-data="logins"'
-        login_host: "{{ prod_db_host }}"
-        login_user: "{{ prod_db_user | default( dbms_connection_user ) }}"
-        login_password: "{{ prod_db_pass | default( dbms_connection_pass ) }}"
-        port: "{{ prod_db_port | default( pg_listen_port ) }}"
-      when: not dump_stat.exists
-
-    - name: delete the receiving database
-      community.postgresql.postgresql_db:
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        name: "{{ de_db_name }}"
-        owner: "{{ dbms_connection_user }}"
-        state: absent
-
-    - name: create receiving database
-      community.postgresql.postgresql_db:
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        name: "{{ de_db_name }}"
-        owner: "{{ dbms_connection_user }}"
-        encoding: "{{ encoding }}"
-        lc_collate: "{{ lc_collate }}"
-        lc_ctype: "{{ lc_ctype }}"
-        template: "{{ template }}"
-        state: present
-
-    - name: install extensions for receiving database
-      community.postgresql.postgresql_ext:
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        db: "{{ de_db_name }}"
-        name: "{{ item }}"
-      with_items:
-        - "uuid-ossp"
-        - "moddatetime"
-        - "btree_gist"
-        - "insert_username"
-
-    - name: load dump into receiving database
-      community.postgresql.postgresql_script:
-        path: "{{ dump_file }}"
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        db: "{{ de_db_name }}"
+- ansible.builtin.import_tasks:
+    file: notifications.yml
+  tags:
+    - notifications
+# - ansible.builtin.import_tasks:
+#     file: qms.yml
+#   tags:
+#     - qms

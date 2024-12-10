@@ -1,0 +1,88 @@
+---
+- delegate_to: localhost
+  become: false
+  block:
+    - set_fact:
+        dump_file: "./{{ de_db_name }}_dump.sql"
+
+    - name: dump the prod database to a file
+      environment:
+        PGPASSWORD: "{{ prod_db_pass | default( dbms_connection_pass ) }}"
+      ansible.builtin.shell:
+        cmd: >
+          pg_dump {{ de_db_name }}
+          --host={{ prod_db_host}}
+          --port={{ prod_db_port | default( pg_listen_port ) }}
+          --username={{ prod_db_user | default ( dbms_connection_user ) }}
+          --file {{ dump_file }}
+          -n public
+          --create
+          --if-exists
+          --clean
+          --no-owner
+          --exclude-table-data="jobs"
+          --exclude-table-data="job_steps"
+          --exclude-table-data="job_status_updates"
+          --exclude-table-data="job_tickets"
+          --exclude-table-data="access_tokens"
+          --exclude-table-data="authorization_requests"
+          --exclude-table-data="logins"
+          --exclude-table-data="user_preferences"
+          --exclude-table-data="user_sessions"
+          --exclude-table-data="notif_statuses"
+          --exclude-table-data="async_task_status"
+          --exclude-table-data="user_data_usage"
+          --exclude-table-data="cpu_usage_events"
+          --exclude-table-data="cpu_usage_totals"
+          --exclude-table-data="cpu_usage_workers"
+          --exclude-table-data="tree_urls"
+          --exclude-table-data="filtered_user_data_usage"
+        creates: "{{ dump_file }}"
+
+    - name: drop the public schema from the receiving database
+      community.postgresql.postgresql_schema:
+        name: public
+        state: absent
+        cascade_drop: true
+        database: "{{ de_db_name }}"
+        login_host: "{{ groups['dbms'][0] }}"
+        login_port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+
+    - name: recreate the public schema in the receiving database
+      community.postgresql.postgresql_schema:
+        name: public
+        state: present
+        owner: "{{ dbms_connection_user }}"
+        database: "{{ de_db_name }}"
+        login_host: "{{ groups['dbms'][0] }}"
+        login_port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+
+    - name: install extensions for receiving database
+      community.postgresql.postgresql_ext:
+        login_host: "{{ groups['dbms'][0] }}"
+        login_port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ de_db_name }}"
+        name: "{{ item }}"
+      with_items:
+        - "uuid-ossp"
+        - "moddatetime"
+        - "btree_gist"
+        - "insert_username"
+
+    - name: load dump into receiving database
+      environment:
+        PGPASSWORD: "{{ dbms_connection_pass }}"
+      ansible.builtin.shell:
+        cmd: >
+          psql
+          -U {{ dbms_connection_user }}
+          -d {{ de_db_name }}
+          -h {{ groups['dbms'][0] }}
+          -p {{ pg_listen_port }}
+          < {{ dump_file }}

@@ -1,0 +1,72 @@
+---
+- delegate_to: localhost
+  become: false
+  block:
+    - set_fact:
+        dump_file: "./{{ qms_db_name }}_dump.sql"
+
+    - name: check for dump
+      ansible.builtin.stat:
+        path: "{{ dump_file }}"
+      register: dump_stat
+
+    - name: dump the prod database to a file
+      environment:
+        PGPASSWORD: "{{ prod_db_pass | default( dbms_connection_pass ) }}"
+      ansible.builtin.shell:
+        cmd: >
+          pg_dump {{ qms_db_name }}
+          --host={{ prod_db_host}}
+          --port={{ prod_db_port | default( pg_listen_port ) }}
+          --username={{ prod_db_user | default ( dbms_connection_user ) }}
+          --file {{ dump_file }}
+          -n public
+        creates: "{{ dump_file }}"
+
+    - name: drop the public schema from the receiving database
+      community.postgresql.postgresql_schema:
+        name: public
+        state: absent
+        cascade_drop: true
+        database: "{{ qms_db_name }}"
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+
+    - name: recreate the public schema in the receiving database
+      community.postgresql.postgresql_schema:
+        name: public
+        state: present
+        owner: "{{ dbms_connection_user }}"
+        database: "{{ qms_db_name }}"
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+
+    - name: install extensions for receiving database
+      community.postgresql.postgresql_ext:
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ qms_db_name }}"
+        name: "{{ item }}"
+      with_items:
+        - "uuid-ossp"
+        - "moddatetime"
+        - "btree_gist"
+        - "insert_username"
+
+    - name: load dump into receiving database
+      environment:
+        PGPASSWORD: "{{ dbms_connection_pass }}"
+      ansible.builtin.shell:
+        cmd: >
+          psql
+          -U {{ dbms_connection_user }}
+          -d {{ qms_db_name }}
+          -h {{ groups['dbms'][0] }}
+          -p {{ pg_listen_port }}
+          < {{ dump_file }}

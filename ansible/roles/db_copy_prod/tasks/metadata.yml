@@ -1,0 +1,86 @@
+---
+- delegate_to: localhost
+  become: false
+  block:
+    - set_fact:
+        dump_file: "./{{ metadata_db_name }}_dump.sql"
+
+    - name: check for dump
+      ansible.builtin.stat:
+        path: "{{ dump_file }}"
+      register: dump_stat
+
+    - name: dump the prod database to a file
+      environment:
+        PGPASSWORD: "{{ prod_db_pass | default( dbms_connection_pass ) }}"
+      ansible.builtin.shell:
+        cmd: >
+          pg_dump {{metadata_db_name}}
+          --host={{ prod_db_host}}
+          --port={{ prod_db_port | default( pg_listen_port ) }}
+          --username={{ prod_db_user | default ( dbms_connection_user ) }}
+          --file {{ dump_file }}
+          -n public
+          --exclude-table-data="comments"
+          --exclude-table-data="favorites"
+          --exclude-table-data="file_links"
+          --exclude-table-data="ratings"
+          --exclude-table-data="permanent_id_requests"
+          --exclude-table-data="permanent_id_request_statuses"
+          --exclude-table-data="tags"
+          --exclude-table-data="attached_tags"
+        creates: "{{ dump_file }}"
+
+    - name: drop the public schema from the receiving database
+      community.postgresql.postgresql_schema:
+        name: public
+        state: absent
+        cascade_drop: true
+        database: "{{ metadata_db_name }}"
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+
+    - name: recreate the public schema in the receiving database
+      community.postgresql.postgresql_schema:
+        name: public
+        state: present
+        owner: "{{ dbms_connection_user }}"
+        database: "{{ metadata_db_name }}"
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+
+    - name: install extensions for receiving database
+      community.postgresql.postgresql_ext:
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ metadata_db_name }}"
+        name: "{{ item }}"
+      with_items:
+        - "uuid-ossp"
+
+    - name: load dump into receiving database
+      environment:
+        PGPASSWORD: "{{ dbms_connection_pass }}"
+      ansible.builtin.shell:
+        cmd: >
+          psql
+          -U {{ dbms_connection_user }}
+          -d {{ metadata_db_name }}
+          -h {{ groups['dbms'][0] }}
+          -p {{ pg_listen_port }}
+          < {{ dump_file }}
+
+    - name: delete file and folder avus
+      community.postgresql.postgresql_query:
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ metadata_db_name }}"
+        query: "DELETE FROM avus WHERE target_type = 'file' OR target_type = 'folder'"
