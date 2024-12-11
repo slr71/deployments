@@ -16,6 +16,7 @@
           --username={{ prod_db_user | default ( dbms_connection_user ) }}
           --file {{ dump_file }}
           -n public
+          -n permissions
           --create
           --if-exists
           --clean
