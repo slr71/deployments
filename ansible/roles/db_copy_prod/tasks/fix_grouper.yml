@@ -1,0 +1,62 @@
+---
+- delegate_to: localhost
+  become: false
+  block:
+    - name: get the prod group ID
+      community.postgresql.postgresql_query:
+        login_host: "{{ prod_grouper_db_host }}"
+        login_port: "{{ prod_grouper_db_port | default('6432') }}"
+        login_user: "{{ prod_grouper_db_user | default('grouper') }}"
+        login_password: "{{ prod_grouper_db_pass }}"
+        db: "{{ prod_grouper_db_name | default('grouper') }}"
+        query: >
+          SELECT group_id
+          FROM grouper_groups_v
+          WHERE name = %s
+        positional_args:
+          - "{{ prod_group_name | default('iplant:de:prod:users:de-users') }}"
+      register: prod_group_query_result
+
+    - debug:
+        msg: "{{ prod_group_query_result }}"
+
+    - fail:
+        msg: "Could not look up details for group {{ prod_group_name }}"
+      when: prod_group_query_result.failed or (prod_group_query_result.query_all_results | default([]) | length) == 0
+
+    - name: get receiving environment group ID
+      community.postgresql.postgresql_query:
+        login_host: "{{ grouper_db_host }}"
+        login_port: "{{ grouper_db_port }}"
+        login_user: "{{ grouper_connection_user }}"
+        login_password: "{{ grouper_connection_pass }}"
+        db: "{{ grouper_db_name }}"
+        query: >
+          SELECT group_id
+          FROM grouper_groups_v
+          WHERE name = %s
+        positional_args:
+          - "iplant:de:{{ ns }}:users:de-users"
+      register: group_query_result
+
+    - debug:
+        msg: "{{ group_query_result }}"
+
+    - fail:
+        msg: "Could not look up details for group {{ prod_group_name | default('iplant:de:prod:users:de-users') }}"
+      when: group_query_result.failed or (group_query_result.query_all_results | default([]) | length) == 0
+
+    - name: set the new group ID in the receiving database
+      community.postgresql.postgresql_query:
+        login_host: "{{ groups['dbms'][0] }}"
+        login_port: "{{ pg_listen_port }}"
+        login_user: "{{ dbms_connection_user }}"
+        login_password: "{{ dbms_connection_pass }}"
+        db: "{{ de_db_name }}"
+        query: >
+          UPDATE permissions.subjects
+          SET subject_id = %s
+          WHERE subject_id = %s
+        positional_args:
+          - "{{ group_query_result.query_all_results[0][0]['group_id'] }}"
+          - "{{ prod_group_query_result.query_all_results[0][0]['group_id'] }}"

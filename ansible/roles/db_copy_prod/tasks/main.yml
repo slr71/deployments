@@ -5,6 +5,11 @@
     - de
 
 - ansible.builtin.import_tasks:
+    file: fix_grouper.yml
+  tags:
+    - fix-grouper
+
+- ansible.builtin.import_tasks:
     file: metadata.yml
   tags:
     - metadata
@@ -13,7 +18,3 @@
     file: notifications.yml
   tags:
     - notifications
-# - ansible.builtin.import_tasks:
-#     file: qms.yml
-#   tags:
-#     - qms
