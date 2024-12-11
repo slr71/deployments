@@ -37,6 +37,7 @@
           --exclude-table-data="cpu_usage_workers"
           --exclude-table-data="tree_urls"
           --exclude-table-data="filtered_user_data_usage"
+          --exclude-table-data="async_tasks"
         creates: "{{ dump_file }}"
 
     - name: drop the public schema from the receiving database
