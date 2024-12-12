@@ -3,27 +3,27 @@
   hosts: condor
   become: true
   tasks:
-  - package:
-      name: "python3-pip"
-      state: "present"
-  - package:
-      name: curl
-      state: present
-  - pip:
-      name: "docker"
-      state: present
+    - package:
+        name: "python3-pip"
+        state: "present"
+    - package:
+        name: curl
+        state: present
+    - pip:
+        name: "docker"
+        state: present
 
 - name: set the time zone
   hosts: condor
   become: true
   roles:
-  - role: timezone
+    - role: timezone
 
 - name: install docker
-  hosts: condor_worker
+  hosts: condor
   become: true
   roles:
-  - role: cyverse-ansible.docker
+    - role: CyVerse-Ansible.docker
 
 - name: download condor install script
   become: true
@@ -32,7 +32,7 @@
     - ansible.builtin.get_url:
         url: https://get.htcondor.org
         dest: /root/condor_install.sh
-        mode: '0755'
+        mode: "0755"
 
     - ansible.builtin.user:
         user: clauncher
@@ -46,8 +46,8 @@
   tasks:
     - ansible.builtin.shell:
         cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --central-manager "{{ groups['condor_manager'][0] }}"
-        chdir: '/root/'
-        creates: '/usr/sbin/condor_master'
+        chdir: "/root/"
+        creates: "/usr/sbin/condor_master"
 
 - name: install the submit node
   become: true
@@ -55,11 +55,10 @@
   tasks:
     - ansible.builtin.shell:
         cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --submit "{{ groups['condor_manager'][0] }}"
-        chdir: '/root/'
-        creates: '/usr/sbin/condor_master'
-  roles:
-    - condor_launcher
-    - de-road-runner
+        chdir: "/root/"
+        creates: "/usr/sbin/condor_master"
+    - ansible.builtin.import_role: name=condor_launcher
+    - ansible.builtin.import_role: name=de-road-runner
 
 - name: install the worker nodes
   become: true
@@ -67,14 +66,13 @@
   tasks:
     - ansible.builtin.shell:
         cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --submit "{{ groups['condor_manager'][0] }}"
-        chdir: '/root/'
-        creates: '/usr/sbin/condor_master'
-  roles:
-    - condor_configuration
-    - de-docker-logging-plugin
-    - de-image-janitor
-    - de-network-pruner
-    - condor-worker-docker-registries
+        chdir: "/root/"
+        creates: "/usr/sbin/condor_master"
+    - ansible.builtin.import_role: name=condor_configuration
+    - ansible.builtin.import_role: name=de-docker-logging-plugin
+    - ansible.builtin.import_role: name=de-image-janitor
+    - ansible.builtin.import_role: name=de-network-pruner
+    - ansible.builtin.import_role: name=condor-worker-docker-registries
 
 - name: fix ownership issues on the worker nodes
   become: true
@@ -91,5 +89,3 @@
         name: condor
         state: restarted
         enabled: yes
-        
-
