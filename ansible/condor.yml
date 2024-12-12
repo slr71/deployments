@@ -65,7 +65,7 @@
   hosts: condor_worker
   tasks:
     - ansible.builtin.shell:
-        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --submit "{{ groups['condor_manager'][0] }}"
+        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --execute "{{ groups['condor_manager'][0] }}"
         chdir: "/root/"
         creates: "/usr/sbin/condor_master"
     - ansible.builtin.import_role: name=condor_configuration
