@@ -514,6 +514,15 @@ secrets_loader_signing_keys_filepaths: []
 secrets_loader_accepted_keys_filepaths: []
 secrets_loader_ssl_filepaths: []
 
+tapis_key: replace_me
+tapis_secret: replace_me
+tapis_redirect_uri: replace_me
+tapis_storage_system: replace_me
+tapis_callback_base_uri: replace_me
+tapis_read_timeout: 3000
+tapis_enabled: false
+tapis_jobs_enabled: false
+
 vice_cache_images:
   - harbor.cyverse.org/de/vice-proxy:qa
   - harbor.cyverse.org/de/vice-file-transfers:qa
