@@ -1,4 +1,11 @@
 ---
+- name: start and enable firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: ansible_os_family == "RedHat"
+
 - name: open the ports
   ansible.posix.firewalld:
     permanent: true
@@ -9,11 +16,29 @@
     - "6443/tcp" # k8s api
     - "2380/tcp" # etcd
     - "10250/tcp" # kubelet
-    - "9443/tcp" # join api
-    - "8472/udp" # flannel
-    - "8285/udp" # flannel
+    - "9443/tcp" # k0s join api
+    - "179/tcp" # bgp, worker-worker
+    - "8132/tcp" # konnectivity
+    - "112/tcp" # keepalived, possibly unnecessary
+    - "4789/udp" # Calico VXLAN Overlay
     - "30000-32767/tcp" # nodeports
     - "30000-32767/udp" # nodeports
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+
+- name: remove trusted subnets from public zone
+  ansible.builtin.command: "firewall-cmd --zone=public --remove-source={{ item }} --permanent"
+  loop:
+    - 10.42.0.0/16 # k3s pods
+    - 10.43.0.0/16 # k3s services
+  notify: reload firewalld
+  when: ansible_os_family == "RedHat"
+
+- name: open trusted subnets
+  ansible.builtin.command: "firewall-cmd --zone=trusted --add-source={{ item }} --permanent"
+  loop:
+    - 10.42.0.0/16 # k3s pods
+    - 10.43.0.0/16 # k3s services
   notify: reload firewalld
   when: ansible_os_family == "RedHat"
 

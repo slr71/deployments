@@ -48,6 +48,15 @@
   tags:
     - prep-nodes
 
+- name: set up firewall
+  hosts: k8s_nodes
+  become: true
+  roles:
+    - role: k8s_firewalld
+  tags:
+    - prep-nodes
+    - firewall
+
 # Add a playbook/role to call 'k0sctl apply --config <path>'
 - hosts: k8s_controllers[0]
   connection: local
