@@ -113,6 +113,19 @@
   tags:
     - irods-csi-driver
 
+- name: create the irods-csi-driver plugins_registry directory
+  hosts: k8s_workers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: create the plugin directory
+      ansible.builtin.file:
+        state: directory
+        path: /var/lib/k0s/kubelet/plugins_registry/
+        recurse: true
+  tags:
+    - irods-csi-driver
+
 - name: set up irods-csi-driver
   hosts: k8s_controllers[0]
   connection: local
