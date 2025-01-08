@@ -42,6 +42,7 @@
     - name: swapoff -a
       become: true
       ansible.builtin.command: swapoff -a
+      ignore_errors: true
 
     - name: comment out swap mounts in fstab
       ansible.builtin.replace:
@@ -304,14 +305,13 @@
           [keyfile]
           unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico;interface-name:vxlan-v6.calico;interface-name:wireguard.cali;interface-name:wg-v6.cali
         dest: /etc/NetworkManager/conf.d/calico.conf
-        mode: '0644'
+        mode: "0644"
 
-    - name: copy the storage_fix.sh file
-      ansible.builtin.template:
-        src: storage_fix.sh.j2
-        dest: "/root/storage_fix.sh"
-        owner: root
-        group: root
-        mode: "0744"
-      when: k8s_use_storage_mount is defined and k8s_use_storage_mount
-
+    # - name: copy the storage_fix.sh file
+    #   ansible.builtin.template:
+    #     src: storage_fix.sh.j2
+    #     dest: "/root/storage_fix.sh"
+    #     owner: root
+    #     group: root
+    #     mode: "0744"
+    #   when: k8s_use_storage_mount is defined and k8s_use_storage_mount
