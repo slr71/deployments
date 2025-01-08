@@ -54,6 +54,7 @@
       - name: irods-csi-driver
         repo: "{{ irods_csi_driver_repo }}"
         releaseName: irods-csi-driver
+        version: v0.10.6
         namespace: "{{ irods_csi_driver_namespace }}"
         valuesFile: "./irods_csi_driver_values.yaml"
 
