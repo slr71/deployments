@@ -33,6 +33,8 @@
                 - workflowtaskresults
               verbs:
                 - create
+                - delete
+                - apply
                 - patch
 
     - name: create the argo-executor service account
