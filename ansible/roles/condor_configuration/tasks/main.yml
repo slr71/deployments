@@ -1,12 +1,18 @@
 ---
-# - name: template the condor_config.local file
-#   ansible.builtin.template:
-#     src: condor_config.local.j2
-#     dest: /etc/condor/condor_config.local
-#     mode: '0644'
+- name: template the 02-partitionable-slots.config file
+  ansible.builtin.template:
+    src: "02-partitionable-slots.config.j2"
+    dest: "/etc/condor/config.d/02-partitionable-slots.config"
+    mode: "0644"
+
+- name: template the 20-job-user.config file
+  ansible.builtin.template:
+    src: "20-job-user.config.j2"
+    dest: "/etc/condor/config.d/20-job-user.config"
+    mode: "0644"
 
 - name: template the 20-road-runner.config file
   ansible.builtin.template:
     src: "20-road-runner.config.j2"
     dest: "/etc/condor/config.d/20-road-runner.config"
-    mode: '0644'
+    mode: "0644"
