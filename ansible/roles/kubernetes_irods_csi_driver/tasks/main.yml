@@ -40,6 +40,7 @@
             - '--cache_timeout_settings={{ irods_csi_driver_cache_timeout_settings }}'
             - --cache_size_max={{ irods_csi_driver_cache_size_max }}
             - --data_root={{ irods_csi_driver_data_root }}
+      kubeletDir: "{{ irods_csi_driver_kubelet_dir }}"
     dest: "./irods_csi_driver_values.yaml"
 
 - name: create the kustomization file
@@ -54,7 +55,7 @@
       - name: irods-csi-driver
         repo: "{{ irods_csi_driver_repo }}"
         releaseName: irods-csi-driver
-        version: v0.10.6
+        version: "{{ irods_csi_driver_version }}"
         namespace: "{{ irods_csi_driver_namespace }}"
         valuesFile: "./irods_csi_driver_values.yaml"
 
@@ -99,7 +100,7 @@
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   ansible.builtin.shell:
-    cmd: kubectl kustomize --enable-helm | kubectl create -f -
+    cmd: kubectl kustomize --enable-helm | kubectl apply -f -
   ignore_errors: true
 
 - name: define the storage class for the iRODS CSI driver
