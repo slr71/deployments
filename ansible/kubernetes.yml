@@ -222,6 +222,11 @@
     - role: cronjobs
       tags: cronjobs
 
+    - role: kubernetes_longhorn
+      tags:
+        - longhorn
+        - argo
+
     - role: keycloak_install
       tags: keycloak
       when: "'keycloak' in ansible_run_tags"

@@ -12,6 +12,15 @@
           metadata:
             name: argo
 
+    - name: create the argo events namespace
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: argo-events
+
     - name: install argo
       kubernetes.core.k8s:
         state: present
@@ -22,7 +31,7 @@
         state: present
         definition:
           apiVersion: rbac.authorization.k8s.io/v1
-          kind: Role
+          kind: ClusterRole
           metadata:
             name: argo-executor
             namespace: argo
@@ -52,16 +61,31 @@
         state: present
         definition:
           apiVersion: v1
-          kind: RoleBinding
+          kind: ClusterRoleBinding
           metadata:
             name: argo-executor-binding
             namespace: argo
           roleRef:
             apiGroup: rbac.authorization.k8s.io
-            kind: Role
+            kind: ClusterRole
             name: argo-executor
             namespace: argo
           subjects:
             - kind: ServiceAccount
               name: argo-executor
               namespace: argo
+
+    - name: install argo-events
+      kubernetes.core.k8s:
+        state: present
+        src: argo_events_install.yaml
+
+    - name: install argo-events eventbus
+      kubernetes.core.k8s:
+        state: present
+        src: argo_events_eventbus_install.yaml
+
+    - name: install argo-events sensor rbac
+      kubernetes.core.k8s:
+        state: present
+        src: argo_events_sensor_rbac.yaml
