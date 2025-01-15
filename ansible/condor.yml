@@ -98,6 +98,7 @@
   become: true
   hosts: condor_submit
   tasks:
+    - ansible.builtin.import_role: name=job-user
     - ansible.builtin.import_role: name=condor_launcher
     - ansible.builtin.import_role: name=de-road-runner
   tags:
@@ -107,6 +108,7 @@
   become: true
   hosts: condor_worker
   tasks:
+    - ansible.builtin.import_role: name=job-user
     - ansible.builtin.import_role: name=de-docker-logging-plugin
     - ansible.builtin.import_role: name=de-image-janitor
     - ansible.builtin.import_role: name=de-network-pruner

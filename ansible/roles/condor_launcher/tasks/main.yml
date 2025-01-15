@@ -1,12 +1,4 @@
 ---
-- ansible.builtin.user:
-    user: clauncher
-    create_home: yes
-    append: true
-    groups:
-      - docker
-      - condor
-
 - ansible.builtin.shell: "curl -s https://api.github.com/repos/cyverse-de/condor-launcher/releases/latest | jq -r '.tag_name'"
   register: tag_name
   delegate_to: 127.0.0.1
