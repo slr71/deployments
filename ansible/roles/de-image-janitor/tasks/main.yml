@@ -9,7 +9,7 @@
     state: "directory"
     owner: "condor"
     group: "condor"
-    mode: 0755
+    mode: 0775
 
 - name: create the excludes file
   ansible.builtin.template:

@@ -45,12 +45,6 @@
         url: https://get.htcondor.org
         dest: /root/condor_install.sh
         mode: "0755"
-
-    - ansible.builtin.user:
-        user: clauncher
-        create_home: yes
-        append: true
-        groups: docker
   tags:
     - worker
     - manager
