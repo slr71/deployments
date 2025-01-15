@@ -39,12 +39,12 @@
           apiVersion: argoproj.io/v1alpha1
           kind: Sensor
           metadata:
-            name: webhook-logging-sensor
+            name: webhook-logging
             namespace: argo-events
           spec:
             dependencies:
               - name: batch-status-dep
-                eventSourceName: webhook-event-source
+                eventSourceName: webhook
                 eventName: batch-status
             triggers:
               - template:
