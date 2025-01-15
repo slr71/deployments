@@ -1,0 +1,53 @@
+---
+- delegate_to: localhost
+  environment:
+    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+  block:
+    - name: set up webhook event source
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: argoproj.io/v1alpha1
+          kind: EventSource
+          metadata:
+            name: webhook
+            namespace: argo-events
+          spec:
+            service:
+              ports:
+                - port: 80
+                  targetPort: 80
+            webhook:
+              # event-source can run multiple HTTP servers. Simply define a unique port to start a new HTTP server
+              batch-status:
+                # port to run HTTP server on
+                port: "80"
+                # endpoint to listen to
+                endpoint: /batch
+                # HTTP request method to allow. In this case, only POST requests are accepted
+                method: POST
+
+              vice-status:
+                port: "80"
+                endpoint: /vice
+                method: POST
+
+    - name: set up a logging sensor for the webhook event
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: argoproj.io/v1alpha1
+          kind: Sensor
+          metadata:
+            name: webhook-logging-sensor
+            namespace: argo-events
+          spec:
+            dependencies:
+              - name: batch-status-dep
+                eventSourceName: webhook-event-source
+                eventName: batch-status
+            triggers:
+              - template:
+                  name: log-batch-status
+                  log:
+                    intervalSeconds: 1
