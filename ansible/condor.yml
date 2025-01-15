@@ -72,7 +72,7 @@
 
     - ansible.builtin.set_fact:
         install_command: "{{ install_command + cm_opts }}"
-      when: "'condor_submit' in group_names"
+      when: "'condor_manager' in group_names"
 
     - ansible.builtin.set_fact:
         install_command: "{{ install_command + exec_opts }}"
