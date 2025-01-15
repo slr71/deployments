@@ -45,58 +45,74 @@
         url: https://get.htcondor.org
         dest: /root/condor_install.sh
         mode: "0755"
-
-    - ansible.builtin.user:
-        user: clauncher
-        create_home: yes
-        append: true
-        groups: docker
   tags:
     - worker
     - manager
     - submission
 
-- name: install the central manager
+- name: install condor
   become: true
-  hosts: condor_manager
+  hosts: condor
   tasks:
+    - ansible.builtin.set_fact:
+        install_command:
+          - "./condor_install.sh"
+          - "--no-dry-run"
+          - "--password"
+          - "{{ condor_pool_password }}"
+        cm_opts:
+          - "--central_manager"
+          - "{{ groups['condor_manager'][0] }}"
+        exec_opts:
+          - "--execute"
+          - "{{ groups['condor_manager'][0] }}"
+        submit_opts:
+          - "--submit"
+          - "{{ groups['condor_manager'][0] }}"
+
+    - ansible.builtin.set_fact:
+        install_command: "{{ install_command + cm_opts }}"
+      when: "'condor_manager' in group_names"
+
+    - ansible.builtin.set_fact:
+        install_command: "{{ install_command + exec_opts }}"
+      when: "'condor_worker' in group_names"
+
+    - ansible.builtin.set_fact:
+        install_command: "{{ install_command + submit_opts }}"
+      when: "'condor_submit' in group_names"
+
     - ansible.builtin.shell:
-        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --central-manager "{{ groups['condor_manager'][0] }}"
+        cmd: "{{ install_command }}"
         chdir: "/root/"
         creates: "/usr/sbin/condor_master"
-  tags:
-    - manager
 
-- name: install the submit node
+    - ansible.builtin.import_role:
+        name: condor_configuration
+  tags:
+    - worker
+    - manager
+    - submission
+
+- name: install additional dependencies on the submit node
   become: true
   hosts: condor_submit
   tasks:
-    - ansible.builtin.shell:
-        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --submit "{{ groups['condor_manager'][0] }}"
-        chdir: "/root/"
-        creates: "/usr/sbin/condor_master"
+    - ansible.builtin.import_role: name=job-user
     - ansible.builtin.import_role: name=condor_launcher
     - ansible.builtin.import_role: name=de-road-runner
   tags:
     - submission
 
-- name: install the worker nodes
+- name: install additional dependencies on the worker nodes
   become: true
   hosts: condor_worker
   tasks:
-    - ansible.builtin.shell:
-        cmd: ./condor_install.sh --no-dry-run --password "{{ condor_pool_password }}" --execute "{{ groups['condor_manager'][0] }}"
-        chdir: "/root/"
-        creates: "/usr/sbin/condor_master"
-    - ansible.builtin.import_role: name=condor_configuration
+    - ansible.builtin.import_role: name=job-user
     - ansible.builtin.import_role: name=de-docker-logging-plugin
     - ansible.builtin.import_role: name=de-image-janitor
     - ansible.builtin.import_role: name=de-network-pruner
     - ansible.builtin.import_role: name=condor-worker-docker-registries
-    - ansible.builtin.get_url:
-        url: https://github.com/docker/compose/releases/download/v2.30.3/docker-compose-linux-x86_64
-        dest: /usr/bin/docker-compose
-        mode: "0755"
   tags:
     - worker
 
@@ -110,10 +126,19 @@
         state: directory
         owner: condor
         recurse: yes
+  tags:
+    - worker
 
+- name: restart condor
+  become: true
+  hosts: condor
+  gather_facts: false
+  tasks:
     - ansible.builtin.systemd:
         name: condor
         state: restarted
         enabled: yes
   tags:
     - worker
+    - manager
+    - submission
