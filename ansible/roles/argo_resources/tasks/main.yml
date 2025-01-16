@@ -51,3 +51,50 @@
                   name: log-batch-status
                   log:
                     intervalSeconds: 1
+
+    - name: set up a job-status-listener sensor for the webhook event
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: argoproj.io/v1alpha1
+          kind: Sensor
+          metadata:
+            name: webhook-jsl
+            namespace: argo-events
+          spec:
+            dependencies:
+              - name: batch-status-dep
+                eventSourceName: webhook
+                eventName: batch-status
+            triggers:
+              - template:
+                  name: send-to-job-status-listener
+                  http:
+                    url: "http://job-status-listener.{{ns}}/status/batch"
+                    headers:
+                      Content-Type: application/json
+                    payload:
+                      - src:
+                          dependencyName: batch-status-dep
+                          dataKey: body.job_uuid
+                        dest: job_uuid
+                      - src:
+                          dependencyName: batch-status-dep
+                          dataKey: body.analysis_uuid
+                        dest: analysis_uuid
+                      - src:
+                          dependencyName: batch-status-dep
+                          dataKey: body.hostname
+                        dest: hostname
+                      - src:
+                          dependencyName: batch-status-dep
+                          dataKey: body.message
+                        dest: message
+                      - src:
+                          dependencyName: batch-status-dep
+                          dataKey: body.state
+                        dest: state
+                    method: POST
+                retryStrategy:
+                  steps: 3
+                  duration: 3s
