@@ -220,7 +220,7 @@ harbor_robot_name: harbor-robot
 harbor_robot_secret: replace_me
 
 # IRODS CSI Driver Vars
-irods_csi_driver_version: "v0.10.7"
+irods_csi_driver_version: "v0.10.8"
 irods_csi_driver_repo: https://cyverse.github.io/irods-csi-driver-helm/
 irods_csi_driver_namespace: irods-csi-driver
 irods_csi_driver_client: irodsfuse
