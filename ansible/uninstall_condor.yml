@@ -1,14 +1,20 @@
 ---
-
 - name: remove the condor package
   hosts: condor
   become: true
   tasks:
-    - ansible.builtin.apt:
+    - ansible.builtin.service:
+        name: condor
+        state: stopped
+        enabled: false
+    - ansible.builtin.package:
         name: condor
         state: absent
-        autoremove: true
-        purge: true
     - ansible.builtin.file:
-        path: /etc/condor
+        path: "{{ item }}"
         state: absent
+      loop:
+        - /etc/condor
+        - /var/lib/condor
+        - /root/condor_install.sh
+        - /root/condor_config.local
