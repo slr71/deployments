@@ -14,6 +14,7 @@ irods_csi_driver_values.yml
 irods_csi_driver_values.yaml
 kustomization.yaml
 kustomization.yml
+longhorn_values.yml
 charts/
 memory_usage*.log
 harbor_login.json
