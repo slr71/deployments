@@ -27,6 +27,11 @@
                 # HTTP request method to allow. In this case, only POST requests are accepted
                 method: POST
 
+              batch-cleanup:
+                port: "80"
+                endpoint: /batch/cleanup
+                method: POST
+
               vice-status:
                 port: "80"
                 endpoint: /vice
@@ -51,6 +56,37 @@
                   name: log-batch-status
                   log:
                     intervalSeconds: 1
+
+    - name: set up a cleanup sensor for the webhook event
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: argoproj.io/v1alpha1
+          kind: Sensor
+          metadata:
+            name: cleanup-batch-workflow
+            namespace: argo-events
+          spec:
+            dependencies:
+              - name: cleanup-batch-dep
+                eventSourceName: webhook
+                eventName: batch-cleanup
+            triggers:
+              - template:
+                  name: cleanup-batch-trigger
+                  http:
+                    url: "http://app-exposer.{{ns}}/batch/cleanup"
+                    headers:
+                      Content-Type: application/json
+                    payload:
+                      - src:
+                          dependencyName: cleanup-batch-dep
+                          dataKey: body.analysis_uuid
+                        dest: analysis_uuid
+                    method: POST
+                retryStrategy:
+                  steps: 3
+                  duration: 3s
 
     - name: set up a job-status-listener sensor for the webhook event
       kubernetes.core.k8s:
