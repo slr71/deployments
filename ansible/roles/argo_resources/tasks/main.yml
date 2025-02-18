@@ -116,10 +116,6 @@
                         dest: job_uuid
                       - src:
                           dependencyName: batch-status-dep
-                          dataKey: body.analysis_uuid
-                        dest: analysis_uuid
-                      - src:
-                          dependencyName: batch-status-dep
                           dataKey: body.hostname
                         dest: hostname
                       - src:
