@@ -81,8 +81,8 @@
                     payload:
                       - src:
                           dependencyName: cleanup-batch-dep
-                          dataKey: body.analysis_uuid
-                        dest: analysis_uuid
+                          dataKey: body.uuid
+                        dest: uuid
                     method: POST
                 retryStrategy:
                   steps: 3
