@@ -1,5 +1,10 @@
 ---
 - block:
+    - name: builds dir
+      delegate_to: localhost
+      ansible.builtin.debug:
+        msg: "{{ build_json_dir }}"
+
     - name: read the build JSON file
       delegate_to: localhost
       set_fact:
