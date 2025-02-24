@@ -243,4 +243,6 @@
       tags: argo
 
     - role: argo_resources
-      tags: argo-resources
+      tags: 
+        - argo-resources
+        - argo

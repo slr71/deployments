@@ -3,6 +3,22 @@
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   block:
+    - name: add the irods-config configmap
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: irods-config
+            namespace: argo
+          data:
+            IRODS_HOST: "{{ irods_host }}"
+            IRODS_PORT: "{{ irods_port | string }}"
+            IRODS_USER_NAME: "{{ irods_user }}"
+            IRODS_USER_PASSWORD: "{{ irods_password }}"
+            IRODS_ZONE_NAME: "{{ irods_zone }}"
+
     - name: set up webhook event source
       kubernetes.core.k8s:
         state: present
