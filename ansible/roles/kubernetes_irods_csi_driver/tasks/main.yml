@@ -1,33 +1,20 @@
 ---
-# - name: install the irods CSI driver helm repo
-#   delegate_to: localhost
-#   environment:
-#     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-#   kubernetes.core.helm_repository:
-#     name: irods-csi-driver-repo
-#     repo_url: "{{ irods_csi_driver_repo }}"
-#     state: present
-
-- name: Create installation namespace
+- name: install the irods CSI driver
   delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.k8s:
-    name: "{{ irods_csi_driver_namespace }}"
-    state: present
-    kind: namespace
-    api_version: v1
-
-- name: create the irods-csi-driver values file from inline content
-  delegate_to: localhost
-  ansible.builtin.copy:
-    content: |
+  kubernetes.core.helm:
+    create_namespace: true
+    release_namespace: "{{ irods_csi_driver_namespace }}"
+    release_name: irods-csi-driver
+    chart_repo_url: https://cyverse.github.io/irods-csi-driver-helm/
+    chart_ref: irods-csi-driver
+    chart_version: "{{ irods_csi_driver_version }}"
+    values:
       globalConfig:
         secret:
           stringData:
             client: "{{ irods_csi_driver_client }}"
             host: "{{ irods_csi_driver_host }}"
-            port: "{{ irods_csi_driver_port }}"
+            port: "{{ irods_csi_driver_port | string }}"
             zone: "{{ irods_csi_driver_zone }}"
             user: "{{ irods_csi_driver_user}}"
             password: "{{ irods_csi_driver_password }}"
@@ -35,73 +22,14 @@
             enforceProxyAccess: "{{ irods_csi_driver_enforce_proxy_access }}"
             mountPathWhitelist: "{{ irods_csi_driver_mount_path_white_list }}"
       nodeService:
+        irodsPlugin:
+          poolServerEndpoint: "{{ irods_csi_driver_pool_server_endpoint }}"
         irodsPool:
           extraArgs:
-            - '--cache_timeout_settings={{ irods_csi_driver_cache_timeout_settings }}'
-            - --cache_size_max={{ irods_csi_driver_cache_size_max }}
-            - --data_root={{ irods_csi_driver_data_root }}
+            - "--cache_timeout_settings={{ irods_csi_driver_cache_timeout_settings }}"
+            - "--cache_size_max={{ irods_csi_driver_cache_size_max }}"
+            - "--data_root={{ irods_csi_driver_data_root }}"
       kubeletDir: "{{ irods_csi_driver_kubelet_dir }}"
-    dest: "./irods_csi_driver_values.yaml"
-
-- name: create the kustomization file
-  delegate_to: localhost
-  ansible.builtin.copy:
-    dest: "./kustomization.yaml"
-    content: |
-      apiVersion: kustomize.config.k8s.io/v1beta1
-      kind: Kustomization
-
-      helmCharts:
-      - name: irods-csi-driver
-        repo: "{{ irods_csi_driver_repo }}"
-        releaseName: irods-csi-driver
-        version: "{{ irods_csi_driver_version }}"
-        namespace: "{{ irods_csi_driver_namespace }}"
-        valuesFile: "./irods_csi_driver_values.yaml"
-
-      patches:
-        - target:
-            kind: Deployment
-            group: apps
-            version: v1
-            name: irods-csi-driver-controller
-          patch: |-
-            - op: replace
-              path: /spec/template/spec/volumes/2/hostPath/path
-              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/storage
-
-        - target:
-            kind: DaemonSet
-            group: apps
-            version: v1
-            name: irods-csi-driver-node
-          patch: |-
-            - op: replace
-              path: /spec/template/spec/containers/2/env/1/value
-              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/csi.sock
-            - op: replace
-              path: /spec/template/spec/volumes/0/hostPath/path
-              value: /var/lib/k0s/kubelet/pods
-            - op: replace
-              path: /spec/template/spec/volumes/1/hostPath/path
-              value: /var/lib/k0s/kubelet/plugins
-            - op: replace
-              path: /spec/template/spec/volumes/2/hostPath/path
-              value: /var/lib/k0s/kubelet/plugins_registry
-            - op: replace
-              path: /spec/template/spec/volumes/3/hostPath/path
-              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org
-            - op: replace
-              path: /spec/template/spec/volumes/5/hostPath/path
-              value: /var/lib/k0s/kubelet/plugins/irods.csi.cyverse.org/storage
-
-- name: install irods-csi-driver
-  delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  ansible.builtin.shell:
-    cmd: kubectl kustomize --enable-helm | kubectl apply -f -
-  ignore_errors: true
 
 - name: define the storage class for the iRODS CSI driver
   environment:
