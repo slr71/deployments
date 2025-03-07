@@ -1,4 +1,9 @@
-# Purpose
+# DE Deployments
+
+Table of Contents:
+- [Required Git Repositories](#required-git-repositories)
+- [Continuous Integration To QA](#continuous-integration-to-qa)
+- [Production Deployment Automation](#production-deployment-automation)
 
 ## Required Git Repositories
 
@@ -65,3 +70,30 @@ Deployment
  - Usage of templating
 
 ## Production Deployment Automation
+
+You'll need the following repositories checked out locally:
+ - `deployments`. See [https://github.com/cyverse-de/deployments](https://github.com/cyverse-de/deployments)
+ - `de-releases`. See [https://github.com/cyverse-de/de-releases](https://github.com/cyverse-de/de-releases)
+ - The private inventory repo.
+
+You'll need the following tools installed:
+ - `ansible` at a reasonably recent version. See [https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+ - `kubectl` at version `1.29` or higher. See [https://kubernetes.io/docs/tasks/tools/](https://kubernetes.io/docs/tasks/tools/)
+ - `helm` at version `3.16` or higher. See [https://helm.sh/docs/intro/install/](https://helm.sh/docs/intro/install/)
+ - `golang-migrate` at version `4.18` or higher. See [https://github.com/golang-migrate/migrate](https://github.com/golang-migrate/migrate).
+ - `postgresql` client tools, namely `psql` at version `14` or higher. See [https://www.postgresql.org/download/](https://www.postgresql.org/download/).
+
+You'll also need a kubeconfig file for the production cluster. Set the `KUBECONFIG` environment variable to the path of the kubeconfig file.
+
+Finally, you need to have the `migrate` command available in your PATH. You can get it from [https://github.com/golang-migrate/migrate](https://github.com/golang-migrate/migrate). Download the latest released version appropriate for your operating system and architecture and ensure that the `migrate` binary is in your PATH.
+
+By default, our inventory group vars will override the `de_releases_dir` var to `../../de-releases`. This value places the cloned repository alongside the `deployments` repository when running the ansible commands from the `deployments/ansible` directory.
+
+Here is the process to deploy a release into an environment. Each line is a separate command:
+```bash
+ansibly-playbook -i <path/to/private-inventory/inventory/> --tags=setup-databases kubernetes.yml
+ansible-playbook -i <path/to/private-inventory/inventory/> --tags=configure-services kubernetes.yml
+ansible-playbook -i <path/to/private-inventory/inventory/> --tags=deploy-all-services kubernetes.yml
+```
+
+You can run the kubernetes.yml playbook without the tags and it will still run through the steps in order, but it will also attempt to run a bunch more steps that can consume a lot of time and resources. It's recommended to use the tags to limit the tasks that actually run.
