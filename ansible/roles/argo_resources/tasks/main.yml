@@ -10,6 +10,21 @@
     - debug:
         msg: "repo dir: '{{ repo_dir }}', secrets_dir: '{{ secrets_dir }}'"
 
+    - name: create the wc-data secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: wc-data-latest
+            namespace: argo
+            annotations:
+              test_data.txt: test_data.txt
+          type: opaque
+          data:
+            test_data.txt: "{{ 'This file is a test of the data containers feature.' | b64encode }}"
+
     - name: create the matlab secret
       kubernetes.core.k8s:
         state: present
@@ -17,7 +32,7 @@
           apiVersion: v1
           kind: Secret
           metadata:
-            name: matlab-mcr-2017b-data
+            name: matlab-mcr-2017b-data-v1-0
             namespace: argo
             annotations:
               IRODS.env: irods_auth/IRODS.env
