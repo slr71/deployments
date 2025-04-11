@@ -13,7 +13,7 @@ $ for i in (kubectl -n longhorn-system get events -o custom-columns=:.metadata.n
 $ for i in (kubectl -n longhorn-system get lease.coordination.k8s.io -o custom-columns=:.metadata.name --no-headers); kubectl -n longhorn-system delete lease.coordination.k8s.io $i; end
 $ for i in (kubectl -n longhorn-system get backuptarget.longhorn.io -o custom-columns=:.metadata.name --no-headers); kubectl -n longhorn-system delete backuptarget.longhorn.io $i; end
 $ for i in (kubectl -n longhorn-system get instancemanager.longhorn.io -o custom-columns=:.metadata.name --no-headers); kubectl -n longhorn-system delete instancemanager.longhorn.io $i; end
-$ for crd in (kubectl get crd -o custom-columns=:.metadata.name --no-headers | grep longhorn.io); kubectl -n longhorn-system get $crd -o yaml | sed "s/\- longhorn.io//g" | kubectl apply -f -; kubectl -n longhorn-system delete $crd --all; kubectl delete crd/$crd; end
+$ gocmd --log_level=debug get /cyverse/home/wregglej/test/configMapServices.yaml
 $ kubectl delete namespace longhorn-system
 ```
 

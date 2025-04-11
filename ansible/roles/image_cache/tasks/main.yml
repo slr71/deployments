@@ -17,6 +17,12 @@
         create_namespace: true
         state: present
         wait: true
+        values:
+          image:
+            pullPolicy: IfNotPresent
+          args:
+            controllerImagePullDeadlineDuration: 30m
+            controllerImageCacheRefreshFrequency: 1h
 
     - name: create the harbor json file
       ansible.builtin.shell:
@@ -60,4 +66,4 @@
             cacheSpec:
               - images: "{{ vice_image_cache }}"
                 nodeSelector:
-                  vice: "true"
+                  analysis: "true"
