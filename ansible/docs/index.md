@@ -82,6 +82,7 @@ You'll need the following tools installed:
  - `helm` at version `3.16` or higher. See [https://helm.sh/docs/intro/install/](https://helm.sh/docs/intro/install/)
  - `golang-migrate` at version `4.18` or higher. See [https://github.com/golang-migrate/migrate](https://github.com/golang-migrate/migrate).
  - `postgresql` client tools, namely `psql` at version `14` or higher. See [https://www.postgresql.org/download/](https://www.postgresql.org/download/).
+ - `k0sctl` at the latest stable version. See [https://github.com/k0sproject/k0sctl](https://github.com/k0sproject/k0sctl).
 
 You'll also need a kubeconfig file for the production cluster. Set the `KUBECONFIG` environment variable to the path of the kubeconfig file.
 
