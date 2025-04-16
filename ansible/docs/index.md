@@ -84,12 +84,55 @@ You'll need the following tools installed:
  - `postgresql` client tools, namely `psql` at version `14` or higher. See [https://www.postgresql.org/download/](https://www.postgresql.org/download/).
  - `k0sctl` at the latest stable version. See [https://github.com/k0sproject/k0sctl](https://github.com/k0sproject/k0sctl).
 
+
+First, make sure you have the production kubeconfig. To get it, go into the `prod-deployment` repository's top-level directory and make sure the `main` branch is up to date.
+
+### Get the kubconfig file
+Then set the `K0S_SSH_USER` and `K0S_SSH_KEY_PATH` environment variables to the values appropriate for your local environment. For example:
+
+```bash
+export K0S_SSH_USER=replace_me
+export K0S_SSH_KEY_PATH=~/.ssh/id_rsa.pub
+```
+
+Or in `fish`
+```bash
+set -gx K0S_SSH_USER replace_me
+set -gx K0S_SSH_KEY_PATH ~/.ssh/id_rsa.pub
+```
+
+Next, you should make sure that your user has passwordless ssh and sudo into the cluster. The SSH part is covered elsewhere, but the passwordless sudo should be doable with the following command:
+
+```bash
+ansible k8s_nodes -i $PROD_INVENTORY -K --become -m shell -a "usermod -aG k0s $K0S_SSH_USER"
+```
+
+Finally, run the following to generate the kubeconfig. Replace the path with the one you want/need, if needed:
+```bash
+mkdir -p ~/.kube/
+k0sctl kubeconfig > ~/.kube/prod.conf
+```
+
+### Set the KUBECONFIG environment variable
 You'll also need a kubeconfig file for the production cluster. Set the `KUBECONFIG` environment variable to the path of the kubeconfig file.
 
-Finally, you need to have the `migrate` command available in your PATH. You can get it from [https://github.com/golang-migrate/migrate](https://github.com/golang-migrate/migrate). Download the latest released version appropriate for your operating system and architecture and ensure that the `migrate` binary is in your PATH.
+For bash:
+```bash
+export KUBECONFIG=~/.kube/prod.conf
+```
 
+For fish:
+```bash
+set -gx KUBECONFIG ~/.kube/prod.conf
+```
+
+### Database migrations
+You need to have the `migrate` command available in your PATH. You can get it from [https://github.com/golang-migrate/migrate](https://github.com/golang-migrate/migrate). Download the latest released version appropriate for your operating system and architecture and ensure that the `migrate` binary is in your PATH.
+
+### Setting the path to the de-releases repository
 By default, our inventory group vars will override the `de_releases_dir` var to `../../de-releases`. This value places the cloned repository alongside the `deployments` repository when running the ansible commands from the `deployments/ansible` directory.
 
+### Deployment process
 Here is the process to deploy a release into an environment. Each line is a separate command:
 ```bash
 ansibly-playbook -i <path/to/private-inventory/inventory/> --tags=setup-databases kubernetes.yml
