@@ -58,8 +58,8 @@
     - firewall
 
 # Add a playbook/role to call 'k0sctl apply --config <path>'
-- hosts: k8s_controllers[0]
-  connection: local
+- hosts: k8s_bastions
+  run_once: true
   gather_facts: false
   become: false
   roles:
@@ -127,16 +127,16 @@
     - irods-csi-driver
 
 - name: set up irods-csi-driver
-  hosts: k8s_controllers[0]
-  connection: local
+  hosts: k8s_bastions
+  run_once: true
   become: false
   roles:
     - role: kubernetes_irods_csi_driver
   tags:
     - irods-csi-driver
 
-- hosts: k8s_controllers[0]
-  connection: local
+- hosts: k8s_bastions
+  run_once: true
   gather_facts: false
   become: false
   tags:
@@ -216,8 +216,8 @@
 - name: set up cronjobs
   become: false
   gather_facts: false
-  hosts: k8s_controllers[0]
-  connection: local
+  hosts: k8s_bastions
+  run_once: true
   roles:
     - role: cronjobs
       tags: cronjobs
@@ -238,6 +238,6 @@
       tags: argo
 
     - role: argo_resources
-      tags: 
+      tags:
         - argo-resources
         - argo
