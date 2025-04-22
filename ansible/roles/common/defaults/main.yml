@@ -523,7 +523,7 @@ tapis_secret: replace_me
 tapis_redirect_uri: replace_me
 tapis_storage_system: replace_me
 tapis_callback_base_uri: replace_me
-tapis_read_timeout: 3000
+tapis_read_timeout: 30000
 tapis_enabled: false
 tapis_jobs_enabled: false
 
