@@ -47,6 +47,7 @@
   ansible.builtin.file:
     path: "{{ rendered_configs_dir }}"
     state: absent
+  when: remove_local_configs is undefined or (remove_local_configs | bool)
 
 - name: create the configs secret
   delegate_to: localhost
