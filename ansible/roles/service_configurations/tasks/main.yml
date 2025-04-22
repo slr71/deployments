@@ -6,12 +6,16 @@
     patterns: "*.j2"
     file_type: file
   register: template_list
+  tags:
+    - local-confgs
 
 - name: create a directory to output the rendered config files.
   delegate_to: localhost
   ansible.builtin.file:
     path: "{{ rendered_configs_dir }}"
     state: directory
+  tags:
+    - local-confgs
 
 - name: render each template
   delegate_to: localhost
@@ -20,11 +24,15 @@
     dest: "{{ [[ rendered_configs_dir ] + [item.path | basename | splitext | first]] | flatten | path_join }}"
     mode: 0640
   loop: "{{ template_list.files }}"
+  tags:
+    - local-confgs
 
 - name: load configmap data
   set_fact:
     config_data: "{{ config_data | default({}) | combine({ item | basename : lookup('file', item) | b64encode }) }}"
   with_fileglob: "{{ rendered_configs_dir }}/*"
+  tags:
+    - local-confgs
 
 - name: load the configurations into the cluster
   delegate_to: localhost
