@@ -1,6 +1,5 @@
 ---
 - name: add pod-cleaner service account
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -14,7 +13,6 @@
       automountServiceAccountToken: true
 
 - name: create the pod-cleaner role
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -31,7 +29,6 @@
           verbs: ["get", "watch", "list", "delete"]
 
 - name: create the pod-cleaner role binding
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -52,7 +49,6 @@
         apiVersion: rbac.authorization.k8s.io/v1  
 
 - name: add cronjob to clean failed pods
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:

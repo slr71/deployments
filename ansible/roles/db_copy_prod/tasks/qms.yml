@@ -1,6 +1,5 @@
 ---
-- delegate_to: localhost
-  become: false
+- become: false
   block:
     - set_fact:
         dump_file: "./{{ qms_db_name }}_dump.sql"

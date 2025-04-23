@@ -1,5 +1,5 @@
 ---
-- delegate_to: localhost
+- name: install the node-feature-discovery helm repo
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   block:

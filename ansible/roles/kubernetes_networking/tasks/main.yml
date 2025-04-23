@@ -1,6 +1,5 @@
 ---
 - name: add a kifshare nodeport
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -22,7 +21,6 @@
             nodePort: "{{ kifshare_nodeport }}"
 
 - name: add a terrain nodeport
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -44,7 +42,6 @@
             nodePort: "{{ terrain_nodeport }}"
 
 - name: add a job-status-listener nodeport
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:

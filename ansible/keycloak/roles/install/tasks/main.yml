@@ -1,6 +1,5 @@
 ---
 - name: create the keycloak namespace
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -10,7 +9,6 @@
     api_version: v1
 
 - name: create the keycloak secrets
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -29,7 +27,6 @@
         passweord: "{{ keycloak_db_password | b64encode }}"
 
 - name: create the kcadmin secret
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -48,7 +45,6 @@
         password: "{{ keycloak_admin_password | b64encode}}"
 
 - name: create the kc-selfsigned-ca secret
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -75,7 +71,6 @@
           group: cert-manager.io
 
 - name: create the kc-ca-issuer issuer
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -92,7 +87,6 @@
           secretName: kc-selfsigned-ca
 
 - name: create the kc-tls certificate
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -127,7 +121,6 @@
           - keycloak
 
 - name: create the keycloak-config ConfigMap
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -152,11 +145,10 @@
         DB_NAME: "{{ keycloak_db_name }}"
         JDBC_PARAMS: "{{ keycloak_jdbc_params }}"
         JAVA_OPTS: "{{ keycloak_java_opts }}"
-        realms.json:  |
-          "{{ lookup('ansible.builtin.template', 'realms_config.json.j2') }}"
+        realms.json: |
+          {{ lookup('ansible.builtin.template', 'realms_config.json.j2') }}
 
 - name: install the keycloak deployment
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -330,7 +322,6 @@
                   failureThreshold: 10
 
 - name: install the keycloak service
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:

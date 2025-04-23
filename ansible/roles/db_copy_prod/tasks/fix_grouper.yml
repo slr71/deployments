@@ -1,6 +1,5 @@
 ---
-- delegate_to: localhost
-  become: false
+- come: false
   block:
     - name: get the prod group ID
       community.postgresql.postgresql_query:

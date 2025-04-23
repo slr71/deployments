@@ -1,8 +1,7 @@
 ---
-- hosts: k8s_controllers[0]
-  connection: local
+- hosts: k8s_bastions
+  run_once: true
   gather_facts: false
   become: false
   roles:
     - role: service_configurations
-

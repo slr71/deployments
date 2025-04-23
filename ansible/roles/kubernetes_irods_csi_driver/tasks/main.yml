@@ -1,6 +1,5 @@
 ---
 - name: install the irods CSI driver
-  delegate_to: localhost
   kubernetes.core.helm:
     create_namespace: true
     release_namespace: "{{ irods_csi_driver_namespace }}"
