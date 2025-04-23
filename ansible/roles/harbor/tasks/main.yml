@@ -1,6 +1,5 @@
 ---
 - name: Add the harbor helm repository
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm_repository:
@@ -9,7 +8,6 @@
     state: present
 
 - name: Install the harbor helm chart
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm:

@@ -1,22 +1,18 @@
 ---
 - block:
     - name: builds dir
-      delegate_to: localhost
       ansible.builtin.debug:
         msg: "{{ build_json_dir }}"
 
     - name: read the build JSON file
-      delegate_to: localhost
       set_fact:
         build_json: "{{ lookup('file', build_json_dir +'/' + project_name + '.json') | from_json }}"
 
     - name: image tag
-      delegate_to: localhost
       ansible.builtin.debug:
         msg: "{{ build_json.builds[0].tag }}"
 
     - name: run skaffold deploy
-      delegate_to: localhost
       run_once: true
       ansible.builtin.command:
         chdir: "{{ de_releases_dir }}/services/{{ project_name }}"

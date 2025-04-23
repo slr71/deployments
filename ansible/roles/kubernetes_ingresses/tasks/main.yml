@@ -1,6 +1,5 @@
 ---
 - name: Add CORS ingresses
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -61,7 +60,6 @@
                         number: 80
 
 - name: Add agave-callback ingress
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:

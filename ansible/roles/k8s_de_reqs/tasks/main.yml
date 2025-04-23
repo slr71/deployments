@@ -1,6 +1,5 @@
 ---
-- delegate_to: localhost
-  environment:
+- environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   block:
     - name: install ingress-nginx repo

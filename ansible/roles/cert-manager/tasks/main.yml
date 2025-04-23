@@ -1,6 +1,5 @@
 ---
 - name: install the cert-manager helm repo
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm_repository:
@@ -9,7 +8,6 @@
     state: present
 
 - name: install the cert-manager chart
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.helm:
@@ -24,7 +22,6 @@
         enabled: false
 
 - name: wait for cert-manager deployment to be available
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_info:
@@ -39,7 +36,6 @@
       reason: MinimumReplicasAvailable
 
 - name: wait for cert-manager-webhook deployment to be available
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_info:
@@ -54,7 +50,6 @@
       reason: MinimumReplicasAvailable
 
 - name: wait for cert-manager-cainjector deployment to be available
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s_info:
@@ -69,7 +64,6 @@
       reason: MinimumReplicasAvailable
 
 - name: apply default-issuer
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -84,7 +78,6 @@
         selfSigned: {}
 
 - name: apply default-cluster-issuer
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:

@@ -1,7 +1,7 @@
 ---
 - name: install keycloak into the cluster
-  hosts: k3s_controllers[0]
-  connection: local
+  hosts: k8s_bastions
+  run_once: true
   become: false
   gather_facts: false
   roles:

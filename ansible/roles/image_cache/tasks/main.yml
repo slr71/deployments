@@ -1,6 +1,5 @@
 ---
-- delegate_to: localhost
-  environment:
+- environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   block:
     - name: add the kube-fledged helm repo

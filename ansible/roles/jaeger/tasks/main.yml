@@ -1,6 +1,5 @@
 ---
 - name: create the jaeger namespace
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -12,7 +11,6 @@
         name: "{{ jaeger_namespace }}"
 
 - name: create the jaeger-collector deployment
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -61,7 +59,6 @@
                     port: 14269
 
 - name: create the jaeger-collector service
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -84,7 +81,6 @@
           targetPort: jaeger-http
 
 - name: create the jaeger-query deployment
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -129,7 +125,6 @@
                     port: 16687
 
 - name: create the jaeger-query service
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:
@@ -149,7 +144,6 @@
           targetPort: http-listen
 
 - name: set up the rollover cron job in the cluster
-  delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   kubernetes.core.k8s:

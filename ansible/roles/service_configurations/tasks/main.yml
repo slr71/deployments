@@ -1,5 +1,30 @@
 ---
-- delegate_to: localhost
+- name: get the list of templates from the template directory
+  ansible.builtin.find:
+    paths: "{{ de_releases_dir}}/templates"
+    patterns: "*.j2"
+    file_type: file
+  register: template_list
+
+- name: create a directory to output the rendered config files.
+  ansible.builtin.file:
+    path: "{{ rendered_configs_dir }}"
+    state: directory
+
+- name: render each template
+  ansible.builtin.template:
+    src: "{{ item.path }}"
+    dest: "{{ [[ rendered_configs_dir ] + [item.path | basename | splitext | first]] | flatten | path_join }}"
+    mode: 0640
+  loop: "{{ template_list.files }}"
+
+- name: load configmap data
+  set_fact:
+    config_data: "{{ config_data | default({}) | combine({ item | basename : lookup('file', item) | b64encode }) }}"
+  with_fileglob: "{{ rendered_configs_dir }}/*"
+
+- name: load the configurations into the cluster
+  run_once: True
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   block:

@@ -1,7 +1,6 @@
 ---
 - environment:
     SSH_KNOWN_HOSTS: /dev/null
-  delegate_to: localhost
   become: false
   block:
     - ansible.builtin.set_fact:
