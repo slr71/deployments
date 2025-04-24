@@ -1,0 +1,158 @@
+---
+- name: initialize dbs
+  hosts: dbms
+  become: false
+  roles:
+    - role: postgresql_init
+  tags:
+    - setup-databases
+    - databases
+
+# Add a playbook/role to call 'k0sctl apply --config <path>'
+- name: prepare the Kubernetes cluster
+  hosts: k8s_bastions
+  run_once: true
+  gather_facts: false
+  become: false
+  roles:
+    - role: k8s_de_reqs
+      tags: de-reqs
+
+    - role: service_configurations
+      tags: configure-services
+
+    - role: secret_loader
+      tags:
+        - configure-services
+        - secrets
+
+    - role: kubernetes_ingresses
+      tags: ingresses
+
+    - role: kubernetes_networking
+      tags:
+        - networking
+        - nodeports
+
+    - role: cert-manager
+      tags: cert-manager
+
+    - role: nats
+      tags: nats
+
+    - role: kubernetes_node_feature_discovery
+      tags: feature-discovery
+
+    - role: grouper_init
+      tags: grouper
+
+    - role: image_cache
+      tags: image-cache
+
+- name: set up irods-csi-driver
+  hosts: k8s_bastions
+  run_once: true
+  become: false
+  roles:
+    - role: kubernetes_irods_csi_driver
+  tags:
+    - irods-csi-driver
+
+- name: deploy DE services
+  hosts: k8s_bastions
+  run_once: true
+  gather_facts: false
+  become: false
+  tags:
+    - deploy-single-service
+    - deploy-all-services
+  tasks:
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ project }}"
+      tags:
+        - deploy
+      when: "'deploy-single-service' in ansible_run_tags"
+
+    - ansible.builtin.include_role:
+        name: services
+        tasks_from: main
+      vars:
+        project_name: "{{ item }}"
+      tags:
+        - deploy
+      when: "not 'deploy-single-service' in ansible_run_tags"
+      with_items:
+        - analyses
+        - app-exposer
+        - apply-labels
+        - apps
+        - async-tasks
+        - bulk-typer
+        - check-resource-access
+        - clockwork
+        - data-info
+        - de-mailer
+        - de-webhooks
+        - dewey
+        - discoenv-analyses
+        - discoenv-users
+        - email-requests
+        - event-recorder
+        - get-analysis-id
+        - info-typer
+        - infosquito2
+        - iplant-groups
+        - jex-adapter
+        - job-status-listener
+        - job-status-recorder
+        - job-status-to-apps-adapter
+        - kifshare
+        - metadata
+        - notifications
+        - permissions
+        - qms
+        - qms-adapter
+        - requests
+        - resource-usage-api
+        - data-usage-api
+        - subscriptions
+        - timelord
+        - user-info
+        - vice-default-backend
+        - vice-status-listener
+        - search
+        - dashboard-aggregator
+        - terrain
+        - sonora
+
+- name: set up cronjobs
+  become: false
+  gather_facts: false
+  hosts: k8s_bastions
+  run_once: true
+  roles:
+    - role: cronjobs
+      tags: cronjobs
+
+    - role: keycloak_install
+      tags: keycloak
+      when: "'keycloak' in ansible_run_tags"
+
+    - role: harbor
+      tags: harbor
+      when: "'harbor' in ansible_run_tags"
+
+    - role: jaeger
+      tags: jaeger
+      when: "'jaeger' in ansible_run_tags"
+
+    - role: argo
+      tags: argo
+
+    - role: argo_resources
+      tags:
+        - argo-resources
+        - argo

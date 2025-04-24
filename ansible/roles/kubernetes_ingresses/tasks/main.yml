@@ -10,7 +10,7 @@
       metadata:
         name: "discoenv"
         namespace: "{{ ns }}"
-        annotations:
+        annotations: |
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Origin: *"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Max-Age: 86400"
           ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Credentials: true"
