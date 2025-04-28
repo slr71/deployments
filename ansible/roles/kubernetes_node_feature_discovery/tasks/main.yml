@@ -1,38 +1,46 @@
 ---
-- name: install the node-feature-discovery helm repo
-  delegate_to: localhost
+- delegate_to: localhost
   environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.helm_repository:
-    name: nfd
-    repo_url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
-    state: present
+  block:
+    - name: install the node-feature-discovery helm repo
+      kubernetes.core.helm_repository:
+        name: nfd
+        repo_url: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+        state: present
 
-- name: install the nVidia helm repo
-  delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.helm_repository:
-    name: nvdp
-    repo_url: https://nvidia.github.io/k8s-device-plugin
-    state: present
+    - name: install the nVidia helm repo
+      kubernetes.core.helm_repository:
+        name: nvdp
+        repo_url: https://nvidia.github.io/k8s-device-plugin
+        state: present
 
-- name: install the node-feature-discovery chart
-  delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.helm:
-    name: node-feature-discovery
-    chart_ref: nfd/node-feature-discovery
-    namespace: kube-system
-    wait: true
+    - name: install the node-feature-discovery chart
+      kubernetes.core.helm:
+        name: node-feature-discovery
+        chart_ref: nfd/node-feature-discovery
+        namespace: kube-system
+        values:
+          worker:
+            tolerations:
+              - key: analysis
+                operation: Equal
+                value: only
+                effect: NoSchedule
+        wait: true
 
-- name: install the nVidia device plugin chart
-  delegate_to: localhost
-  environment:
-    KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
-  kubernetes.core.helm:
-    name: nvidia-device-plugin
-    chart_ref: nvdp/nvidia-device-plugin
-    namespace: kube-system
-    wait: true
+    - name: install the nVidia device plugin chart
+      kubernetes.core.helm:
+        name: nvidia-device-plugin
+        chart_ref: nvdp/nvidia-device-plugin
+        namespace: kube-system
+        values:
+          tolerations:
+            - key: nvidia.com/gpu
+              operator: Exists
+              effect: NoSchedule
+            - key: analysis
+              operator: Equal
+              value: only
+              effect: NoSchedule
+        wait: true
