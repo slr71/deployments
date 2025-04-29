@@ -33,8 +33,11 @@
       kubernetes.core.helm:
         name: nvidia-device-plugin
         chart_ref: nvdp/nvidia-device-plugin
+        chart_version: 0.17.1
         namespace: kube-system
         values:
+          gfd:
+            enabled: true
           tolerations:
             - key: nvidia.com/gpu
               operator: Exists
