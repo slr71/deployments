@@ -1,11 +1,11 @@
 grouperClient.ldap.url = {{ grouper_loader_url }}
 
 # kerberos principal used to connect to ldap
-grouperClient.ldap.login ={%- if grouper_client_auth -%}{{grouper_loader_user}}{%- endif -%}
+grouperClient.ldap.login =
 
 # password for shared secret authentication to ldap
 # or you can put a filename with an encrypted password
-grouperClient.ldap.password ={%- if grouper_client_auth -%}{{ grouper_loader_password }}{%- endif -%}
+grouperClient.ldap.password =
 
 ########################################
 ## Web service Connection settings
