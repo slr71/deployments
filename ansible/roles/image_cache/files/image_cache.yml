@@ -1,0 +1,16 @@
+apiVersion: kubefledged.io/v1alpha2
+kind: ImageCache
+metadata:
+  name: vice-image-cache
+  namespace: image-cache
+  labels:
+    app: kubefledged
+    kubefledged: imagecache
+spec:
+  imagePullSecrets:
+    - name: vice-image-pull-secret
+  cacheSpec:
+    - images:
+        - harbor.cyverse.org/de/vice-file-transfers:latest
+      nodeSelector:
+        analysis: "true"
