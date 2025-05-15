@@ -1,0 +1,10 @@
+---
+- name: Set up the VPC
+  ansible.builtin.include_tasks:
+    file: up.yml
+  when: direction == "up"
+
+- name: Tear down the VPC
+  ansible.builtin.include_tasks:
+    file: down.yml
+  when: direction == "down"
