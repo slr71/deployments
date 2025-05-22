@@ -12,12 +12,13 @@
         name: "discoenv"
         namespace: "{{ ns }}"
         annotations:
-          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Origin: *"
-          ingress.kubernetes.io/custom-request-headers: "Access-Control-Max-Age: 86400"
-          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Credentials: true"
-          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Methods: GET, POST, OPTIONS"
-          ingress.kubernetes.io/custom-request-headers: "Access-Control-Allow-Headers: DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
-          ingress.kubernetes.io/custom-request-headers: "Access-Control-Expose-Headers: DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+          nginx.ingress.kubernetes.io/cors-max-age: "86400"
+          nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+          nginx.ingress.kubernetes.io/cors-allow-methods: "GET,POST,OPTIONS"
+          nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+          nginx.ingress.kubernetes.io/cors-expose-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
       spec:
         ingressClassName: nginx
         rules:
