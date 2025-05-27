@@ -17,8 +17,8 @@
           nginx.ingress.kubernetes.io/cors-max-age: "86400"
           nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
           nginx.ingress.kubernetes.io/cors-allow-methods: "GET,POST,OPTIONS"
-          nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
-          nginx.ingress.kubernetes.io/cors-expose-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+          nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization,DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
+          nginx.ingress.kubernetes.io/cors-expose-headers: "Authorization,DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range"
       spec:
         ingressClassName: nginx
         rules:
