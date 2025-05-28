@@ -178,6 +178,7 @@
         - email-requests
         - event-recorder
         - get-analysis-id
+        - group-propagator
         - info-typer
         - infosquito2
         - iplant-groups
