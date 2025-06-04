@@ -1,5 +1,6 @@
 ---
-- environment:
+- delegate_to: localhost
+  environment:
     KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
   block:
     - ansible.builtin.set_fact:
