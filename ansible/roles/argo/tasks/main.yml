@@ -34,7 +34,7 @@
           kind: ClusterRole
           metadata:
             name: argo-executor
-            namespace: argo
+            namespace: "{{ argo_ns }}"
           rules:
             - apiGroups:
                 - argoproj.io
@@ -54,7 +54,7 @@
           kind: ServiceAccount
           metadata:
             name: argo-executor
-            namespace: argo
+            namespace: "{{ argo_ns }}"
 
     - name: create the argo-executor role-binding
       kubernetes.core.k8s:
@@ -64,16 +64,16 @@
           kind: ClusterRoleBinding
           metadata:
             name: argo-executor-binding
-            namespace: argo
+            namespace: "{{ argo_ns }}"
           roleRef:
             apiGroup: rbac.authorization.k8s.io
             kind: ClusterRole
             name: argo-executor
-            namespace: argo
+            namespace: "{{ argo_ns }}"
           subjects:
             - kind: ServiceAccount
               name: argo-executor
-              namespace: argo
+              namespace: "{{ argo_ns }}"
 
     - name: install argo-events
       kubernetes.core.k8s:

@@ -57,6 +57,12 @@ deploy: true
 commit: true
 
 # Namespaces
+## The namespace containing Argo Events.
+argo_events_ns: argo-events
+
+## The namespace containing Argo Workflows, which is also where batch analyses run.
+argo_ns: argo
+
 ## The namespace containing the Discovery Environment services.
 ns: qa
 
