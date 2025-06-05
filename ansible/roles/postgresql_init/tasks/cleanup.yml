@@ -1,0 +1,8 @@
+---
+- delegate_to: localhost
+  block:
+    - name: init db | remove staging directory
+      ansible.builtin.file:
+        path: "{{ dbs_dir.path }}"
+        state: absent
+      when: dbs_dir.path is defined and cleanup is defined and cleanup

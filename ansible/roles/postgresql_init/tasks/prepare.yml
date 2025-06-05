@@ -1,0 +1,27 @@
+---
+- delegate_to: localhost
+  block:
+    - name: create connection user
+      community.postgresql.postgresql_user:
+        login_host: "{{ groups['dbms'][0] }}"
+        port: "{{ pg_listen_port }}"
+        login_user: "{{ pg_login_user }}"
+        login_password: "{{ pg_login_password }}"
+        db: "{{ pg_db }}"
+        name: "{{ dbms_connection_user }}"
+        password: "{{ dbms_connection_pass }}"
+      when: create_user is defined and create_user
+
+    - name: create staging directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: "-dbs"
+      register: dbs_dir
+
+    - name: check for migrate command
+      command: which migrate
+      changed_when: false
+      register: migrate_installed
+
+    - debug:
+        msg: "{{ migrate_installed }}"
