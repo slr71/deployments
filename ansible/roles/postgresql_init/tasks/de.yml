@@ -43,7 +43,7 @@
         name: "uuid-ossp"
       when: install_exts is defined and install_exts
 
-    - name: install uuid-ossp for metdata database
+    - name: install uuid-ossp for metadata database
       community.postgresql.postgresql_ext:
         login_host: "{{ groups['dbms'][0] }}"
         port: "{{ pg_listen_port }}"
