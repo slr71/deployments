@@ -15,7 +15,8 @@
         template: "{{ template }}"
       when: create_dbs is defined and create_dbs and qms is defined and qms
 
-    - name: nstall uuid-ossp for qms database
+    - name: install extensions for the qms database
+      when: install_exts is defined and install_exts and qms is defined and qms
       community.postgresql.postgresql_ext:
         login_host: "{{ groups['dbms'][0] }}"
         port: "{{ pg_listen_port }}"
@@ -23,37 +24,11 @@
         login_password: "{{ pg_login_password }}"
         db: "{{ qms_db_name }}"
         name: "uuid-ossp"
-      when: install_exts is defined and install_exts and qms is defined and qms
-
-    - name: install moddatetime for qms database
-      community.postgresql.postgresql_ext:
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        db: "{{ qms_db_name }}"
-        name: "moddatetime"
-      when: install_exts is defined and install_exts and qms is defined and qms
-
-    - name: install btree_gist for qms database
-      community.postgresql.postgresql_ext:
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        db: "{{ qms_db_name }}"
-        name: "btree_gist"
-      when: install_exts is defined and install_exts and qms is defined and qms
-
-    - name: install insert_username for qms database
-      community.postgresql.postgresql_ext:
-        login_host: "{{ groups['dbms'][0] }}"
-        port: "{{ pg_listen_port }}"
-        login_user: "{{ pg_login_user }}"
-        login_password: "{{ pg_login_password }}"
-        db: "{{ qms_db_name }}"
-        name: "insert_username"
-      when: install_exts is defined and install_exts and qms is defined and qms
+      loop:
+        - uuid-ossp
+        - moddatetime
+        - btree_gist
+        - insert_username
 
     - name: checkout the qms repo for its migrations
       ansible.builtin.git:
