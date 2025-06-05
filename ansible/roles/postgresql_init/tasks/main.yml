@@ -6,5 +6,4 @@
 - ansible.builtin.include_tasks: unleash.yml
 - ansible.builtin.include_tasks: harbor.yml
 - ansible.builtin.include_tasks: keycloak.yml
-- ansible.builtin.include_tasks: de_releases.yml
 - ansible.builtin.include_tasks: cleanup.yml
