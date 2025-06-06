@@ -19,6 +19,14 @@
     - setup-databases
     - databases
 
+- name: install GPU drivers
+  hosts: k8s_gpu_workers
+  become: true
+  roles:
+    - nvidia_drivers
+  tags:
+    - install-gpu-drivers
+
 # so they can register through the load-balancer, otherwise
 # they won't be able to use it.
 - name: set the HAProxy load balancer
@@ -239,6 +247,6 @@
       tags: argo
 
     - role: argo_resources
-      tags: 
+      tags:
         - argo-resources
         - argo
