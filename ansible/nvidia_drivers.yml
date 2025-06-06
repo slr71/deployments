@@ -1,0 +1,6 @@
+---
+- name: install GPU drivers
+  hosts: k8s_gpu_workers
+  become: true
+  roles:
+    - nvidia_drivers

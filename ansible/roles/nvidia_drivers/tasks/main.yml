@@ -1,0 +1,113 @@
+---
+- name: check for NVIDIA GPUs
+  ansible.builtin.shell:
+    cmd: "lspci | grep -e NVIDIA"
+  changed_when: false
+
+- name: install system updates
+  ansible.builtin.package:
+    name: "*"
+    state: latest
+  notify: reboot host
+
+- name: enable additional DNF repositories
+  community.general.dnf_config_manager:
+    name:
+      - crb
+    state: enabled
+
+- name: install the epel-release repository
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+
+- name: stat the nvidia repo file
+  ansible.builtin.stat:
+    path: /etc/yum.repos.d/cuda-rhel9.repo
+  register: cuda_repo
+
+- name: install the nvidia repo if not present
+  ansible.builtin.command:
+    argv:
+      - dnf
+      - config-manager
+      - --add-repo
+      - https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo
+  when: not cuda_repo.stat.exists
+
+- name: update the DNF cache
+  ansible.builtin.dnf:
+    update_cache: true
+
+- name: get the kernel release
+  ansible.builtin.command:
+    argv:
+      - uname
+      - -r
+  register: uname
+  changed_when: false
+
+- name: install driver dependencies
+  ansible.builtin.package:
+    name:
+      - "kernel-headers-{{ uname.stdout }}"
+      - "kernel-devel-{{ uname.stdout }}"
+      - tar
+      - bzip2
+      - make
+      - automake
+      - gcc
+      - gcc-c++
+      - pciutils
+      - elfutils-libelf-devel
+      - libglvnd-opengl
+      - libglvnd-glx
+      - libglvnd-devel
+      - acpid
+      - pkgconfig
+      - dkms
+    state: present
+  notify: reboot host
+
+- name: disable Nouveau drivers
+  community.general.kernel_blacklist:
+    name: nouveau
+    state: present
+
+- name: omit Nouveau drivers from the boot process
+  ansible.builtin.copy:
+    dest: /etc/dracut.conf.d/blacklist-nouveau.conf
+    content: 'omit_drivers+=" nouveau "'
+
+- name: regenerate the initial RAM system
+  ansible.builtin.command:
+    argv:
+      - dracut
+      - --regenerate-all
+      - --force
+  changed_when: false
+
+- name: regenerate module dependency files
+  ansible.builtin.command:
+    argv:
+      - depmod
+      - -a
+  changed_when: false
+
+- name: install the NVIDIA drivers
+  ansible.builtin.dnf:
+    name: "@nvidia-driver:latest-dkms"
+    state: present
+  notify: reboot host
+
+- name: install CUDA development dependencies
+  ansible.builtin.package:
+    name:
+      - freeglut-devel
+      - libX11-devel
+      - libXmu-devel
+      - make
+      - mesa-libGLU-devel
+      - freeimage-devel
+    state: present
+  notify: reboot host
