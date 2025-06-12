@@ -245,6 +245,10 @@ irods_csi_driver_cache_timeout_settings: '[{"path":"/","timeout":"-1ns","inherit
 irods_csi_driver_kubelet_dir: "/var/lib/k0s/kubelet"
 irods_csi_driver_pool_server_endpoint: rodsfs.example.org:12020
 
+# NVIDIA Container Toolkit Vars
+nvidia_container_toolkit_runtime: containerd
+nvidia_container_toolkit_runtime_config_path: /etc/k0s/containerd.d/nvidia.toml
+
 # DE Databases Variables
 dbms_connection_user: de
 dbms_connection_pass: Ch@ng3M3
