@@ -69,6 +69,27 @@ ns: qa
 ## The namespaces containing the running VICE apps.
 vice_ns: vice-apps
 
+## Feature Flags
+admin_enabled: true
+notifications_enabled: true
+apps_enabled: true
+bags_enabled: true
+metadata_enabled: true
+prefs_enabled: true
+user_info_enabled: true
+data_enabled: true
+sessions_enabled: true
+collaborators_enabled: true
+fileio_enabled: true
+filesystem_enabled: true
+search_enabled: true
+requests_enabled: true
+settings_enabled: true
+coge_enabled: true
+resource_usage_api_enabled: true
+qms_api_enabled: true
+data_usage_api_enabled: true
+
 # Agave Variables
 ## Whether to enable Agave support.
 agave_enabled: false
