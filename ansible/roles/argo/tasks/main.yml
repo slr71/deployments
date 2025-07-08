@@ -10,7 +10,7 @@
           apiVersion: v1
           kind: Namespace
           metadata:
-            name: argo
+            name: "{{ argo_ns }}"
 
     - name: create the argo events namespace
       kubernetes.core.k8s:
@@ -24,7 +24,7 @@
     - name: install argo
       kubernetes.core.k8s:
         state: present
-        src: install.yaml
+        definition: "{{ lookup('template', 'install.yaml') | from_yaml_all }}"
 
     - name: create argo-executor role
       kubernetes.core.k8s:
@@ -78,14 +78,14 @@
     - name: install argo-events
       kubernetes.core.k8s:
         state: present
-        src: argo_events_install.yaml
+        definition: "{{ lookup('template', 'argo_events_install.yaml') | from_yaml_all }}"
 
     - name: install argo-events eventbus
       kubernetes.core.k8s:
         state: present
-        src: argo_events_eventbus_install.yaml
+        definition: "{{ lookup('template', 'argo_events_eventbus_install.yaml') | from_yaml_all }}"
 
     - name: install argo-events sensor rbac
       kubernetes.core.k8s:
         state: present
-        src: argo_events_sensor_rbac.yaml
+        definition: "{{ lookup('template', 'argo_events_sensor_rbac.yaml') | from_yaml_all }}"
