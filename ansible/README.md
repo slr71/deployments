@@ -23,13 +23,16 @@ The following databases are created by the `postgresql_init.yml` playbook:
 
 The owner users are configurable through the `dbms_connection_user` and `grouper_connection_user` group_vars.
 
-Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `grouper` database is handled by its own playbook since it's fairly complicated. The `qms`
-database is created here, but populated by the `qms` service. `unleash` is not yet initialized by this playbook.
+Migrations are run for the `de`, `metadata`, `notifications`, and `de_releases` databases. The `grouper` database is
+handled by its own playbook since it's fairly complicated. The `qms` database is created here, but populated by the
+`qms` service. `unleash` is not yet initialized by this playbook.
 
 ## Kubernetes
 
-The k0s distribution of Kubernetes is used by the DE, with the `k0sctl` tool providing the ability to bring up and
-tear down clusters according to a YAML configuration file. We're using stacked control nodes, which means that each control node also acts as a etcd member node. Control nodes do not run workloads and do not show up in the `kubectl get nodes` command output.
+The k0s distribution of Kubernetes is used by the DE, with the `k0sctl` tool providing the ability to bring up and tear
+down clusters according to a YAML configuration file. We're using stacked control nodes, which means that each control
+node also acts as a etcd member node. Control nodes do not run workloads and do not show up in the `kubectl get nodes`
+command output.
 
 ## OpenLDAP
 
@@ -112,4 +115,12 @@ Deploying all of the services, without the configurations:
 
 ```bash
 ansible-playbook -i <inventory> --tags deploy-all services.yml
+```
+
+# Common Tasks
+
+## Add a Node to the Kubernetes Cluster
+
+``` bash
+ansible-playbook -i <inventory> --ask-become-pass --tags add-nodes --limit <node-name> kubernetes.yaml
 ```
