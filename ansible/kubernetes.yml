@@ -27,6 +27,7 @@
   tags:
     - install-gpu-drivers
     - prep-nodes
+    - add-nodes
 
 # so they can register through the load-balancer, otherwise
 # they won't be able to use it.
@@ -48,6 +49,7 @@
   tags:
     - timezone
     - prep-nodes
+    - add-nodes
 
 - name: prepare the nodes
   hosts: k8s_nodes
@@ -56,6 +58,7 @@
     - role: k8s_nodes
   tags:
     - prep-nodes
+    - add-nodes
 
 - name: set up firewall
   hosts: k8s_nodes
@@ -64,6 +67,7 @@
     - role: k8s_firewalld
   tags:
     - prep-nodes
+    - add-nodes
     - firewall
 
 # Add a playbook/role to call 'k0sctl apply --config <path>'
@@ -73,7 +77,9 @@
   become: false
   roles:
     - role: k8s_cluster
-      tags: create-cluster
+      tags:
+        - create-cluster
+        - add-nodes
 
     - role: k8s_de_reqs
       tags: de-reqs
@@ -116,6 +122,8 @@
     - nvidia_container_toolkit
   tags:
     - post-k8s-tasks
+    - prep-nodes
+    - add-nodes
 
 - name: create the irods-csi-driver plugin directory
   hosts: k8s_workers
@@ -129,6 +137,8 @@
         recurse: true
   tags:
     - irods-csi-driver
+    - prep-nodes
+    - add-nodes
 
 - name: create the irods-csi-driver plugins_registry directory
   hosts: k8s_workers
@@ -142,6 +152,8 @@
         recurse: true
   tags:
     - irods-csi-driver
+    - prep-nodes
+    - add-nodes
 
 - name: set up irods-csi-driver
   hosts: k8s_controllers[0]
