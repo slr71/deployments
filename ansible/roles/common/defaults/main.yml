@@ -493,7 +493,7 @@ vice_use_case_chars_min: 60
 vice_default_backend_loading_page_template_string: 'https://qa.cyverse.org/vice/\{\{.URL\}\}'
 
 # Admin settings
-admin_groups: core-services,tito-admins,tito-qa-admins,dev,staff
+admin_groups: core-services,dev,staff
 admin_attribute: entitlement
 
 # Analytics settings
