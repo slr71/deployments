@@ -233,26 +233,9 @@
                                 - local-exim
                         topologyKey: kubernetes.io/hostname
                 restartPolicy: Always
-                volumes:
-                  - name: localtime
-                    hostPath:
-                      path: /etc/localtime
-                  - name: timezone
-                    configMap:
-                      name: timezone
-                      items:
-                        - key: timezone
-                          path: timezone
                 containers:
                   - name: local-exim
                     image: "discoenv/exim-sender@sha256:af3543b26caba4407a3c6255721ca1cc02da63cd0886025262a6d8d11f6a1d96"
-                    volumeMounts:
-                      - name: localtime
-                        mountPath: /etc/localtime
-                        readOnly: true
-                      - name: timezone
-                        mountPath: /etc/timezone
-                        subPath: timezone
                     resources:
                       requests:
                         cpu: "5m"
@@ -261,6 +244,11 @@
                         cpu: "100m"
                         memory: "256Mi"
                     env:
+                      - name: TZ
+                        valueFrom:
+                          configMapKeyRef:
+                            name: timezone
+                            key: timezone
                       - name: DE_ENV
                         value: "{{ ns }}"
                       - name: PRIMARY_HOST
@@ -344,27 +332,9 @@
                                 - unleash
                         topologyKey: kubernetes.io/hostname
                 restartPolicy: Always
-                volumes:
-                  - name: localtime
-                    hostPath:
-                      path: /etc/localtime
-                  - name: timezone
-                    configMap:
-                      name: timezone
-                      items:
-                        - key: timezone
-                          path: timezone
                 containers:
                   - name: unleash
                     image: unleashorg/unleash-server:4.0.5
-                    volumeMounts:
-                      - name: localtime
-                        mountPath: /etc/localtime
-                        readOnly: true
-
-                      - name: timezone
-                        mountPath: /etc/timezone
-                        subPath: timezone
                     env:
                       - name: DATABASE_HOST
                         valueFrom:
