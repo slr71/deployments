@@ -43,15 +43,6 @@
             namespace: "{{ ns }}"
           spec:
             volumes:
-              - name: localtime
-                hostPath:
-                  path: /etc/localtime
-              - name: timezone
-                configMap:
-                  name: timezone
-                  items:
-                    - key: timezone
-                      path: timezone
               - name: grouper-configs
                 secret:
                   secretName: grouper-configs
@@ -84,13 +75,13 @@
                 tty: true
                 command:
                   - sh
+                env:
+                  - name: TZ
+                    valueFrom:
+                      configMapKeyRef:
+                        name: timezone
+                        key: timezone
                 volumeMounts:
-                  - name: localtime
-                    mountPath: /etc/localtime
-                    readOnly: true
-                  - name: timezone
-                    mountPath: /etc/timezone
-                    readOnly: true
                   - name: grouper-configs
                     mountPath: /etc/grouper
                     readOnly: true
@@ -281,15 +272,6 @@
                     topologyKey: kubernetes.io/hostname
             restartPolicy: Always
             volumes:
-              - name: localtime
-                hostPath:
-                  path: /etc/localtime
-              - name: timezone
-                configMap:
-                  name: timezone
-                  items:
-                    - key: timezone
-                      path: timezone
               - name: realm-config
                 secret:
                   secretName: grouper-configs
@@ -344,14 +326,6 @@
                 command: ["/bin/bash"]
                 args: ["-c", "gsh -loader"]
                 volumeMounts:
-                  - name: localtime
-                    mountPath: /etc/localtime
-                    readOnly: true
-
-                  - name: timezone
-                    mountPath: /etc/timezone
-                    subPath: timezone
-
                   - name: realm-config
                     mountPath: /usr/src/app/realm.properties
                     subPath: realm.properties
@@ -360,6 +334,12 @@
                     mountPath: /etc/grouper
                     readOnly: true
                 env:
+                  - name: TZ
+                    valueFrom:
+                      configMapKeyRef:
+                        name: timezone
+                        key: timezone
+
                   - name: JAVA_TOOL_OPTIONS
                     valueFrom:
                       configMapKeyRef:
@@ -409,15 +389,6 @@
                     topologyKey: kubernetes.io/hostname
             restartPolicy: Always
             volumes:
-              - name: localtime
-                hostPath:
-                  path: /etc/localtime
-              - name: timezone
-                configMap:
-                  name: timezone
-                  items:
-                    - key: timezone
-                      path: timezone
               - name: realm-config
                 secret:
                   secretName: grouper-configs
@@ -471,14 +442,6 @@
                     ephemeral-storage: "1Gi"
                 args: ["ws"]
                 volumeMounts:
-                  - name: localtime
-                    mountPath: /etc/localtime
-                    readOnly: true
-
-                  - name: timezone
-                    mountPath: /etc/timezone
-                    subPath: timezone
-
                   - name: realm-config
                     mountPath: /usr/src/app/realm.properties
                     subPath: realm.properties
@@ -487,6 +450,11 @@
                     mountPath: /etc/grouper
                     readOnly: true
                 env:
+                  - name: TZ
+                    valueFrom:
+                      configMapKeyRef:
+                        name: timezone
+                        key: timezone
                   - name: WEBAPPS_HOME
                     value: "/usr/src/app"
                   - name: JAVA_TOOL_OPTIONS
