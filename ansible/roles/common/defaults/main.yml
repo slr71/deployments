@@ -22,6 +22,9 @@ vice_wildcard_fqdn: "*.cyverse.run"
 ## The base domain that VICE domains are accessible through.
 vice_base_domain: cyverse.run
 
+## The local storage class to use for VICE apps.
+vice_local_storage_class: openebs-hostpath
+
 ## The iRODS UID domain.
 uid_domain: iplantcollaborative.org
 
